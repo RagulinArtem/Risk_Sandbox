@@ -1,7 +1,10 @@
+import logging
 from functools import lru_cache
 
+from app.core.config import get_settings
 from app.integrations.risk_sources.base import RiskSource
 from app.integrations.risk_sources.local import LocalRiskSource
+from app.integrations.risk_sources.polymarket import PolymarketRiskSource
 from app.schemas.portfolio import Portfolio
 from app.schemas.risk import PortfolioRelevance, RiskRadarItem, RiskSignal
 from app.services.scenario_service import (
@@ -9,6 +12,8 @@ from app.services.scenario_service import (
     ScenarioService,
     get_scenario_service,
 )
+
+logger = logging.getLogger(__name__)
 
 # Portfolio-weighted |shock| thresholds used to classify relevance.
 # e.g. HIGH_RELEVANCE_THRESHOLD=0.10 means: if this scenario's assumptions,
@@ -34,6 +39,11 @@ class RiskRadarService:
     matching scenario yet (pure "risk discovery", before a scenario has
     been built) simply gets no exposure data and "low" relevance rather
     than failing.
+
+    Each source is queried independently and a source that raises (a
+    network error, an API being down) is skipped rather than failing the
+    whole radar — see Principle 4 in AGENTS.md: a live integration is
+    additive, never a hard dependency for the rest of the app.
     """
 
     def __init__(self, sources: list[RiskSource], scenario_service: ScenarioService):
@@ -43,7 +53,15 @@ class RiskRadarService:
     def get_risk_radar(self, portfolio: Portfolio) -> list[RiskRadarItem]:
         items: list[RiskRadarItem] = []
         for source in self._sources:
-            for signal in source.get_risk_signals():
+            try:
+                signals = source.get_risk_signals()
+            except Exception:
+                logger.exception(
+                    "%s failed to produce risk signals; skipping it for this request.",
+                    type(source).__name__,
+                )
+                continue
+            for signal in signals:
                 items.append(self._to_radar_item(signal, portfolio))
         return items
 
@@ -75,6 +93,10 @@ class RiskRadarService:
             portfolio_relevance=relevance,
             probability_signal=signal.probability_signal,
             source_status=signal.source_status,
+            source_name=signal.source_name,
+            source_url=signal.source_url,
+            source_date=signal.source_date,
+            retrieved_at=signal.retrieved_at,
             scenario_id=signal.scenario_id,
             exposure_symbols=exposure_symbols,
         )
@@ -91,7 +113,10 @@ class RiskRadarService:
 @lru_cache
 def get_risk_radar_service() -> RiskRadarService:
     scenario_service = get_scenario_service()
-    return RiskRadarService(
-        sources=[LocalRiskSource(scenario_service)],
-        scenario_service=scenario_service,
-    )
+    settings = get_settings()
+
+    sources: list[RiskSource] = [LocalRiskSource(scenario_service)]
+    if settings.enable_polymarket:
+        sources.append(PolymarketRiskSource())
+
+    return RiskRadarService(sources=sources, scenario_service=scenario_service)

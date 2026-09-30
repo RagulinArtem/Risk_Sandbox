@@ -30,20 +30,30 @@ don't let it drift from reality.
   assumptions + transmission chain), stress-test result (headline
   impact, contribution chart, "why this matters" note), custom scenario
   input — all wired to the live API, no mock data in the frontend itself.
-- 32 backend tests passing; `ruff check` clean; frontend `typecheck` +
+- 39 backend tests passing; `ruff check` clean; frontend `typecheck` +
   `lint` + `build` clean. Full user flow verified in an actual browser
   (Risk Radar → scenario → stress test → custom "what if").
 - CORS, structured error responses (422 for validation, 404 for unknown
   scenario, generic safe 500 for anything unexpected — never a raw
   stack trace).
+- Risk Radar is resilient to a live source failing: `RiskRadarService`
+  queries each `RiskSource` independently and skips one that raises rather
+  than failing the whole endpoint.
+- **Polymarket risk discovery** (`integrations/risk_sources/polymarket.py`,
+  `ENABLE_POLYMARKET=true`, off by default) — calls the public Gamma API,
+  keyword-matches a market's question to an existing demo scenario, and
+  surfaces the market's real current price as `probability_signal` with
+  full provenance (`source_name`, `source_url`, `retrieved_at`,
+  `source_status: "live"`). 6 unit tests against a fixture matching the
+  documented API shape. **Not yet verified against the live API** — built
+  in a sandbox whose network policy denies `gamma-api.polymarket.com`;
+  verify once outside it (see the module's docstring).
 
 ## MOCKED
 
 - **AI scenario parsing** — `MockScenarioProvider` is a small fixed
   keyword+beta table, not NLP or a real LLM call. Explicitly labeled as
   rule-based in the UI.
-- **Risk discovery** — `LocalRiskSource` derives signals 1:1 from the
-  local demo scenario library, not from any live feed.
 - **Deterministic explanation** — the "why this matters" text is
   rule-based Python, not LLM output, and labeled as such in the UI.
 
@@ -52,8 +62,6 @@ don't let it drift from reality.
 - **AWS Bedrock** (`integrations/ai/bedrock.py`) — config validation and
   graceful-failure skeleton exist; the real prompt/response path is
   untested against live AWS (needs credentials + a chosen model).
-- **Polymarket** (`integrations/risk_sources/polymarket.py`) — documented
-  TODO stub, raises `NotImplementedError`.
 - **News ingestion** (`integrations/risk_sources/news.py`) — documented
   TODO stub.
 - **Institutional research source**

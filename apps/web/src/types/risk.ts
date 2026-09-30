@@ -10,6 +10,10 @@ export interface RiskRadarItem {
   portfolio_relevance: PortfolioRelevance;
   probability_signal: string | null;
   source_status: SourceStatus;
+  source_name: string | null;
+  source_url: string | null;
+  source_date: string | null;
+  retrieved_at: string | null;
   scenario_id: string;
   exposure_symbols: string[];
 }

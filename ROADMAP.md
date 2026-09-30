@@ -40,8 +40,8 @@ written down, even if unimplemented.
 | Priority | Feature | Owner | Status | Acceptance |
 | --- | --- | --- | --- | --- |
 | P1 | Bedrock provider | TBD | IN PROGRESS | Skeleton + graceful-failure path done (`integrations/ai/bedrock.py`); real prompt/response validated against live AWS still open |
-| P1 | Polymarket integration (or chosen alternative) | TBD | TODO | Implements `RiskSource`, preserves provenance, never fabricates a probability |
-| P0 | Provenance support | TBD | DONE | `source_status`/`source_name`/`source_url`/`source_date`/`retrieved_at` on every signal schema |
+| P1 | Polymarket integration | TBD | IN PROGRESS | Implements `RiskSource`, preserves provenance, never fabricates a probability — done and unit-tested (`integrations/risk_sources/polymarket.py`, `ENABLE_POLYMARKET=true`); live-API verification still open (sandbox network policy blocked it during development — see `docs/CURRENT_STATE.md`) |
+| P0 | Provenance support | TBD | DONE | `source_status`/`source_name`/`source_url`/`source_date`/`retrieved_at` on every signal schema, and now on `RiskRadarItem` too so the frontend can render it |
 | P0 | Live/demo fallback | TBD | DONE | `AI_PROVIDER=mock` default; unconfigured Bedrock raises a caught, user-safe error |
 
 **Acceptance for the day:** the architecture supports live data without

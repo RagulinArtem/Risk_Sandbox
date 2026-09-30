@@ -65,6 +65,29 @@ forbids. A risk/stress-testing tool is honestly buildable at hackathon
 scope with illustrative-but-clearly-labeled assumptions, and is a more
 defensible, differentiated pitch than "yet another AI stock picker."
 
+## Why Polymarket signals map to existing scenarios instead of new ones
+
+`PolymarketRiskSource` keyword-matches a market's question to one of our
+existing illustrative scenario ids rather than synthesizing a brand-new
+scenario (with its own asset_shocks) from the market data. Two reasons:
+
+1. **We don't have a defensible way to turn "62% chance the Fed cuts
+   rates" into "-6% NVDA" ourselves.** A prediction-market probability is
+   not an asset-shock magnitude — inventing one would be exactly the fake
+   precision Principle 3 forbids. Borrowing the magnitude from a scenario
+   a human already reviewed keeps every number in the app either
+   illustrative-and-labeled or genuinely live, never a blend pretending to
+   be one or the other.
+2. **It keeps "Stress Test" always valid.** Every Risk Radar row's action
+   button needs a real `scenario_id` the stress-test endpoint can resolve.
+   A market with no keyword match is skipped rather than given a
+   synthetic scenario id, so there's no dead-end click.
+
+The tradeoff: a real, current probability is attached to an illustrative
+impact magnitude someone wrote before that probability existed. This is
+disclosed, not hidden — the UI shows the live probability and the
+scenario's `DEMO`/illustrative shocks as what they are, separately.
+
 ## Why `DirectAssetShockEngine` before a factor model
 
 A flat per-asset shock is the simplest thing that (a) produces a correct,

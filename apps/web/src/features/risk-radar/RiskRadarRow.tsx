@@ -17,7 +17,7 @@ export function RiskRadarRow({
           <RelevanceBadge relevance={item.portfolio_relevance} />
         </div>
         <p className="mt-1.5 max-w-2xl text-sm text-ink-secondary">{item.summary}</p>
-        <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1 text-xs sm:grid-cols-3">
+        <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1 text-xs sm:grid-cols-4">
           <div className="flex gap-2">
             <dt className="text-ink-tertiary">Category</dt>
             <dd className="font-mono text-ink-secondary">{item.category}</dd>
@@ -31,7 +31,30 @@ export function RiskRadarRow({
           <div className="flex gap-2">
             <dt className="text-ink-tertiary">Signal</dt>
             <dd className="font-mono text-ink-secondary">
-              {item.probability_signal ?? "No live signal connected"}
+              {item.probability_signal ?? "Not connected"}
+            </dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-ink-tertiary">Source</dt>
+            <dd className="font-mono text-ink-secondary">
+              {item.source_name ? (
+                item.source_url ? (
+                  <a
+                    href={item.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent-strong underline decoration-accent/40 underline-offset-2 hover:text-accent"
+                  >
+                    {item.source_name} ↗
+                  </a>
+                ) : (
+                  item.source_name
+                )
+              ) : item.source_status === "illustrative" ? (
+                "Local demo dataset"
+              ) : (
+                "—"
+              )}
             </dd>
           </div>
         </dl>

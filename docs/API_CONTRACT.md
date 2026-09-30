@@ -106,7 +106,9 @@ to ~1.0. `404` if `scenario_id` doesn't match a known scenario.
 ## `GET /api/risk-radar`
 
 Returns `RiskRadarItem[]`, scored against the demo portfolio (v0 has no
-multi-portfolio support — see `docs/CURRENT_STATE.md`).
+multi-portfolio support — see `docs/CURRENT_STATE.md`). Combines every
+configured `RiskSource`; a source that fails (e.g. a live API being down)
+is skipped for that request rather than failing the whole endpoint.
 
 ### `RiskRadarItem`
 
@@ -117,12 +119,24 @@ multi-portfolio support — see `docs/CURRENT_STATE.md`).
   category: string;
   summary: string;
   portfolio_relevance: "low" | "medium" | "high";
-  probability_signal: string | null;   // always null until a live source is wired up
+  probability_signal: string | null;   // real number from a live source, or null
   source_status: "illustrative" | "verified" | "live";
+  source_name: string | null;          // e.g. "Polymarket" — null for local demo data
+  source_url: string | null;
+  source_date: string | null;
+  retrieved_at: string | null;         // ISO timestamp, set only by live sources
   scenario_id: string;
   exposure_symbols: string[];          // top-3 held symbols by weighted exposure
 }
 ```
+
+When `ENABLE_POLYMARKET=true`, live Polymarket markets matching a known
+scenario's keywords (`integrations/risk_sources/polymarket.py`) appear
+with `category: "live-market"`, `source_status: "live"`, a real
+`probability_signal`, and `scenario_id` pointing at the existing
+illustrative scenario whose `asset_shocks` a stress test against that
+signal will use — the probability is real, the impact magnitude stays an
+explicit, editable, illustrative assumption.
 
 ## `POST /api/ai/parse-scenario`
 
