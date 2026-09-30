@@ -1,0 +1,25 @@
+{
+  "id": "global-recession",
+  "title": "Global Recession",
+  "category": "macro",
+  "description": "Illustrative broad-based global demand contraction and earnings recession.",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "90d",
+  "transmission": [
+    "Global demand contracts across major economies",
+    "Corporate earnings expectations decline broadly",
+    "Risk assets are sold across the board",
+    "Central banks pivot toward rate cuts; government bonds and gold rally on flight-to-quality"
+  ],
+  "asset_shocks": {
+    "NVDA": -0.30,
+    "QQQ": -0.22,
+    "SPY": -0.18,
+    "BTC": -0.35,
+    "GLD": 0.08,
+    "TLT": 0.10
+  }
+}

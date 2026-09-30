@@ -1,0 +1,25 @@
+{
+  "id": "technology-correction",
+  "title": "Technology Correction",
+  "category": "market",
+  "description": "Illustrative broad-based technology selloff driven by valuation multiple compression rather than a specific external shock.",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "30d",
+  "transmission": [
+    "Technology valuations reach elevated levels relative to history",
+    "A catalyst (earnings miss, guidance cut) triggers repricing",
+    "Valuation multiples compress across the sector",
+    "Broad technology selloff, with high-beta names hit hardest"
+  ],
+  "asset_shocks": {
+    "NVDA": -0.20,
+    "QQQ": -0.15,
+    "SPY": -0.08,
+    "BTC": -0.15,
+    "GLD": 0.02,
+    "TLT": 0.03
+  }
+}

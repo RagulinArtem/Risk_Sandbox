@@ -1,0 +1,40 @@
+from typing import Literal
+
+from pydantic import BaseModel
+
+from app.schemas.scenario import SourceStatus
+
+PortfolioRelevance = Literal["low", "medium", "high"]
+
+
+class RiskSignal(BaseModel):
+    """A single retrieved/derived risk signal, before portfolio context is
+    applied. Every field beyond id/title/summary is provenance metadata —
+    see docs/DATA_SOURCES.md."""
+
+    id: str
+    title: str
+    category: str
+    summary: str
+    source_status: SourceStatus
+    source_name: str | None = None
+    source_url: str | None = None
+    source_date: str | None = None
+    retrieved_at: str | None = None
+    scenario_id: str
+    probability_signal: str | None = None
+
+
+class RiskRadarItem(BaseModel):
+    """A risk signal enriched with portfolio-specific relevance, as shown on
+    the Risk Radar."""
+
+    id: str
+    title: str
+    category: str
+    summary: str
+    portfolio_relevance: PortfolioRelevance
+    probability_signal: str | None = None
+    source_status: SourceStatus
+    scenario_id: str
+    exposure_symbols: list[str] = []

@@ -1,0 +1,25 @@
+{
+  "id": "semiconductor-supply-shock",
+  "title": "Semiconductor Supply Shock",
+  "category": "geopolitical",
+  "description": "Illustrative disruption affecting semiconductor supply chains, e.g. from export controls or a fab-region disruption.",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "30d",
+  "transmission": [
+    "Supply disruption at leading-edge chip fabs",
+    "Semiconductor availability falls",
+    "Technology production expectations weaken",
+    "Technology valuations face pressure"
+  ],
+  "asset_shocks": {
+    "NVDA": -0.25,
+    "QQQ": -0.12,
+    "SPY": -0.06,
+    "BTC": -0.08,
+    "GLD": 0.05,
+    "TLT": 0.02
+  }
+}

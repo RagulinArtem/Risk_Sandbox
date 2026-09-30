@@ -1,0 +1,148 @@
+import math
+
+
+def test_health(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
+def test_list_scenarios(client):
+    response = client.get("/api/scenarios")
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) >= 5
+    assert all("asset_shocks" in s for s in body)
+
+
+def test_get_scenario_known(client):
+    response = client.get("/api/scenarios/semiconductor-supply-shock")
+    assert response.status_code == 200
+    assert response.json()["id"] == "semiconductor-supply-shock"
+
+
+def test_get_scenario_unknown_returns_404(client):
+    response = client.get("/api/scenarios/does-not-exist")
+    assert response.status_code == 404
+
+
+def test_demo_portfolio(client):
+    response = client.get("/api/portfolio/demo")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == "demo-tech"
+    assert abs(sum(p["weight"] for p in body["positions"]) - 1.0) < 0.01
+
+
+def test_stress_test_with_known_scenario(client, demo_portfolio_payload):
+    response = client.post(
+        "/api/stress-test",
+        json={"portfolio": demo_portfolio_payload, "scenario_id": "semiconductor-supply-shock"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["scenario_id"] == "semiconductor-supply-shock"
+    assert body["estimated_impact_value"] < 0
+    assert len(body["asset_impacts"]) == len(demo_portfolio_payload["positions"])
+
+
+def test_stress_test_with_unknown_scenario_returns_404(client, demo_portfolio_payload):
+    response = client.post(
+        "/api/stress-test",
+        json={"portfolio": demo_portfolio_payload, "scenario_id": "does-not-exist"},
+    )
+    assert response.status_code == 404
+
+
+def test_stress_test_with_custom_shocks(client, demo_portfolio_payload):
+    response = client.post(
+        "/api/stress-test",
+        json={"portfolio": demo_portfolio_payload, "custom_shocks": {"NVDA": -0.5}},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["scenario_id"] is None
+    assert body["scenario_title"] == "Custom Scenario"
+
+
+def test_stress_test_rejects_both_scenario_and_custom_shocks(client, demo_portfolio_payload):
+    response = client.post(
+        "/api/stress-test",
+        json={
+            "portfolio": demo_portfolio_payload,
+            "scenario_id": "semiconductor-supply-shock",
+            "custom_shocks": {"NVDA": -0.5},
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_stress_test_with_unsupported_asset_has_no_assumption(client):
+    portfolio = {
+        "id": "custom",
+        "name": "Custom",
+        "currency": "USD",
+        "total_value": 1000,
+        "positions": [{"symbol": "XYZ", "weight": 1.0}],
+    }
+    response = client.post(
+        "/api/stress-test",
+        json={"portfolio": portfolio, "scenario_id": "semiconductor-supply-shock"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["asset_impacts"][0]["has_assumption"] is False
+    assert body["estimated_impact_value"] == 0
+
+
+def test_stress_test_rejects_invalid_portfolio_weights(client):
+    portfolio = {
+        "id": "bad",
+        "name": "Bad",
+        "currency": "USD",
+        "total_value": 1000,
+        "positions": [{"symbol": "NVDA", "weight": 0.2}],
+    }
+    response = client.post(
+        "/api/stress-test",
+        json={"portfolio": portfolio, "scenario_id": "semiconductor-supply-shock"},
+    )
+    assert response.status_code == 422
+
+
+def test_risk_radar(client):
+    response = client.get("/api/risk-radar")
+    assert response.status_code == 200
+    assert len(response.json()) >= 5
+
+
+def test_parse_scenario_single_trigger_recognized(client):
+    response = client.post("/api/ai/parse-scenario", json={"text": "Nasdaq falls 15%"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["recognized"] is True
+    assert math.isclose(body["scenario"]["asset_shocks"]["QQQ"], -0.15)
+
+
+def test_parse_scenario_multi_trigger_recognized(client):
+    response = client.post(
+        "/api/ai/parse-scenario",
+        json={"text": "What if oil rises 40% and Nasdaq falls 15%?"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["recognized"] is True
+    matched_line = next(
+        line for line in body["scenario"]["transmission"] if line.startswith("Matched trigger(s)")
+    )
+    assert "Oil price move" in matched_line
+    assert "Nasdaq / technology move" in matched_line
+
+
+def test_parse_scenario_unrecognized_is_graceful(client):
+    response = client.post("/api/ai/parse-scenario", json={"text": "gibberish with no numbers"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["recognized"] is False
+    assert body["scenario"] is None
+    assert body["message"]

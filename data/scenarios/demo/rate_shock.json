@@ -1,0 +1,25 @@
+{
+  "id": "interest-rate-shock",
+  "title": "Interest Rate Shock",
+  "category": "macro",
+  "description": "Illustrative scenario where central banks raise policy rates faster and further than markets expect.",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "60d",
+  "transmission": [
+    "Central bank raises policy rates faster than expected",
+    "Discount rates used to value future earnings rise",
+    "Growth and technology valuations compress",
+    "Bond prices fall as yields rise"
+  ],
+  "asset_shocks": {
+    "NVDA": -0.15,
+    "QQQ": -0.10,
+    "SPY": -0.05,
+    "BTC": -0.12,
+    "GLD": -0.03,
+    "TLT": -0.08
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "id": "oil-supply-disruption",
+  "title": "Oil Supply Disruption",
+  "category": "geopolitical",
+  "description": "Illustrative disruption to global oil supply, e.g. from a major producing region or shipping route.",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "30d",
+  "transmission": [
+    "Oil supply disruption pushes energy prices sharply higher",
+    "Input costs rise across the economy",
+    "Inflation expectations increase",
+    "Equity valuations face pressure; gold gains a safe-haven bid"
+  ],
+  "asset_shocks": {
+    "NVDA": -0.08,
+    "QQQ": -0.07,
+    "SPY": -0.05,
+    "BTC": -0.06,
+    "GLD": 0.06,
+    "TLT": -0.03
+  }
+}
