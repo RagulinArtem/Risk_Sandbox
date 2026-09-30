@@ -1,0 +1,25 @@
+{
+  "id": "historical-2022-rate-hike-selloff",
+  "title": "2022 Rate-Hike Bear Market (Historical)",
+  "category": "historical-macro",
+  "description": "Benchmarked against actual full-year 2022 returns during the Federal Reserve's fastest rate-hiking cycle in four decades (+525 basis points, March 2022 to July 2023). These are real, dated asset returns, not an assumption — see docs/research/2022-rate-hike-selloff.md for the full per-asset source list.",
+  "source_status": "verified",
+  "source_name": "S&P Global Market Intelligence",
+  "source_url": "https://www.spglobal.com/market-intelligence/en/news-insights/articles/2023/1/s-p-500-logs-its-worst-annual-performance-since-2008-73687583",
+  "source_date": "2023-01-01",
+  "horizon": "Full calendar year 2022",
+  "transmission": [
+    "Inflation peaks at 9.1% year-over-year (June 2022)",
+    "Federal Reserve raises rates 525bps over the fastest hiking cycle in four decades",
+    "Discount rates rise sharply, compressing growth and technology valuations",
+    "Long-duration bonds suffer their worst year on record; risk assets sell off broadly"
+  ],
+  "asset_shocks": {
+    "NVDA": -0.51,
+    "QQQ": -0.34,
+    "SPY": -0.19,
+    "BTC": -0.64,
+    "GLD": 0.01,
+    "TLT": -0.31
+  }
+}

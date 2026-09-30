@@ -8,10 +8,13 @@ don't let it drift from reality.
 
 - Demo portfolio (`GET /api/portfolio/demo`) — technology-heavy, 6
   positions, weights validated to sum to ~1.0.
-- 5 demo scenarios (`GET /api/scenarios`, `GET /api/scenarios/{id}`) —
+- 6 demo scenarios (`GET /api/scenarios`, `GET /api/scenarios/{id}`) —
   semiconductor supply shock, interest rate shock, oil supply disruption,
-  technology correction, global recession. All `source_status:
-  "illustrative"`.
+  technology correction, global recession (all `source_status:
+  "illustrative"`), plus one **verified** historical scenario benchmarked
+  against real full-year-2022 asset returns during the Fed's rate-hiking
+  cycle, with a real citation and full per-asset sourcing in
+  `docs/research/2022-rate-hike-selloff.md`.
 - Deterministic stress engine (`DirectAssetShockEngine`) — flat per-asset
   shock applied to position value, no cross-asset correlation.
 - `POST /api/stress-test` — accepts a known `scenario_id` or arbitrary
@@ -30,7 +33,7 @@ don't let it drift from reality.
   assumptions + transmission chain), stress-test result (headline
   impact, contribution chart, "why this matters" note), custom scenario
   input — all wired to the live API, no mock data in the frontend itself.
-- 39 backend tests passing; `ruff check` clean; frontend `typecheck` +
+- 41 backend tests passing; `ruff check` clean; frontend `typecheck` +
   `lint` + `build` clean. Full user flow verified in an actual browser
   (Risk Radar → scenario → stress test → custom "what if").
 - CORS, structured error responses (422 for validation, 404 for unknown

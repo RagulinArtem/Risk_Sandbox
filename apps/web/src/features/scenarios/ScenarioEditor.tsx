@@ -1,9 +1,15 @@
 import { StatusBadge } from "../../components/StatusBadge";
-import type { Scenario } from "../../types";
+import type { Scenario, SourceStatus } from "../../types";
 
 function round1(n: number): number {
   return Math.round(n * 1000) / 10;
 }
+
+const ASSUMPTIONS_CAPTION: Record<SourceStatus, string> = {
+  illustrative: "illustrative, not a forecast",
+  verified: "historical, not a forecast",
+  live: "live-informed, not a forecast",
+};
 
 export function ScenarioEditor({
   scenario,
@@ -27,6 +33,24 @@ export function ScenarioEditor({
             <StatusBadge status={scenario.source_status} />
           </div>
           <p className="mt-1 max-w-2xl text-sm text-ink-secondary">{scenario.description}</p>
+          {scenario.source_name && (
+            <p className="mt-2 font-mono text-[11px] text-ink-tertiary">
+              Source:{" "}
+              {scenario.source_url ? (
+                <a
+                  href={scenario.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent-strong underline decoration-accent/40 underline-offset-2 hover:text-accent"
+                >
+                  {scenario.source_name} ↗
+                </a>
+              ) : (
+                scenario.source_name
+              )}
+              {scenario.source_date && ` · ${scenario.source_date}`}
+            </p>
+          )}
         </div>
         <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
           Horizon {scenario.horizon}
@@ -52,7 +76,9 @@ export function ScenarioEditor({
           <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
             Scenario Assumptions (editable)
           </div>
-          <div className="font-mono text-[11px] text-ink-tertiary">illustrative, not a forecast</div>
+          <div className="font-mono text-[11px] text-ink-tertiary">
+            {ASSUMPTIONS_CAPTION[scenario.source_status]}
+          </div>
         </div>
         <table className="w-full text-sm">
           <tbody>

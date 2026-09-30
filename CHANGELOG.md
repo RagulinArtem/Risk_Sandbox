@@ -3,6 +3,27 @@
 Notable changes to AI Portfolio Risk Copilot. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- `PolymarketRiskSource` — real Gamma API client, keyword-matched to
+  existing scenarios, full provenance, graceful failure. Off by default
+  (`ENABLE_POLYMARKET=true` to enable). Implemented and unit-tested
+  against a fixture matching Polymarket's documented response shape; not
+  yet verified against the live API (see `docs/CURRENT_STATE.md`).
+- `RiskRadarItem` now carries `source_name`/`source_url`/`source_date`/
+  `retrieved_at`; the Risk Radar and scenario workspace both render a
+  clickable source citation when present.
+- `RiskRadarService` isolates a failing `RiskSource` instead of letting it
+  take down the whole radar.
+- First `verified` scenario:
+  `data/scenarios/demo/historical_2022_rate_hike_selloff.json`,
+  benchmarked against real full-year-2022 asset returns during the Fed's
+  rate-hiking cycle, with full per-asset sourcing in
+  `docs/research/2022-rate-hike-selloff.md`.
+- 9 new backend tests (41 total).
+
 ## [0.1.0] — 2026-09-30
 
 Initial bootstrap. Offline MVP, end-to-end.

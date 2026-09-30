@@ -20,9 +20,14 @@ Manually checked against a documented source. Must include:
 - `source_url` — link to the actual publication
 - `source_date` — when it was published
 
-Not currently used by any shipped data — the moment a scenario's numbers
-come from a real, cited source, flip it to `verified` and fill in all
-three fields.
+Example: `data/scenarios/demo/historical_2022_rate_hike_selloff.json` —
+benchmarked against real full-year-2022 asset returns during the Fed's
+2022 hiking cycle, not an assumption. The `Scenario` schema has one
+citation per scenario; when several distinct facts back one scenario (as
+here — six different assets, six different return figures), put the full
+per-fact sourcing in a note under `docs/research/` and link it from the
+scenario's `description`. See `docs/research/2022-rate-hike-selloff.md`
+for the pattern.
 
 ### `live`
 

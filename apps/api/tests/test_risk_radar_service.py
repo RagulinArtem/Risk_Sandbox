@@ -8,13 +8,19 @@ from app.services.scenario_service import get_scenario_service
 
 def test_risk_radar_loads_all_demo_scenarios():
     items = get_risk_radar_service().get_risk_radar(get_demo_portfolio())
-    assert len(items) >= 5
+    assert len(items) >= 6  # 5 illustrative + the verified 2022 historical scenario
     for item in items:
         assert item.portfolio_relevance in {"low", "medium", "high"}
-        assert item.source_status == "illustrative"
-        assert item.probability_signal is None  # no live source wired up yet
-        assert item.source_name is None  # no source cited for local demo data
+        # LocalRiskSource never fetches anything live — every item it
+        # produces is either illustrative (no citation) or verified (must
+        # have one), never "live".
+        assert item.source_status in {"illustrative", "verified"}
+        assert item.probability_signal is None  # no live probability from a static local file
         assert item.retrieved_at is None  # never "retrieved" — it's static
+        if item.source_status == "illustrative":
+            assert item.source_name is None
+        else:
+            assert item.source_name is not None
 
 
 def test_recession_scenario_is_high_relevance_for_demo_portfolio():

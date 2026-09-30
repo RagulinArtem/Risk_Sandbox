@@ -26,14 +26,16 @@ bootstrap (backend: 32/32 pytest passing, ruff clean; frontend: typecheck
 | Priority | Feature | Owner | Status | Acceptance |
 | --- | --- | --- | --- | --- |
 | P0 | Confirm scenario schema | TBD | DONE | `docs/SCENARIO_SCHEMA.md` written, matches `Scenario` Pydantic model |
-| P1 | Research institutional scenarios (Fed/IMF) | TBD | TODO | At least one real, cited scenario assumption documented |
-| P1 | Investigate Polymarket API | TBD | TODO | Auth model, rate limits, and a sample market response documented |
-| P1 | Choose one live risk source to pursue | TBD | TODO | Decision recorded in `docs/DECISIONS.md` |
+| P1 | Research institutional scenarios (Fed/IMF) | TBD | DONE | `data/scenarios/demo/historical_2022_rate_hike_selloff.json` — real, cited full-year-2022 returns for all 6 supported assets; see `docs/research/2022-rate-hike-selloff.md` |
+| P1 | Investigate Polymarket API | TBD | DONE | Gamma API implemented against its documented response shape (`integrations/risk_sources/polymarket.py`); live-response verification still open — see the Oct 2 row below |
+| P1 | Choose one live risk source to pursue | TBD | DONE | Polymarket — see `docs/DECISIONS.md` |
 | P0 | Validate demo portfolio | TBD | DONE | Weights sum to 1.0 (enforced by schema + test), produces a visually interesting stress test |
 
 **Acceptance for the day:** at least one future integration
 (Polymarket, news, or institutional) has a defined input/output contract
-written down, even if unimplemented.
+written down, even if unimplemented. Exceeded: Polymarket has a real
+implementation (pending live verification) and one scenario is genuinely
+`verified`, not just contract-defined.
 
 ### October 2 — AI and live-risk integration preparation
 

@@ -28,8 +28,9 @@ future.
 ![Risk Radar](docs/screenshots/risk-radar.png)
 
 1. Start from the demo Technology Heavy Portfolio.
-2. Browse the **Risk Radar** — five illustrative scenarios, each scored for
-   relevance to this specific portfolio.
+2. Browse the **Risk Radar** — five illustrative scenarios and one
+   verified historical benchmark (real 2022 asset returns), each scored
+   for relevance to this specific portfolio.
 3. Pick one (or type `"What if oil rises 40% and Nasdaq falls 15%?"` into
    the scenario builder).
 4. Inspect and edit the scenario's transmission chain and asset
@@ -85,11 +86,13 @@ New here? Read `START_HERE.md` — five minutes to being useful.
 ## Current capabilities
 
 See `docs/CURRENT_STATE.md` for the authoritative, kept-current list.
-Today: demo portfolio, 5 demo scenarios, deterministic stress engine,
-impact decomposition, risk radar, rule-based "what if" scenario parsing —
-all working offline. Bedrock, Polymarket, news ingestion, and a factor
-model are designed-for but not implemented (see the TODO stubs in
-`apps/api/app/integrations/`).
+Today: demo portfolio, 6 demo scenarios (5 illustrative + 1 verified
+historical benchmark), deterministic stress engine, impact decomposition,
+risk radar, rule-based "what if" scenario parsing, and live Polymarket
+risk discovery (`ENABLE_POLYMARKET=true`, implemented and unit-tested —
+not yet verified against the live API, see `docs/CURRENT_STATE.md`) — all
+working offline by default. Bedrock and news ingestion are designed-for
+but not implemented (see the TODO stubs in `apps/api/app/integrations/`).
 
 ## Roadmap
 
