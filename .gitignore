@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Env
+.env
+.env.local
+
+# Claude
+CLAUDE.local.md
+
+# OS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
