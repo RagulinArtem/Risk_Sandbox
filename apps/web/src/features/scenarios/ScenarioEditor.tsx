@@ -1,0 +1,95 @@
+import { StatusBadge } from "../../components/StatusBadge";
+import type { Scenario } from "../../types";
+
+function round1(n: number): number {
+  return Math.round(n * 1000) / 10;
+}
+
+export function ScenarioEditor({
+  scenario,
+  onShockChange,
+  onRun,
+  running,
+}: {
+  scenario: Scenario;
+  onShockChange: (symbol: string, value: number) => void;
+  onRun: () => void;
+  running: boolean;
+}) {
+  const symbols = Object.keys(scenario.asset_shocks);
+
+  return (
+    <div className="border border-line">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h3 className="text-base font-semibold text-ink">{scenario.title}</h3>
+            <StatusBadge status={scenario.source_status} />
+          </div>
+          <p className="mt-1 max-w-2xl text-sm text-ink-secondary">{scenario.description}</p>
+        </div>
+        <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+          Horizon {scenario.horizon}
+        </div>
+      </div>
+
+      <div className="border-b border-line px-5 py-4">
+        <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+          Transmission
+        </div>
+        <ol className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-ink-secondary">
+          {scenario.transmission.map((step, i) => (
+            <li key={i} className="flex items-center gap-2">
+              {i > 0 && <span className="text-ink-tertiary">→</span>}
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="px-5 py-4">
+        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            Scenario Assumptions (editable)
+          </div>
+          <div className="font-mono text-[11px] text-ink-tertiary">illustrative, not a forecast</div>
+        </div>
+        <table className="w-full text-sm">
+          <tbody>
+            {symbols.map((symbol) => {
+              const value = scenario.asset_shocks[symbol];
+              return (
+                <tr key={symbol} className="border-t border-line first:border-t-0">
+                  <td className="py-2 pr-4 font-mono text-ink">{symbol}</td>
+                  <td className="py-2 text-right">
+                    <div className="inline-flex items-center gap-1">
+                      <input
+                        type="number"
+                        step="1"
+                        value={round1(value)}
+                        onChange={(e) => onShockChange(symbol, Number(e.target.value) / 100)}
+                        className={`w-16 border border-line-strong bg-surface-raised px-2 py-1 text-right font-mono focus:border-accent focus:outline-none ${
+                          value < 0 ? "text-risk-negative-strong" : value > 0 ? "text-risk-positive" : "text-ink"
+                        }`}
+                      />
+                      <span className="font-mono text-xs text-ink-tertiary">%</span>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        <button
+          type="button"
+          onClick={onRun}
+          disabled={running}
+          className="mt-4 w-full border border-accent bg-accent/10 px-4 py-2.5 text-sm font-medium text-accent-strong transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+        >
+          {running ? "Running Stress Test…" : "Run Stress Test"}
+        </button>
+      </div>
+    </div>
+  );
+}
