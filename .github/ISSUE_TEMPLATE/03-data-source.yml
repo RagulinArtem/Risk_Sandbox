@@ -1,0 +1,61 @@
+name: Data Source
+description: Propose or track a new data source integration
+labels: ["area:data", "hackathon"]
+body:
+  - type: input
+    id: source-name
+    attributes:
+      label: Source name
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: URL
+    validations:
+      required: true
+  - type: input
+    id: data-type
+    attributes:
+      label: Data type
+      description: e.g. prediction market probabilities, news articles, PDF research
+    validations:
+      required: true
+  - type: textarea
+    id: relevance
+    attributes:
+      label: How it affects the product
+    validations:
+      required: true
+  - type: dropdown
+    id: live-or-historical
+    attributes:
+      label: Live or historical?
+      options:
+        - live
+        - historical
+        - both
+    validations:
+      required: true
+  - type: dropdown
+    id: auth-required
+    attributes:
+      label: Authentication required?
+      options:
+        - "yes"
+        - "no"
+        - unknown
+    validations:
+      required: true
+  - type: textarea
+    id: licensing
+    attributes:
+      label: Data licensing concerns
+    validations:
+      required: false
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+    validations:
+      required: false
