@@ -1,0 +1,121 @@
+# Deployment
+
+Deploys this app to a VPS over SSH, triggered manually from GitHub
+Actions (`.github/workflows/deploy.yml`) — not from this session, and not
+from any local machine: GitHub's runners do the actual work, so this
+works regardless of what any one person's network allows.
+
+## Why this shape
+
+- The app is a FastAPI backend + a static React build served by nginx —
+  Docker Compose (`docker-compose.yml`) runs both as containers on the
+  target server.
+- `.env` is written **on the server** by the deploy script, from GitHub
+  Secrets/Variables — it is never committed, never stored in this repo,
+  and never passed through this chat.
+- The workflow is `workflow_dispatch`-only (a manual button in the Actions
+  tab) rather than auto-deploy-on-push, since the project is still under
+  active development. Switch it to `push: { branches: [main] }` once
+  things stabilize — see the comment at the top of the workflow file.
+
+## One-time server setup
+
+On the target VM (Ubuntu/Debian assumed below — adjust for your distro):
+
+```bash
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker "$USER"
+# log out and back in for the group change to take effect
+```
+
+That's it — the deploy workflow handles cloning the repo and starting the
+containers. Make sure these are open in the VM's firewall/security group:
+
+- **Port 80** — the frontend (nginx)
+- **Port 8000** — the backend API (the frontend calls it directly by
+  absolute URL from the browser, not proxied through nginx — see
+  `apps/web/src/lib/apiClient.ts`)
+- **Port 22** — SSH, for the deploy itself (restrict to GitHub Actions'
+  IP ranges if you want to tighten this; they're published at
+  https://api.github.com/meta under `actions`)
+
+## GitHub repository configuration
+
+**Settings → Secrets and variables → Actions.** Add these directly in the
+GitHub UI — never paste them into a chat or commit them to the repo.
+
+### Secrets (sensitive)
+
+| Name | Value |
+| --- | --- |
+| `SSH_HOST` | The VM's public IP or hostname |
+| `SSH_USER` | SSH username |
+| `SSH_PRIVATE_KEY` | The **private** key matching a public key already in the VM's `~/.ssh/authorized_keys`. Password auth also works — see "Using password auth instead" below. |
+| `SSH_PORT` | Only if not 22 |
+| `OPENROUTER_API_KEY` | From https://openrouter.ai/keys |
+
+### Variables (not sensitive — config)
+
+| Name | Example | Notes |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | `http://203.0.113.10:8000` | The VM's public address, port 8000. Baked into the frontend at **build** time — changing it requires a redeploy. |
+| `FRONTEND_ORIGIN` | `http://203.0.113.10` | Must match where the frontend is actually served, or CORS blocks every API call — see `app/main.py`. |
+| `AI_PROVIDER` | `openrouter` | `mock` (default) / `bedrock` / `openrouter` |
+| `OPENROUTER_MODEL` | `anthropic/claude-3.5-haiku` | Any model slug OpenRouter serves |
+| `ENABLE_POLYMARKET` | `true` | Off by default |
+| `ENABLE_NEWS` | `false` | Not implemented yet — leave false |
+| `API_PORT` | `8000` | Only if you need a non-default port |
+
+### Using password auth instead of a key
+
+`appleboy/ssh-action` also accepts a `password` input. If you only have a
+password, edit the `with:` block in `.github/workflows/deploy.yml`:
+replace `key: ${{ secrets.SSH_PRIVATE_KEY }}` with
+`password: ${{ secrets.SSH_PASSWORD }}`, and add `SSH_PASSWORD` as a
+secret. Key-based auth is preferred where available.
+
+## Running a deploy
+
+**Actions tab → Deploy → Run workflow.** Optionally set `ref` to a branch
+other than `main` (e.g. to deploy a feature branch before merging).
+
+The workflow:
+1. SSHes into the server.
+2. Clones the repo to `/opt/risk-copilot` on first run, or `git fetch` +
+   `git reset --hard` to the chosen ref on subsequent runs.
+3. Writes `.env` from the secrets/variables above.
+4. `docker compose up -d --build`.
+5. Polls `http://127.0.0.1:$API_PORT/health` on the server for up to 60s
+   and fails the workflow run if the API never comes up — check
+   `docker compose logs` on the server for why.
+
+## Verifying it worked
+
+From your own machine (not from this session — it can't reach your
+server, see `docs/CURRENT_STATE.md` for why):
+
+```bash
+curl http://<VM_IP>:8000/health          # {"status": "ok"}
+# then open http://<VM_IP>/ in a browser
+```
+
+## Rollback
+
+```bash
+ssh <user>@<VM_IP>
+cd /opt/risk-copilot
+git log --oneline -5          # find the commit to roll back to
+git reset --hard <commit>
+docker compose up -d --build
+```
+
+## Rotating credentials
+
+If `OPENROUTER_API_KEY` or SSH credentials were ever shared outside
+GitHub Secrets (chat, a doc, a screenshot), rotate them:
+
+- OpenRouter: https://openrouter.ai/keys → revoke the old key, create a
+  new one, update the `OPENROUTER_API_KEY` secret.
+- SSH: generate a new keypair, add the new public key to the server's
+  `~/.ssh/authorized_keys`, update `SSH_PRIVATE_KEY`, remove the old
+  public key from the server.

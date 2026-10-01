@@ -1,0 +1,27 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    env_file:
+      - .env
+    environment:
+      # Belt-and-suspenders: Dockerfile's directory layout already makes
+      # this resolve correctly, but pin it explicitly so a future layout
+      # change can't silently break data loading in production.
+      - DATA_DIR=/app/data
+    ports:
+      - "${API_PORT:-8000}:${API_PORT:-8000}"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    depends_on:
+      - api

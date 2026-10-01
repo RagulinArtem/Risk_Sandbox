@@ -5,3 +5,8 @@ export interface ParseScenarioResponse {
   scenario: Scenario | null;
   message: string | null;
 }
+
+export interface AIStatusResponse {
+  provider: "mock" | "bedrock" | "openrouter" | string;
+  is_live: boolean;
+}

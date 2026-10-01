@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../../lib/apiClient";
 import type { Scenario } from "../../types";
 
@@ -6,6 +6,27 @@ export function CustomScenarioInput({ onParsed }: { onParsed: (scenario: Scenari
   const [text, setText] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Whether AI_PROVIDER is currently a real LLM (Bedrock/OpenRouter) rather
+  // than the offline mock — determines the hint copy below. Defaults to
+  // the safe assumption (not live) until the check resolves, so we never
+  // briefly claim "live AI" that isn't configured.
+  const [isLiveAi, setIsLiveAi] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .getAiStatus()
+      .then((status) => {
+        if (!cancelled) setIsLiveAi(status.is_live);
+      })
+      .catch(() => {
+        // Status check failing is not worth surfacing an error for — the
+        // hint just stays in its safe "not live AI" default state.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -53,8 +74,10 @@ export function CustomScenarioInput({ onParsed }: { onParsed: (scenario: Scenari
         </button>
       </div>
       <p className="text-xs text-ink-tertiary">
-        Rule-based parsing (not live AI) — recognizes oil, Nasdaq/tech, interest rates, Bitcoin,
-        and broad-market moves stated with a percentage.
+        {isLiveAi
+          ? "Parsed by a live LLM — review the generated assumptions before running."
+          : "Rule-based parsing (not live AI) — recognizes oil, Nasdaq/tech, interest rates, " +
+            "Bitcoin, and broad-market moves stated with a percentage."}
       </p>
       {message && <p className="text-xs text-risk-warning">{message}</p>}
     </form>

@@ -33,7 +33,7 @@ don't let it drift from reality.
   assumptions + transmission chain), stress-test result (headline
   impact, contribution chart, "why this matters" note), custom scenario
   input — all wired to the live API, no mock data in the frontend itself.
-- 41 backend tests passing; `ruff check` clean; frontend `typecheck` +
+- 47 backend tests passing; `ruff check` clean; frontend `typecheck` +
   `lint` + `build` clean. Full user flow verified in an actual browser
   (Risk Radar → scenario → stress test → custom "what if").
 - CORS, structured error responses (422 for validation, 404 for unknown
@@ -51,12 +51,24 @@ don't let it drift from reality.
   documented API shape. **Not yet verified against the live API** — built
   in a sandbox whose network policy denies `gamma-api.polymarket.com`;
   verify once outside it (see the module's docstring).
+- **OpenRouter scenario parsing** (`integrations/ai/openrouter.py`,
+  `AI_PROVIDER=openrouter`, off by default — `mock` remains the default)
+  — real LLM call via OpenRouter's OpenAI-compatible API, same
+  `ScenarioAIProvider` contract as the mock/Bedrock providers, handles
+  markdown-fenced JSON responses. `GET /api/ai/status` tells the frontend
+  whether a live provider is active so the UI never claims "not live AI"
+  incorrectly. 5 unit tests against a mocked HTTP response matching
+  OpenRouter's documented shape. **Not yet verified against the live
+  API** — same sandbox network restriction as Polymarket; verify once
+  outside it.
 
 ## MOCKED
 
-- **AI scenario parsing** — `MockScenarioProvider` is a small fixed
-  keyword+beta table, not NLP or a real LLM call. Explicitly labeled as
-  rule-based in the UI.
+- **AI scenario parsing (default)** — `MockScenarioProvider` is a small
+  fixed keyword+beta table, not NLP or a real LLM call, used whenever
+  `AI_PROVIDER=mock` (the default). Explicitly labeled as rule-based in
+  the UI; the UI switches its own wording automatically if a live
+  provider is configured (`GET /api/ai/status`).
 - **Deterministic explanation** — the "why this matters" text is
   rule-based Python, not LLM output, and labeled as such in the UI.
 
@@ -64,7 +76,8 @@ don't let it drift from reality.
 
 - **AWS Bedrock** (`integrations/ai/bedrock.py`) — config validation and
   graceful-failure skeleton exist; the real prompt/response path is
-  untested against live AWS (needs credentials + a chosen model).
+  untested against live AWS (needs credentials + a chosen model). Prefer
+  OpenRouter above if you don't specifically need AWS.
 - **News ingestion** (`integrations/risk_sources/news.py`) — documented
   TODO stub.
 - **Institutional research source**

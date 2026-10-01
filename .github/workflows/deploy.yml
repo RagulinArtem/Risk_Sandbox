@@ -1,0 +1,94 @@
+name: Deploy
+
+# Manual only, on purpose — this project is still under active development
+# on a feature branch, so auto-deploying on every push would be premature.
+# Once things stabilize, this can be changed to `push: { branches: [main] }`.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch/tag/commit to deploy"
+        required: false
+        default: "main"
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          DEPLOY_REF: ${{ github.event.inputs.ref || 'main' }}
+          AI_PROVIDER: ${{ vars.AI_PROVIDER || 'mock' }}
+          ENABLE_POLYMARKET: ${{ vars.ENABLE_POLYMARKET || 'false' }}
+          ENABLE_NEWS: ${{ vars.ENABLE_NEWS || 'false' }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          FRONTEND_ORIGIN: ${{ vars.FRONTEND_ORIGIN }}
+          API_PORT: ${{ vars.API_PORT || '8000' }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || 'anthropic/claude-3.5-haiku' }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          envs: DEPLOY_REF,AI_PROVIDER,ENABLE_POLYMARKET,ENABLE_NEWS,VITE_API_BASE_URL,FRONTEND_ORIGIN,API_PORT,OPENROUTER_API_KEY,OPENROUTER_MODEL
+          script: |
+            set -euo pipefail
+
+            DEPLOY_DIR=/opt/risk-copilot
+            REPO_URL=https://github.com/RagulinArtem/Risk_Sandbox.git
+
+            if [ ! -d "$DEPLOY_DIR/.git" ]; then
+              sudo mkdir -p "$DEPLOY_DIR"
+              sudo chown "$(whoami)" "$DEPLOY_DIR"
+              git clone "$REPO_URL" "$DEPLOY_DIR"
+            fi
+
+            cd "$DEPLOY_DIR"
+            git fetch origin
+            git checkout "$DEPLOY_REF"
+            git reset --hard "origin/$DEPLOY_REF"
+
+            # .env is git-ignored and lives only on the server — never
+            # committed. Heredoc delimiter is intentionally unquoted so
+            # ${VAR} substitutes; this assumes secret values don't contain
+            # shell metacharacters ($, `, \), which API keys/URLs/bools
+            # don't in practice — if that ever changes, quote the
+            # delimiter and substitute with envsubst instead.
+            cat > .env <<ENVEOF
+            APP_ENV=production
+            API_HOST=0.0.0.0
+            API_PORT=${API_PORT}
+            VITE_API_BASE_URL=${VITE_API_BASE_URL}
+            FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+            AI_PROVIDER=${AI_PROVIDER}
+            AWS_REGION=
+            AWS_PROFILE=
+            BEDROCK_MODEL_ID=
+            OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+            OPENROUTER_MODEL=${OPENROUTER_MODEL}
+            ENABLE_POLYMARKET=${ENABLE_POLYMARKET}
+            ENABLE_NEWS=${ENABLE_NEWS}
+            NEWS_API_KEY=
+            ENVEOF
+            chmod 600 .env
+
+            docker compose up -d --build
+            docker image prune -f
+
+            echo "Waiting for API to come up..."
+            for _ in $(seq 1 30); do
+              if curl -sf "http://127.0.0.1:${API_PORT}/health" >/dev/null; then
+                echo "API is healthy."
+                exit 0
+              fi
+              sleep 2
+            done
+            echo "API did not become healthy within 60s — check 'docker compose logs' on the server." >&2
+            exit 1

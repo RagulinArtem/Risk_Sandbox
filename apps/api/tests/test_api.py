@@ -7,6 +7,14 @@ def test_health(client):
     assert response.json() == {"status": "ok"}
 
 
+def test_ai_status_defaults_to_mock_not_live(client):
+    response = client.get("/api/ai/status")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["provider"] == "mock"
+    assert body["is_live"] is False
+
+
 def test_list_scenarios(client):
     response = client.get("/api/scenarios")
     assert response.status_code == 200

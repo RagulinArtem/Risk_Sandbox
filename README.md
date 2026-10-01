@@ -74,14 +74,16 @@ No API keys or external credentials required — see Principle 4 in
 ## Repository map
 
 ```
-apps/web/     React + TypeScript + Vite + Tailwind + Recharts dashboard
-apps/api/     FastAPI backend (schemas, domain logic, services, integrations)
-data/         Demo portfolio + scenario JSON — edit without touching Python
-docs/         Architecture, product, data-source, and process documentation
-scripts/      bootstrap.sh / dev.sh / smoke_test.sh
+apps/web/            React + TypeScript + Vite + Tailwind + Recharts dashboard
+apps/api/            FastAPI backend (schemas, domain logic, services, integrations)
+data/                Demo portfolio + scenario JSON — edit without touching Python
+docs/                Architecture, product, data-source, and process documentation
+scripts/             bootstrap.sh / dev.sh / smoke_test.sh
+docker-compose.yml   Runs api + web as containers — see docs/DEPLOYMENT.md
 ```
 
-New here? Read `START_HERE.md` — five minutes to being useful.
+New here? Read `START_HERE.md` — five minutes to being useful. Deploying
+to a server? Read `docs/DEPLOYMENT.md`.
 
 ## Current capabilities
 

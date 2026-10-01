@@ -138,6 +138,19 @@ illustrative scenario whose `asset_shocks` a stress test against that
 signal will use — the probability is real, the impact magnitude stays an
 explicit, editable, illustrative assumption.
 
+## `GET /api/ai/status`
+
+Lets the frontend know whether scenario parsing is currently the offline
+rule-based mock or a real LLM, so it never shows a "not live AI" hint
+while `AI_PROVIDER` is actually configured to use one.
+
+```ts
+{
+  provider: "mock" | "bedrock" | "openrouter";
+  is_live: boolean;   // false only for "mock"
+}
+```
+
 ## `POST /api/ai/parse-scenario`
 
 ### Request
@@ -155,6 +168,13 @@ explicit, editable, illustrative assumption.
   message: string | null;      // present only if NOT recognized — user-facing guidance
 }
 ```
+
+With `AI_PROVIDER=openrouter` (`integrations/ai/openrouter.py`), this
+calls a real LLM via [OpenRouter](https://openrouter.ai) (OpenAI-compatible
+chat completions) instead of the rule-based mock. Requires
+`OPENROUTER_API_KEY`; `OPENROUTER_MODEL` defaults to
+`anthropic/claude-3.5-haiku`. Same contract either way — the frontend
+doesn't need to know which provider answered.
 
 Always `200` — an unrecognized or unconfigured-provider case is a normal,
 graceful response, not an error. See `apps/api/app/integrations/ai/mock.py`

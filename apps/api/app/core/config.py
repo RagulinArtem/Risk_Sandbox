@@ -22,10 +22,13 @@ class Settings(BaseSettings):
 
     data_dir: Path = _REPO_ROOT / "data"
 
-    ai_provider: str = "mock"  # "mock" | "bedrock"
+    ai_provider: str = "mock"  # "mock" | "bedrock" | "openrouter"
     aws_region: str = ""
     aws_profile: str = ""
     bedrock_model_id: str = ""
+
+    openrouter_api_key: str = ""
+    openrouter_model: str = "anthropic/claude-3.5-haiku"
 
     enable_polymarket: bool = False
     enable_news: bool = False

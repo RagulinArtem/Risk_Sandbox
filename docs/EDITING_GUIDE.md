@@ -63,6 +63,26 @@ engineering and robust response parsing. Implement `ScenarioAIProvider`
 to activate it; `AI_PROVIDER=mock` (default) is unaffected by anything you
 do here.
 
+## I want a real LLM but don't have AWS access
+
+Set `AI_PROVIDER=openrouter` and `OPENROUTER_API_KEY` in `.env` instead —
+`apps/api/app/integrations/ai/openrouter.py` is a complete implementation
+against [OpenRouter](https://openrouter.ai) (OpenAI-compatible, needs only
+an API key, no cloud account/IAM setup). `OPENROUTER_MODEL` defaults to
+`anthropic/claude-3.5-haiku`; set it to any model slug OpenRouter serves.
+Same `ScenarioAIProvider` contract as Bedrock, so nothing else in the app
+needs to change.
+
+## I want a new AI provider
+
+Implement `ScenarioAIProvider` (`parse_scenario(text) -> Scenario`) in a
+new file under `apps/api/app/integrations/ai/`, following `bedrock.py` or
+`openrouter.py` as a template — graceful failure via
+`AIProviderUnavailableError` when unconfigured, `UnrecognizedScenarioError`
+when the provider genuinely can't map the text. Add a branch for it in
+`build_ai_provider()` (`integrations/ai/__init__.py`), guarded by a new
+`AI_PROVIDER` value.
+
 ## I want to add a news source
 
 Go to `apps/api/app/integrations/risk_sources/news.py`. Same `RiskSource`
