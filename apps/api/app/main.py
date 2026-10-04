@@ -11,6 +11,7 @@ from app.api.routes import (
     health,
     portfolio,
     price_history,
+    risk_feed,
     risk_radar,
     scenarios,
     stress_test,
@@ -46,6 +47,7 @@ app.include_router(assets.router)
 app.include_router(price_history.router)
 app.include_router(stress_test.router)
 app.include_router(risk_radar.router)
+app.include_router(risk_feed.router)
 app.include_router(ai.router)
 app.include_router(committee.router)
 

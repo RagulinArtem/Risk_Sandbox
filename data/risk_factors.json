@@ -1,0 +1,377 @@
+{
+  "factors": [
+    {
+      "id": "taiwan-geopolitics",
+      "label": "Taiwan geopolitical risk",
+      "keywords": [
+        "taiwan strait",
+        "taiwan",
+        "pla drills",
+        "blockade of taiwan",
+        "blockade taiwan",
+        "taiwan blockade",
+        "tsmc fab"
+      ],
+      "assets": {
+        "TSM": -1,
+        "NVDA": -1,
+        "QQQ": -1,
+        "FXI": -1,
+        "GLD": 1,
+        "LMT": 1
+      },
+      "scenario_ids": [
+        "taiwan-strait-blockade",
+        "semiconductor-supply-shock"
+      ],
+      "historical_analogues": [
+        "historical-russia-ukraine-2022"
+      ]
+    },
+    {
+      "id": "us-china-tech",
+      "label": "US-China export restrictions",
+      "keywords": [
+        "export control",
+        "export restriction",
+        "entity list",
+        "chip ban",
+        "commerce department",
+        "bis rule",
+        "huawei"
+      ],
+      "assets": {
+        "NVDA": -1,
+        "TSM": -1,
+        "FXI": -1,
+        "QQQ": -1
+      },
+      "scenario_ids": [
+        "us-export-controls-tightening"
+      ],
+      "historical_analogues": [
+        "historical-tariff-shock-2025"
+      ]
+    },
+    {
+      "id": "trade-tariffs",
+      "label": "Tariffs and trade war",
+      "keywords": [
+        "tariff",
+        "trade war",
+        "retaliat",
+        "trade deal",
+        "import duty"
+      ],
+      "assets": {
+        "SPY": -1,
+        "QQQ": -1,
+        "FXI": -1,
+        "TSM": -1,
+        "XOM": -1
+      },
+      "scenario_ids": [
+        "us-export-controls-tightening"
+      ],
+      "historical_analogues": [
+        "historical-tariff-shock-2025",
+        "historical-china-devaluation-2015"
+      ]
+    },
+    {
+      "id": "oil-supply",
+      "label": "Oil supply and prices",
+      "keywords": [
+        "oil",
+        "crude",
+        "brent",
+        "opec",
+        "hormuz",
+        "refinery",
+        "petroleum",
+        "natural gas",
+        "lng",
+        "iran",
+        "iranian",
+        "saudi"
+      ],
+      "assets": {
+        "XOM": 1,
+        "SPY": -1,
+        "FXI": -1,
+        "GLD": 1
+      },
+      "scenario_ids": [
+        "strait-of-hormuz-closure",
+        "oil-supply-disruption"
+      ],
+      "historical_analogues": [
+        "historical-russia-ukraine-2022"
+      ]
+    },
+    {
+      "id": "fed-policy",
+      "label": "Central bank policy (Fed, ECB)",
+      "keywords": [
+        "federal reserve",
+        "fomc",
+        "fed ",
+        "rate cut",
+        "rate hike",
+        "interest rate",
+        "powell",
+        "warsh",
+        "monetary policy",
+        "ecb",
+        "governing council",
+        "fed chair"
+      ],
+      "assets": {
+        "TLT": -1,
+        "VNQ": -1,
+        "QQQ": -1,
+        "BIL": 1,
+        "JPM": 1
+      },
+      "scenario_ids": [
+        "interest-rate-shock",
+        "fed-emergency-cut",
+        "us-term-premium-shock"
+      ],
+      "historical_analogues": [
+        "historical-q4-2018-selloff",
+        "historical-2022-rate-hike-selloff"
+      ]
+    },
+    {
+      "id": "inflation",
+      "label": "Inflation",
+      "keywords": [
+        "inflation",
+        "cpi",
+        "consumer price",
+        "pce",
+        "producer price"
+      ],
+      "assets": {
+        "TLT": -1,
+        "GLD": 1,
+        "QQQ": -1,
+        "VNQ": -1
+      },
+      "scenario_ids": [
+        "interest-rate-shock",
+        "us-term-premium-shock"
+      ],
+      "historical_analogues": [
+        "historical-2022-rate-hike-selloff"
+      ]
+    },
+    {
+      "id": "labour-growth",
+      "label": "US growth and jobs",
+      "keywords": [
+        "payroll",
+        "jobs report",
+        "unemployment",
+        "employment situation",
+        "recession",
+        "jobless",
+        "us gdp",
+        "u.s. gdp",
+        "gdp report"
+      ],
+      "assets": {
+        "SPY": -1,
+        "JPM": -1,
+        "HYG": -1,
+        "TLT": 1
+      },
+      "scenario_ids": [
+        "global-recession",
+        "fed-emergency-cut"
+      ],
+      "historical_analogues": [
+        "historical-yen-carry-unwind-2024",
+        "historical-covid-crash-2020"
+      ]
+    },
+    {
+      "id": "bank-stress",
+      "label": "Bank and credit stress",
+      "keywords": [
+        "bank run",
+        "deposit",
+        "bank failure",
+        "fdic",
+        "credit spread",
+        "default",
+        "bankruptcy",
+        "high yield",
+        "junk"
+      ],
+      "assets": {
+        "JPM": -1,
+        "HYG": -1,
+        "VNQ": -1,
+        "TLT": 1,
+        "GLD": 1
+      },
+      "scenario_ids": [
+        "regional-bank-run",
+        "us-high-yield-credit-event"
+      ],
+      "historical_analogues": [
+        "historical-svb-banking-stress-2023",
+        "historical-gfc-2008"
+      ]
+    },
+    {
+      "id": "ai-cycle",
+      "label": "AI investment cycle",
+      "keywords": [
+        "artificial intelligence",
+        "ai chip",
+        "data center",
+        "data centre",
+        "gpu",
+        "hyperscaler",
+        "capex",
+        "capital expenditure"
+      ],
+      "assets": {
+        "NVDA": 1,
+        "TSM": 1,
+        "QQQ": 1
+      },
+      "scenario_ids": [
+        "ai-capex-bust",
+        "technology-correction"
+      ],
+      "historical_analogues": [
+        "historical-q4-2018-selloff"
+      ]
+    },
+    {
+      "id": "china-economy",
+      "label": "China economy and property",
+      "keywords": [
+        "china economy",
+        "chinese economy",
+        "yuan",
+        "renminbi",
+        "pboc",
+        "evergrande",
+        "property developer",
+        "beijing stimulus",
+        "china gdp",
+        "chinese gdp",
+        "china growth"
+      ],
+      "assets": {
+        "FXI": -1,
+        "XOM": -1,
+        "TSM": -1
+      },
+      "scenario_ids": [
+        "china-property-crisis"
+      ],
+      "historical_analogues": [
+        "historical-china-devaluation-2015"
+      ]
+    },
+    {
+      "id": "japan-carry",
+      "label": "Japan rates and yen carry trade",
+      "keywords": [
+        "bank of japan",
+        "boj",
+        "yen",
+        "carry trade",
+        "jgb"
+      ],
+      "assets": {
+        "NVDA": -1,
+        "QQQ": -1,
+        "BTC": -1,
+        "TLT": 1
+      },
+      "scenario_ids": [
+        "technology-correction"
+      ],
+      "historical_analogues": [
+        "historical-yen-carry-unwind-2024"
+      ]
+    },
+    {
+      "id": "defence-spending",
+      "label": "Defence spending and conflict",
+      "keywords": [
+        "defense budget",
+        "defence budget",
+        "military",
+        "nato",
+        "missile",
+        "war",
+        "invasion",
+        "conflict"
+      ],
+      "assets": {
+        "LMT": 1,
+        "GLD": 1,
+        "SPY": -1
+      },
+      "scenario_ids": [
+        "taiwan-strait-blockade",
+        "strait-of-hormuz-closure"
+      ],
+      "historical_analogues": [
+        "historical-russia-ukraine-2022"
+      ]
+    },
+    {
+      "id": "crypto-structure",
+      "label": "Crypto market structure and regulation",
+      "keywords": [
+        "bitcoin",
+        "crypto",
+        "sec crypto",
+        "stablecoin",
+        "exchange hack",
+        "etf inflow"
+      ],
+      "assets": {
+        "BTC": 1
+      },
+      "scenario_ids": [
+        "technology-correction"
+      ],
+      "historical_analogues": [
+        "historical-q4-2018-selloff"
+      ]
+    },
+    {
+      "id": "pandemic",
+      "label": "Pandemic and health shocks",
+      "keywords": [
+        "pandemic",
+        "outbreak",
+        "virus",
+        "who declares",
+        "lockdown"
+      ],
+      "assets": {
+        "SPY": -1,
+        "XOM": -1,
+        "TLT": 1,
+        "XLV": 1
+      },
+      "scenario_ids": [
+        "global-recession"
+      ],
+      "historical_analogues": [
+        "historical-covid-crash-2020"
+      ]
+    }
+  ]
+}

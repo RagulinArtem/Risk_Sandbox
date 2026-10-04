@@ -1,0 +1,34 @@
+{
+  "id": "us-export-controls-tightening",
+  "title": "US Export Controls Tightening",
+  "category": "geopolitical",
+  "description": "Illustrative sweeping new US restrictions on advanced chips and chip-making tools sold to China. Scale is comparable to the 2022–2025 tariff and export-control episodes; see the verified 2025 tariff-shock window (TSM −17%, FXI −17%).",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "30d",
+  "transmission": [
+    "New export rules cover more chips and equipment",
+    "China announces countermeasures",
+    "Chip revenue outlooks for China fall",
+    "Semiconductors and China equities reprice"
+  ],
+  "asset_shocks": {
+    "SPY": -0.04,
+    "QQQ": -0.07,
+    "NVDA": -0.15,
+    "TSM": -0.12,
+    "JPM": -0.02,
+    "XOM": -0.01,
+    "XLV": -0.01,
+    "LMT": 0.02,
+    "FXI": -0.1,
+    "VNQ": -0.01,
+    "TLT": 0.02,
+    "HYG": -0.01,
+    "BIL": 0.0,
+    "GLD": 0.02,
+    "BTC": -0.05
+  }
+}

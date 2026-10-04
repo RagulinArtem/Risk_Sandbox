@@ -70,6 +70,28 @@ export function ScenarioEditor({
         </div>
       </div>
 
+      {(scenario.references?.length || scenario.unavailable_assets?.length) ? (
+        <div className="space-y-2 border-b border-line px-5 py-3 text-[11px] text-ink-tertiary">
+          {scenario.unavailable_assets && scenario.unavailable_assets.length > 0 && (
+            <p>
+              No market price in this window for {scenario.unavailable_assets.join(", ")}: shown as
+              &ldquo;no assumption&rdquo;, not as 0%.
+            </p>
+          )}
+          {scenario.references && scenario.references.length > 0 && (
+            <ol className="list-decimal space-y-0.5 pl-4">
+              {scenario.references.map((r) => (
+                <li key={r.url}>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="text-accent-strong underline decoration-accent/40 underline-offset-2">
+                    {r.title}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+      ) : null}
+
       <div className="border-b border-line px-5 py-4">
         <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
           Transmission

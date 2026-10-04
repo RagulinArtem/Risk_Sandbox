@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "./components/ErrorBanner";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AssetDrawer } from "./features/asset/AssetDrawer";
 import { CommitteePanel } from "./features/committee/CommitteePanel";
 import { LoadingLine } from "./components/LoadingLine";
 import { type TabDef, Tabs } from "./components/Tabs";
 import { PortfolioOverview } from "./features/portfolio/PortfolioOverview";
 import { usePortfolio } from "./features/portfolio/usePortfolio";
+import { RiskFeed } from "./features/risk-feed/RiskFeed";
 import { RiskRadar } from "./features/risk-radar/RiskRadar";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
 import { useAiStatus } from "./features/scenarios/useAiStatus";
@@ -17,10 +19,11 @@ import type {
   StressTestResult as StressTestResultType,
 } from "./types";
 
-type View = "portfolio" | "radar" | "stress";
+type View = "portfolio" | "feed" | "radar" | "stress";
 
 const TABS: TabDef<View>[] = [
   { id: "portfolio", label: "Portfolio" },
+  { id: "feed", label: "Risk Feed" },
   { id: "radar", label: "Risk Radar" },
   { id: "stress", label: "Stress Test" },
 ];
@@ -114,6 +117,25 @@ export default function App() {
     }
   }, [scenario]);
 
+  const draftFromHeadline = useCallback(
+    async (headline: string) => {
+      setView("stress");
+      setScenarioLoading(true);
+      setScenarioError(null);
+      setResult(null);
+      try {
+        const res = await api.parseScenario(headline);
+        if (res.recognized && res.scenario) setScenario(res.scenario);
+        else setScenarioError(res.message ?? "The AI couldn't turn this headline into a scenario.");
+      } catch {
+        setScenarioError("Couldn't reach the scenario parser.");
+      } finally {
+        setScenarioLoading(false);
+      }
+    },
+    [setView],
+  );
+
   const applyVerdict = useCallback((verdict: CommitteeVerdict) => {
     setScenario(verdict.scenario);
     setResult(verdict.consensus_result);
@@ -201,6 +223,15 @@ export default function App() {
           />
         )}
 
+        {view === "feed" && (
+          <RiskFeed
+            portfolioId={portfolio?.id}
+            onStressTest={selectScenario}
+            onDraft={isLiveAi ? draftFromHeadline : undefined}
+            onAsset={setAssetSymbol}
+          />
+        )}
+
         {view === "radar" && <RiskRadar portfolioId={portfolio?.id} onStressTest={selectScenario} />}
 
         {view === "stress" && (
@@ -250,12 +281,14 @@ export default function App() {
       </main>
 
       {assetSymbol && portfolio && (
-        <AssetDrawer
-          symbol={assetSymbol}
-          portfolio={portfolio}
-          isLiveAi={isLiveAi}
-          onClose={closeAsset}
-        />
+        <ErrorBoundary resetKey={assetSymbol} fallback={null}>
+          <AssetDrawer
+            symbol={assetSymbol}
+            portfolio={portfolio}
+            isLiveAi={isLiveAi}
+            onClose={closeAsset}
+          />
+        </ErrorBoundary>
       )}
 
       <footer className="border-t border-line">

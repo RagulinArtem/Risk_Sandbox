@@ -27,6 +27,12 @@ export function ScenarioPicker({
   }, []);
 
   const isLibraryScenario = scenarios.some((s) => s.id === selectedId);
+  const byStart = (a: Scenario, b: Scenario) =>
+    (a.window?.start ?? "2022").localeCompare(b.window?.start ?? "2022");
+  const verified = scenarios.filter((s) => s.source_status === "verified").sort(byStart);
+  const illustrative = scenarios
+    .filter((s) => s.source_status !== "verified")
+    .sort((a, b) => a.title.localeCompare(b.title));
 
   return (
     <div className="flex flex-col gap-2">
@@ -43,10 +49,17 @@ export function ScenarioPicker({
         className="border border-line-strong bg-surface-raised px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
       >
         <option value="">Choose a scenario…</option>
-        {scenarios.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.title}
-          </option>
+        {[
+          { label: "Verified history (real market data)", items: verified },
+          { label: "Illustrative (assumptions)", items: illustrative },
+        ].map((group) => (
+          <optgroup key={group.label} label={group.label}>
+            {group.items.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.title}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
     </div>

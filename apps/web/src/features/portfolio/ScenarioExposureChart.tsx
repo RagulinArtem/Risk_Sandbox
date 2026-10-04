@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { StatusBadge } from "../../components/StatusBadge";
 import { formatSignedCurrency, formatSignedPercent } from "../../lib/format";
 import type { ScenarioExposure } from "./useScenarioExposure";
@@ -11,11 +12,14 @@ export function ScenarioExposureChart({
   exposures: ScenarioExposure[];
   onOpen: (scenarioId: string) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const max = Math.max(...exposures.map((e) => Math.abs(e.result.estimated_impact_pct)), 0.0001);
+  const shown = expanded ? exposures : exposures.slice(0, 8);
 
   return (
+    <div>
     <ul className="divide-y divide-line">
-      {exposures.map(({ scenario, result }) => {
+      {shown.map(({ scenario, result }) => {
         const pct = result.estimated_impact_pct;
         const isLoss = pct < 0;
         return (
@@ -50,5 +54,15 @@ export function ScenarioExposureChart({
         );
       })}
     </ul>
+    {exposures.length > 8 && (
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="mt-2 text-xs text-ink-tertiary underline decoration-line-strong underline-offset-2 hover:text-ink-secondary"
+      >
+        {expanded ? "Show the 8 most severe" : `Show all ${exposures.length} scenarios`}
+      </button>
+    )}
+    </div>
   );
 }

@@ -1,0 +1,34 @@
+{
+  "id": "taiwan-strait-blockade",
+  "title": "Taiwan Strait Blockade",
+  "category": "geopolitical",
+  "description": "Illustrative naval blockade around Taiwan halts most leading-edge chip exports for weeks. Magnitudes are larger than the verified Russia–Ukraine 2022 window (chips −19%, LMT +17%) because the shock hits the semiconductor supply chain directly.",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "60d",
+  "transmission": [
+    "Shipping and air traffic around Taiwan are restricted",
+    "Leading-edge chip output and exports stall",
+    "Global electronics and AI hardware supply chains seize up",
+    "Risk assets sell off; safe havens and defence rally"
+  ],
+  "asset_shocks": {
+    "SPY": -0.14,
+    "QQQ": -0.2,
+    "NVDA": -0.35,
+    "TSM": -0.45,
+    "JPM": -0.12,
+    "XOM": -0.08,
+    "XLV": -0.06,
+    "LMT": 0.1,
+    "FXI": -0.25,
+    "VNQ": -0.1,
+    "TLT": 0.05,
+    "HYG": -0.07,
+    "BIL": 0.0,
+    "GLD": 0.08,
+    "BTC": -0.2
+  }
+}

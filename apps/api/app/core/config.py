@@ -40,6 +40,11 @@ class Settings(BaseSettings):
 
     enable_polymarket: bool = False
     enable_news: bool = False
+
+    # Risk Feed (free official sources + Yahoo + Polymarket). SEC requires a
+    # descriptive User-Agent with a contact address.
+    sec_user_agent: str = "AI Portfolio Risk Copilot (hackathon demo) risk-sandbox@example.com"
+    risk_feed_refresh_seconds: int = 300
     news_api_key: str = ""
 
 

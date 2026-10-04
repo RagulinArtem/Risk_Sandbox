@@ -1,0 +1,53 @@
+{
+  "id": "historical-covid-crash-2020",
+  "title": "COVID-19 Crash (Feb–Mar 2020)",
+  "category": "historical-crisis",
+  "description": "From the S&P 500's pre-pandemic record close to the March 2020 low: a global demand shock and a liquidity scramble, ended by massive Fed intervention. Shocks are real total returns (Yahoo Finance adjusted close) from 2020-02-19 to 2020-03-23.",
+  "source_status": "verified",
+  "source_name": "Yahoo Finance (adjusted close); events cited in references",
+  "source_url": "https://en.wikipedia.org/wiki/2020_stock_market_crash",
+  "source_date": "2026-10-04",
+  "horizon": "2020-02-19 → 2020-03-23 (33 days)",
+  "transmission": [
+    "2020-03-09: Oil price war: S&P 500 falls 7.6% in a day [1]",
+    "2020-03-15: Fed cuts rates to 0–0.25% and announces at least $500bn Treasury and $200bn MBS purchases [2]",
+    "2020-03-16: Largest one-day drop since 1987 (Dow −12 to 13%) [1]",
+    "2020-03-23: Fed announces open-ended asset purchases and corporate credit facilities (window end) [3]"
+  ],
+  "asset_shocks": {
+    "SPY": -0.337,
+    "QQQ": -0.279,
+    "NVDA": -0.324,
+    "TSM": -0.207,
+    "JPM": -0.425,
+    "XOM": -0.479,
+    "XLV": -0.279,
+    "LMT": -0.359,
+    "FXI": -0.189,
+    "VNQ": -0.415,
+    "TLT": 0.142,
+    "HYG": -0.219,
+    "BIL": 0.003,
+    "GLD": -0.036,
+    "BTC": -0.334
+  },
+  "unavailable_assets": [],
+  "references": [
+    {
+      "title": "2020 stock market crash (Wikipedia)",
+      "url": "https://en.wikipedia.org/wiki/2020_stock_market_crash"
+    },
+    {
+      "title": "Federal Reserve statement, 15 Mar 2020",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20200315a.htm"
+    },
+    {
+      "title": "Federal Reserve announcement, 23 Mar 2020",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20200323b.htm"
+    }
+  ],
+  "window": {
+    "start": "2020-02-19",
+    "end": "2020-03-23"
+  }
+}

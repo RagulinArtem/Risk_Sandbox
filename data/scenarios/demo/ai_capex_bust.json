@@ -1,0 +1,34 @@
+{
+  "id": "ai-capex-bust",
+  "title": "AI Capex Bust",
+  "category": "sector",
+  "description": "Illustrative sharp cut in AI data-centre spending by the largest cloud companies. NVDA's magnitude is anchored on the verified Q4 2018 window (NVDA −52% in a crypto/gaming demand bust).",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "90d",
+  "transmission": [
+    "Hyperscalers cut AI capital expenditure guidance",
+    "GPU and advanced-chip orders fall",
+    "AI-linked valuations de-rate sharply",
+    "Market rotates toward defensives and bonds"
+  ],
+  "asset_shocks": {
+    "SPY": -0.1,
+    "QQQ": -0.18,
+    "NVDA": -0.45,
+    "TSM": -0.3,
+    "JPM": -0.06,
+    "XOM": -0.03,
+    "XLV": 0.02,
+    "LMT": 0.0,
+    "FXI": -0.06,
+    "VNQ": -0.03,
+    "TLT": 0.04,
+    "HYG": -0.03,
+    "BIL": 0.0,
+    "GLD": 0.02,
+    "BTC": -0.15
+  }
+}

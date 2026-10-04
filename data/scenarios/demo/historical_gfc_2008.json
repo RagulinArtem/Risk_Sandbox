@@ -1,0 +1,53 @@
+{
+  "id": "historical-gfc-2008",
+  "title": "Global Financial Crisis: Lehman to the Bottom (2008–09)",
+  "category": "historical-crisis",
+  "description": "From the last close before Lehman Brothers' bankruptcy to the S&P 500's crisis low. Credit markets froze, banks and real estate collapsed, and long Treasuries and gold rallied. Shocks are real total returns (Yahoo Finance adjusted close) from 2008-09-12 to 2009-03-09.",
+  "source_status": "verified",
+  "source_name": "Yahoo Finance (adjusted close); events cited in references",
+  "source_url": "https://en.wikipedia.org/wiki/Bankruptcy_of_Lehman_Brothers",
+  "source_date": "2026-10-04",
+  "horizon": "2008-09-12 → 2009-03-09 (178 days)",
+  "transmission": [
+    "2008-09-15: Lehman Brothers files for Chapter 11 bankruptcy protection [1]",
+    "2008-12-16: Fed cuts the federal funds target range to 0–0.25% [2]",
+    "2009-03-09: S&P 500 closes at its crisis low (window end)"
+  ],
+  "asset_shocks": {
+    "SPY": -0.452,
+    "QQQ": -0.406,
+    "NVDA": -0.185,
+    "TSM": -0.149,
+    "JPM": -0.606,
+    "XOM": -0.158,
+    "XLV": -0.317,
+    "LMT": -0.495,
+    "FXI": -0.363,
+    "VNQ": -0.639,
+    "TLT": 0.113,
+    "HYG": -0.291,
+    "BIL": 0.003,
+    "GLD": 0.199
+  },
+  "unavailable_assets": [
+    "BTC"
+  ],
+  "references": [
+    {
+      "title": "Bankruptcy of Lehman Brothers (Wikipedia)",
+      "url": "https://en.wikipedia.org/wiki/Bankruptcy_of_Lehman_Brothers"
+    },
+    {
+      "title": "Federal Reserve FOMC statement, 16 Dec 2008",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20081216b.htm"
+    },
+    {
+      "title": "Financial crisis of 2007–2008 (Wikipedia)",
+      "url": "https://en.wikipedia.org/wiki/Financial_crisis_of_2007%E2%80%932008"
+    }
+  ],
+  "window": {
+    "start": "2008-09-12",
+    "end": "2009-03-09"
+  }
+}

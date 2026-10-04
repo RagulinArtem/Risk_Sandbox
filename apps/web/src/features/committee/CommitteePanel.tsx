@@ -87,6 +87,18 @@ function AnalystCard({ member, seat }: { member: CommitteeMember; seat: SeatStat
         <>
           <p className="text-sm leading-relaxed text-ink-secondary">{seat.view.thesis}</p>
           <ShockList shocks={seat.view.asset_shocks} />
+          {seat.view.analogues.length > 0 && (
+            <div className="space-y-1">
+              <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                Anchored on (real episodes)
+              </div>
+              {seat.view.analogues.map((a) => (
+                <p key={a.id} className="text-xs text-ink-secondary">
+                  <span className="text-ink">{a.title}.</span> {a.difference}
+                </p>
+              ))}
+            </div>
+          )}
           {seat.view.key_risk && (
             <p className="border-l-2 border-risk-warning/50 pl-2 text-xs text-ink-tertiary">
               <span className="text-risk-warning">Tail risk: </span>
@@ -224,6 +236,48 @@ function ChairCard({
               <RangeTable verdict={chair.verdict} colors={holdingColors(portfolio.positions)} />
             </section>
           </div>
+
+          {chair.verdict.historical.length > 0 && (
+            <section className="space-y-3">
+              <h4 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+                How this portfolio fared in similar real episodes
+              </h4>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead>
+                    <tr className="border-b border-line font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                      <th className="py-1.5 pr-4 text-left font-normal">Episode</th>
+                      <th className="py-1.5 pr-4 text-right font-normal">This portfolio</th>
+                      <th className="py-1.5 text-left font-normal">Why it&apos;s similar / how today differs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {chair.verdict.historical.map((h) => (
+                      <tr key={h.id} className="border-b border-line align-top last:border-b-0">
+                        <td className="py-2 pr-4">
+                          <div className="text-ink">{h.title}</div>
+                          <div className="font-mono text-[10px] text-ink-tertiary">{h.window}</div>
+                        </td>
+                        <td className="py-2 pr-4 text-right font-mono tabular-nums">
+                          <span className={h.impact_pct < 0 ? "text-risk-negative-strong" : "text-risk-positive"}>
+                            {formatSignedPercent(h.impact_pct)}
+                          </span>
+                          <div className="text-[10px] text-ink-tertiary">{formatSignedCurrency(h.impact_value)}</div>
+                        </td>
+                        <td className="py-2 text-xs leading-relaxed text-ink-secondary">
+                          {h.why} <span className="text-ink-tertiary">Today: {h.difference}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[11px] text-ink-tertiary">
+                Impacts replay each episode&apos;s real asset returns (Yahoo Finance) on today&apos;s
+                weights through the same engine. The comparison text is the chair&apos;s interpretation.
+              </p>
+            </section>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-3">
             {[
