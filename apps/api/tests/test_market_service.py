@@ -299,7 +299,9 @@ def test_market_fetch_uses_proxy(tmp_path):
                         https_proxy="http://proxy:8888")
     gamma = MagicMock()
     gamma.raise_for_status = lambda: None
-    gamma.json = lambda: [{"question": "Q", "outcomes": '["Yes","No"]', "outcomePrices": '["0.5","0.5"]'}]
+    gamma.json = lambda: [
+        {"question": "Q", "outcomes": '["Yes","No"]', "outcomePrices": '["0.5","0.5"]'}
+    ]
     clob = MagicMock()
     clob.raise_for_status = lambda: None
     clob.json = lambda: {"history": [{"t": 1, "p": 0.5}, {"t": 2, "p": 0.5}]}
