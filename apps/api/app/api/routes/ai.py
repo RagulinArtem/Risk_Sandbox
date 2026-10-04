@@ -41,6 +41,8 @@ _CANONICAL_SCENARIO_ALIASES = {
     "ai bubble burst": "ai-capex-bust",
     "ai bubble bursts": "ai-capex-bust",
     "if the ai bubble bursts": "ai-capex-bust",
+    "what if ai bubble bursts": "ai-capex-bust",
+    "what if the ai bubble bursts": "ai-capex-bust",
 }
 
 
