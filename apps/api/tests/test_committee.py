@@ -235,11 +235,13 @@ def test_sanitize_views_drops_unknown_seats_dupes_and_bad_shocks():
         },
         {"seat": "macro", "label": "M", "model": "m1", "asset_shocks": {"NVDA": -0.1}},  # dupe
         {"seat": "chair", "label": "C", "model": "m2", "asset_shocks": {"NVDA": -0.1}},  # bad seat
-        {"seat": "sector", "label": "S", "model": "m3", "asset_shocks": {"XTRA": -0.2}},  # no usable
+        # no usable supported shock
+        {"seat": "sector", "label": "S", "model": "m3", "asset_shocks": {"XTRA": -0.2}},
     ]
     cleaned = sanitize_views([AnalystView.model_validate(v) for v in views])
     assert [v.seat for v in cleaned] == ["macro"]
-    assert cleaned[0].asset_shocks == {"NVDA": -0.2}  # ZZZ dropped, SPY -500% clamped away
+    # ZZZ unsupported and SPY out of range are both dropped
+    assert cleaned[0].asset_shocks == {"NVDA": -0.2}
 
 
 def test_verdict_rejects_views_with_no_usable_shocks(client):

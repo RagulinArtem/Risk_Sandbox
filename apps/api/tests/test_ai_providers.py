@@ -161,8 +161,13 @@ def _status_response(status: int) -> MagicMock:
 def test_openrouter_retries_429_then_succeeds():
     provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
     body = json.dumps({"NVDA": -0.2})
-    with patch("httpx.post", side_effect=[_status_response(429), _openrouter_response(body)]) as mock_post, \
-         patch("app.integrations.ai.openrouter.time.sleep") as mock_sleep:
+    with (
+        patch(
+            "httpx.post",
+            side_effect=[_status_response(429), _openrouter_response(body)],
+        ) as mock_post,
+        patch("app.integrations.ai.openrouter.time.sleep") as mock_sleep,
+    ):
         scenario = provider.parse_scenario("What if chips fall 20%?")
     assert scenario.asset_shocks == {"NVDA": -0.2}
     assert mock_post.call_count == 2
