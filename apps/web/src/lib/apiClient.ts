@@ -1,16 +1,18 @@
 import type {
   AIStatusResponse,
   AnalystRequest,
-  AnalystView,
-  CommitteeRoster,
-  CommitteeVerdict,
-  VerdictRequest,
+  AnalystResponse,
   Asset,
   AssetNewsResponse,
   AssetPriceResponse,
-  MovePeriod,
-  MoveDriversResponse,
+  CommitteeRoster,
   EstimateShocksResponse,
+  ExplainRequest,
+  ExplainResponse,
+  MarketHistoryResponse,
+  MarketSummary,
+  MoveDriversResponse,
+  MovePeriod,
   ParseScenarioResponse,
   Portfolio,
   PriceHistoryRequest,
@@ -21,6 +23,8 @@ import type {
   Scenario,
   StressTestRequest,
   StressTestResult,
+  VerdictRequest,
+  VerdictResponse,
 } from "../types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
@@ -94,6 +98,27 @@ export const api = {
       `/api/risk-feed?portfolio_id=${encodeURIComponent(portfolioId)}&only_relevant=${onlyRelevant}`,
     ),
   getAiStatus: () => request<AIStatusResponse>("/api/ai/status"),
+  listTrackedMarkets: () => request<MarketSummary[]>("/api/markets/tracked"),
+  getMarketHistory: (marketId: string) =>
+    request<MarketHistoryResponse>(
+      `/api/markets/${encodeURIComponent(marketId)}/history`,
+    ),
+  getCommitteeRoster: () => request<CommitteeRoster>("/api/ai/committee"),
+  runCommitteeAnalyst: (body: AnalystRequest) =>
+    request<AnalystResponse>("/api/ai/committee/analyst", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  runCommitteeVerdict: (body: VerdictRequest) =>
+    request<VerdictResponse>("/api/ai/committee/verdict", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  explainResult: (body: ExplainRequest) =>
+    request<ExplainResponse>("/api/ai/explain", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   runStressTest: (body: StressTestRequest) =>
     request<StressTestResult>("/api/stress-test", {
       method: "POST",
@@ -106,17 +131,6 @@ export const api = {
     }),
   getPriceHistory: (body: PriceHistoryRequest) =>
     request<PriceHistoryResponse>("/api/price-history", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-  getCommittee: () => request<CommitteeRoster>("/api/ai/committee"),
-  runAnalyst: (body: AnalystRequest) =>
-    request<AnalystView>("/api/ai/committee/analyst", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
-  getVerdict: (body: VerdictRequest) =>
-    request<CommitteeVerdict>("/api/ai/committee/verdict", {
       method: "POST",
       body: JSON.stringify(body),
     }),

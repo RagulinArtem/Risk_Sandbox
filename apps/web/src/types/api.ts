@@ -1,4 +1,5 @@
 import type { Scenario } from "./scenario";
+import type { StressTestResult } from "./stressTest";
 
 export interface ParseScenarioResponse {
   recognized: boolean;
@@ -14,4 +15,13 @@ export interface AIStatusResponse {
 export interface EstimateShocksResponse {
   scenario: Scenario | null;
   message: string | null;
+}
+
+export interface ExplainRequest {
+  result: StressTestResult;
+}
+
+export interface ExplainResponse {
+  text: string;
+  ai_status: "llm" | "template";
 }

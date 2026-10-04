@@ -10,6 +10,7 @@ from app.api.routes import (
     committee,
     health,
     insights,
+    markets,
     portfolio,
     price_history,
     risk_feed,
@@ -26,7 +27,7 @@ settings = get_settings()
 app = FastAPI(
     title="AI Portfolio Risk Copilot API",
     description="Deterministic portfolio stress-testing API. See docs/API_CONTRACT.md.",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 _allowed_origins = list(
@@ -50,6 +51,7 @@ app.include_router(price_history.router)
 app.include_router(stress_test.router)
 app.include_router(risk_radar.router)
 app.include_router(risk_feed.router)
+app.include_router(markets.router)
 app.include_router(ai.router)
 app.include_router(committee.router)
 

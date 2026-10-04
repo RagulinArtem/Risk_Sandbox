@@ -1,6 +1,7 @@
 import json
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
 
 from app.core.config import Settings
@@ -150,3 +151,71 @@ def test_mock_provider_recognizes_single_trigger():
     scenario = MockScenarioProvider().parse_scenario("Nasdaq falls 15%")
     assert scenario.asset_shocks["QQQ"] == pytest.approx(-0.15)
     assert scenario.source_status == "illustrative"
+
+
+def _status_response(status: int) -> MagicMock:
+    response = MagicMock(status_code=status)
+    response.raise_for_status = MagicMock(
+        side_effect=httpx.HTTPStatusError(
+            str(status),
+            request=httpx.Request("POST", "https://openrouter.ai"),
+            response=response,
+        )
+    )
+    return response
+
+
+def test_openrouter_retries_429_then_succeeds():
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    body = json.dumps({"NVDA": -0.2})
+    with (
+        patch(
+            "httpx.post",
+            side_effect=[_status_response(429), _openrouter_response(body)],
+        ) as mock_post,
+        patch("app.integrations.ai.openrouter.time.sleep") as mock_sleep,
+    ):
+        scenario = provider.parse_scenario("What if chips fall 20%?")
+    assert scenario.asset_shocks == {"NVDA": -0.2}
+    assert mock_post.call_count == 2
+    mock_sleep.assert_called_once_with(0.5)
+
+
+def test_openrouter_gives_up_after_retries_with_friendly_message():
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    with patch("httpx.post", side_effect=[_status_response(429)] * 3) as mock_post, \
+         patch("app.integrations.ai.openrouter.time.sleep"):
+        with pytest.raises(AIProviderUnavailableError, match="rate limit"):
+            provider.parse_scenario("What if chips fall 20%?")
+    assert mock_post.call_count == 3
+
+
+def test_openrouter_does_not_retry_401():
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    with patch("httpx.post", side_effect=[_status_response(401)]) as mock_post:
+        with pytest.raises(AIProviderUnavailableError, match="rejected the API key"):
+            provider.parse_scenario("What if chips fall 20%?")
+    assert mock_post.call_count == 1
+
+
+def test_openrouter_timeout_is_friendly_and_not_retried():
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    with patch("httpx.post", side_effect=httpx.TimeoutException("slow")) as mock_post:
+        with pytest.raises(AIProviderUnavailableError, match="timed out"):
+            provider.parse_scenario("What if chips fall 20%?")
+    assert mock_post.call_count == 1
+
+
+def test_openrouter_malformed_json_is_friendly():
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    with patch("httpx.post", return_value=_openrouter_response("not json at all")):
+        with pytest.raises(AIProviderUnavailableError, match="couldn't parse"):
+            provider.parse_scenario("What if chips fall 20%?")
+
+
+def test_openrouter_unexpected_shape_is_friendly():
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    bad = MagicMock(status_code=200, raise_for_status=lambda: None, json=lambda: {"nope": 1})
+    with patch("httpx.post", return_value=bad):
+        with pytest.raises(AIProviderUnavailableError, match="unexpected response"):
+            provider.parse_scenario("What if chips fall 20%?")

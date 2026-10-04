@@ -88,6 +88,48 @@ impact magnitude someone wrote before that probability existed. This is
 disclosed, not hidden — the UI shows the live probability and the
 scenario's `DEMO`/illustrative shocks as what they are, separately.
 
+## Why a multi-lab AI Risk Committee (2026-10-04)
+
+One model gives you false confidence; three models from three different
+labs arguing independent lenses, reconciled by a chair from a fourth, show
+both the consensus AND how uncertain it is. Different labs matter because
+models trained by the same lab tend to share blind spots; different lenses
+matter because an identical prompt pulls every answer toward the middle.
+The orchestration keeps Principle 2 intact: analysts and the chair produce
+*assumptions and commentary only* — every portfolio number (consensus
+impact, per-analyst impact, shock ranges) is deterministic engine output.
+The browser fans out one request per seat so cards render as models answer
+(no job queue, no SSE, stateless API), and the chair only sees views that
+succeeded. Family/host choice: OpenRouter, because one API key reaches all
+four labs whereas Bedrock only reaches Anthropic models. Cost ~$0.04/run
+at the benchmarked models; the app remains fully functional with
+`AI_PROVIDER=mock`, where the committee is hidden.
+
+## Why the factor engine ships a committed DEMO beta table (2026-10-04)
+
+The PRD wants `shocks x betas` (FR4), but the venue network rate-limits the
+usual price sources (Yahoo returned 429 during the build). Rather than
+block the engine on data acquisition, `data/betas.csv` ships as a
+hand-curated, plausibility-checked table and is **labeled DEMO everywhere**
+(sanity rules tested: TLT negative to rates, NVDA heavy on semis, GLD low
+on nasdaq, BTC positive on nasdaq). `scripts/build_betas.py` is committed
+so the table can be regenerated from real returns later — the engine
+already records `beta_version` (content hash) on every result, so a
+regenerated table produces visibly different, traceable runs. This is the
+team plan's cut item #7 ("real betas... use the demo table, label it DEMO,
+and say so in the pitch") applied deliberately, not silently.
+
+## Why probability paths come from a curated mapping (2026-10-04)
+
+`data/mapping.json` is curated by the team: a small set of tracked markets,
+each mapped to a factor-shock scenario with shock sources. The mapping is
+not discovered by AI. This keeps the demo honest at the exact point where
+fake precision would be easiest: a prediction-market probability is a real,
+attributable number, but it is NOT an asset-shock magnitude. The magnitude
+in the mapped scenario is explicitly `illustrative` with historical
+analogues listed, and the UI shows both separately (live probability, DEMO
+assumptions). A market with no sensible mapping is simply not tracked.
+
 ## Why `DirectAssetShockEngine` before a factor model
 
 A flat per-asset shock is the simplest thing that (a) produces a correct,

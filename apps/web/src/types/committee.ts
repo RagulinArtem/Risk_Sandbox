@@ -1,26 +1,21 @@
-import type { Portfolio } from "./portfolio";
-import type { Scenario } from "./scenario";
-import type { StressTestResult } from "./stressTest";
+import type { MarketContextSignal } from "./market";
+import type { SourceStatus } from "./scenario";
 
-export type AnalystRole = "macro" | "sector" | "cross_asset";
 export type Confidence = "low" | "medium" | "high";
 
-export interface CommitteeMember {
-  role: AnalystRole | "chair";
+export interface CommitteeSeatInfo {
+  seat: string;
   label: string;
-  focus: string;
+  lens: string;
   model: string;
 }
 
 export interface CommitteeRoster {
-  analysts: CommitteeMember[];
-  chair: CommitteeMember;
-}
-
-export interface AnalystRequest {
-  scenario: Scenario;
-  portfolio: Portfolio;
-  role: AnalystRole;
+  enabled: boolean;
+  provider: string;
+  seats: CommitteeSeatInfo[];
+  chair: CommitteeSeatInfo;
+  note: string | null;
 }
 
 export interface AnalogueRef {
@@ -42,42 +37,81 @@ export interface HistoricalComparison {
 }
 
 export interface AnalystView {
-  role: AnalystRole;
+  seat: string;
   label: string;
   model: string;
+  asset_shocks: Record<string, number>;
+  rationale: Record<string, string>;
   thesis: string;
   key_risk: string;
   confidence: Confidence;
-  asset_shocks: Record<string, number>;
-  rationale: Record<string, string>;
   analogues: AnalogueRef[];
-  latency_ms: number;
-}
-
-export interface VerdictRequest {
-  scenario: Scenario;
-  portfolio: Portfolio;
-  views: AnalystView[];
+  source_status: SourceStatus;
+  market_context: MarketContextSignal | null;
 }
 
 export interface ViewImpact {
+  seat: string;
   label: string;
   model: string;
-  estimated_impact_pct: number;
-  estimated_impact_value: number;
+  impact_pct: number;
+  impact_value: number;
+  stressed_value: number;
+}
+
+export interface RevisionView {
+  seat: string;
+  label: string;
+  model: string;
+  asset_shocks: Record<string, number>;
+  rationale: Record<string, string>;
+  change: string;
+  confidence: Confidence;
+  revised: boolean;
 }
 
 export interface CommitteeVerdict {
-  scenario: Scenario;
-  chair_model: string;
+  consensus: Record<string, number>;
+  consensus_rationale: Record<string, string>;
   verdict: string;
   insights: string[];
   disagreements: string[];
   watch: string[];
-  confidence: Confidence;
+  confidence: string;
+  consensus_impact: ViewImpact;
+  view_impacts: ViewImpact[];
+  revisions: RevisionView[];
+  revision_impacts: ViewImpact[];
   shock_ranges: Record<string, { min: number; max: number }>;
   historical: HistoricalComparison[];
-  view_impacts: ViewImpact[];
-  consensus_result: StressTestResult;
-  latency_ms: number;
+  source_status: SourceStatus;
+  market_context: MarketContextSignal | null;
+}
+
+export interface CommitteeContextRequest {
+  scenario_title: string;
+  scenario_description: string;
+  horizon: string;
+  transmission: string[];
+  portfolio: import("./portfolio").Portfolio;
+  market_id?: string | null;
+}
+
+export interface AnalystRequest extends CommitteeContextRequest {
+  seat: string;
+}
+
+export interface AnalystResponse {
+  view: AnalystView | null;
+  message: string | null;
+}
+
+export interface VerdictRequest extends CommitteeContextRequest {
+  views: AnalystView[];
+  debate?: boolean;
+}
+
+export interface VerdictResponse {
+  verdict: CommitteeVerdict | null;
+  message: string | null;
 }

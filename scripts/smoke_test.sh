@@ -47,5 +47,21 @@ curl -sf -X POST "http://127.0.0.1:$PORT/api/stress-test" \
 {"portfolio":{"id":"demo-tech","name":"Technology Heavy Portfolio","currency":"USD","total_value":100000,"positions":[{"symbol":"NVDA","weight":0.30},{"symbol":"QQQ","weight":0.25},{"symbol":"SPY","weight":0.15},{"symbol":"BTC","weight":0.10},{"symbol":"TLT","weight":0.10},{"symbol":"GLD","weight":0.10}]},"scenario_id":"semiconductor-supply-shock"}
 EOF
 
+echo "==> POST /api/stress-test (factor_shocks + probability)"
+curl -sf -X POST "http://127.0.0.1:$PORT/api/stress-test" \
+  -H "Content-Type: application/json" \
+  -d @- <<'EOF' | head -c 500; echo
+{"portfolio":{"id":"demo-tech","name":"Technology Heavy Portfolio","currency":"USD","total_value":100000,"positions":[{"symbol":"NVDA","weight":0.30},{"symbol":"QQQ","weight":0.25},{"symbol":"SPY","weight":0.15},{"symbol":"BTC","weight":0.10},{"symbol":"TLT","weight":0.10},{"symbol":"GLD","weight":0.10}]},"factor_shocks":{"semis":-25,"nasdaq":-10},"probability":0.25}
+EOF
+
+echo "==> GET /api/markets/tracked"
+curl -sf "http://127.0.0.1:$PORT/api/markets/tracked" | head -c 300; echo
+
+echo "==> GET /api/markets/567621/history"
+curl -sf "http://127.0.0.1:$PORT/api/markets/567621/history" | head -c 300; echo
+
+echo "==> GET /api/ai/committee"
+curl -sf "http://127.0.0.1:$PORT/api/ai/committee" | head -c 300; echo
+
 echo ""
 echo "Smoke test passed."

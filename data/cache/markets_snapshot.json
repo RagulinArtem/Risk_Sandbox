@@ -1,0 +1,43 @@
+{
+  "saved_at": "2026-10-04T06:26:56.070691+00:00",
+  "markets": [
+    {
+      "market_id": "567621",
+      "token_id": "94559586571241563470235664821564670251180951772614764383113614156422396181162",
+      "label": "China invades Taiwan (2026)",
+      "question": "Will China invade Taiwan by end of 2026?",
+      "slug": "will-china-invade-taiwan-before-2027",
+      "probability": 0.0225,
+      "change_7d_pp": -1.45,
+      "change_30d_pp": -1.4,
+      "repriced": false,
+      "liquidity_usd": 715739.66627,
+      "volume_usd": 43462129.61287088,
+      "end_date": "2027-01-01T04:59:00Z",
+      "scenario": {
+        "id": "taiwan-chip-disruption",
+        "name": "Taiwan Chip Supply Disruption",
+        "description": "A Taiwan conflict severely disrupts advanced chip supply, hitting semiconductor names and broad tech hardest.",
+        "horizon": "30d",
+        "factor_shocks": {
+          "semis": -25.0,
+          "nasdaq": -10.0,
+          "oil": 15.0,
+          "gold": 5.0
+        },
+        "transmission": [
+          "Taiwan conflict disrupts advanced-node chip manufacturing",
+          "Semiconductor supply chain reprices sharply (foundries, chip designers)",
+          "Broader tech de-rates on supply and demand uncertainty",
+          "Energy and shipping risk lifts oil; safe-haven flows lift gold"
+        ],
+        "shock_sources": [
+          "Illustrative assumption \u2014 historical analogue: 2022 semiconductor export-control episode",
+          "Illustrative assumption \u2014 2022 energy-shock spillover"
+        ],
+        "source_status": "illustrative"
+      },
+      "as_of": "2026-10-04T06:26:56.070691+00:00"
+    }
+  ]
+}

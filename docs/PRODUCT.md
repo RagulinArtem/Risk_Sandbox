@@ -73,3 +73,12 @@ more realistic cross-asset propagation.
 
 None of these are committed — they're the shape the architecture leaves
 open, not a roadmap.
+
+### How it could pay for itself
+
+The repo is the Community Edition (free, self-hostable, BYOK). The
+commercial plan is a managed Cloud edition selling convenience, live data
+and monitoring — never better math. The full Community/Cloud split, its
+mapping onto what already exists (`illustrative → verified → live` as the
+data tiers, JSON scenario files as Risk Packs), and the build order are in
+`docs/BUSINESS_MODEL.md`.

@@ -61,28 +61,32 @@ sequenceDiagram
     API-->>UI: roster (3 analysts + chair, model ids)
 
     par Analysts run in parallel (one HTTP request each)
-        UI->>API: POST /analyst {scenario, portfolio, role: macro}
+        UI->>API: POST /analyst {context, seat: macro, market_id?}
         API->>OR: GPT-6.1 Sol, reasoning effort low
-        OR-->>API: JSON: shocks, rationale, thesis, key_risk, confidence
+        OR-->>API: JSON: shocks, rationale, thesis, key_risk, confidence, analogues
         API-->>UI: AnalystView (card fills in)
     and
-        UI->>API: POST /analyst {role: sector}
+        UI->>API: POST /analyst {seat: sector}
         API->>OR: Gemini Pro
         OR-->>API: JSON
         API-->>UI: AnalystView
     and
-        UI->>API: POST /analyst {role: cross_asset}
+        UI->>API: POST /analyst {seat: cross_asset}
         API->>OR: Kimi K3
         OR-->>API: JSON
         API-->>UI: AnalystView
     end
 
-    UI->>API: POST /verdict {scenario, portfolio, views[]}
+    UI->>API: POST /verdict {context, views[], debate?, market_id?}
+    opt debate: true
+        API->>OR: rebuttal round (anonymized peers), in parallel
+        OR-->>API: revised shocks per seat (or first-round fallback)
+    end
     API->>OR: Claude Opus 5.5 reads all views
     OR-->>API: JSON: consensus shocks + rationale, verdict, insights, disagreements, watch
     API->>E: run(consensus shocks) + run(each analyst's shocks)
     E-->>API: consensus StressTestResult, per-view impacts
-    API-->>UI: CommitteeVerdict (+ shock ranges min/max per asset)
+    API-->>UI: CommitteeVerdict (+ shock ranges, historical replays)
 
     UI->>UI: "Use consensus in the stress test" → editor + result
 ```
@@ -184,7 +188,7 @@ reconciled), plus `verdict`, exactly 3 `insights` about this portfolio,
 | Hallucinated portfolio maths | All impacts recomputed by the engine (section 4) |
 | AI output mistaken for data | Always `source_status: "illustrative"`; UI labels "AI-estimated, not a forecast" |
 | Investment-advice drift | Chair prompt forbids buy/sell/hedge recommendations; UI disclaimer |
-| Provider down, out of credits, region-blocked | HTTP 401/402/403/429 mapped to actionable messages; 503 to the UI; rest of app unaffected |
+| Provider down, out of credits, region-blocked | HTTP 401/402/403/429 mapped to actionable messages, returned as HTTP 200 + `message` (or 503 for a missing provider on the roster); rest of app unaffected |
 | OpenRouter blocks the server's IP (Russia) | API container uses `HTTPS_PROXY` → tinyproxy on the Hostkey US VM, allowlisted to the Timeweb IP |
 
 ---
@@ -284,17 +288,17 @@ Full shapes are in `docs/API_CONTRACT.md`.
 
 ```
 apps/api/app/
-  integrations/ai/openrouter.py   chat_json() helper, prompts, clean_shocks/clean_rationale,
-                                  OpenRouterScenarioProvider (parse + estimate)
-  integrations/ai/committee.py    roles, lenses, analyst/chair prompts, run_analyst, run_chair
-  services/committee_service.py   build_verdict(): chair + engine runs + ranges
-  api/routes/committee.py         /api/ai/committee endpoints
+  integrations/ai/openrouter.py   complete_json() guarded call (retries, friendly errors),
+                                  asset_lines/clean_shocks/clean_rationale, provider (parse + estimate)
+  integrations/ai/committee.py    seats, lenses, prompts, run_analyst, run_debate, run_chair, sanitize
+  services/analogue_service.py    verified episodes replayed on the portfolio (prompt grounding)
+  api/routes/committee.py         /api/ai/committee endpoints + engine-computed impacts/history
   schemas/committee.py            CommitteeRoster, AnalystView, CommitteeVerdict, ...
-  tests/test_committee.py         prompt wiring, cleaning, engine-computed numbers, 503 on mock
+  tests/test_committee.py         prompt wiring, cleaning, engine numbers, graceful degradation
 
-apps/web/src/features/committee/
-  useCommittee.ts                 parallel fan-out, per-seat state, stale-run guard, chair call
-  CommitteePanel.tsx              analyst cards, chair card, impact spread, range table
+apps/web/src/features/stress-test/
+  CommitteePanel.tsx              seat fan-out, chair verdict, impact spread, range table,
+                                  historical episode table, analogue anchors per seat
 ```
 
 ---

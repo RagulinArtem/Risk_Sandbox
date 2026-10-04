@@ -1,7 +1,7 @@
 import { type ReactNode, useState } from "react";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
-import { formatShortDate, formatSignedPercent } from "../../lib/format";
+import { formatPercent, formatShortDate, formatSignedPercent } from "../../lib/format";
 import type { Portfolio, PriceRange } from "../../types";
 import { AllocationDonut } from "./AllocationDonut";
 import { AssetClassBreakdown } from "./AssetClassBreakdown";
@@ -25,20 +25,29 @@ function Panel({ title, note, children }: { title: string; note?: string; childr
   );
 }
 
+// Mirrors the backend tolerance (Portfolio._weights_sum_to_one, abs_tol 0.01).
+export const WEIGHTS_TOLERANCE = 0.01;
+
 export function PortfolioOverview({
   portfolio,
   onOpenScenario,
   onSelectAsset,
+  onWeightChange,
+  onResetPortfolio,
 }: {
   portfolio: Portfolio;
   onOpenScenario: (scenarioId: string) => void;
   onSelectAsset: (symbol: string) => void;
+  onWeightChange?: (symbol: string, weight: number) => void;
+  onResetPortfolio?: () => void;
 }) {
   const assets = useAssets();
   const { exposures, error, loading } = useScenarioExposure(portfolio);
   const worst = exposures[0];
   const [range, setRange] = useState<PriceRange>("1y");
   const prices = usePriceHistory(portfolio, range);
+  const totalWeight = portfolio.positions.reduce((sum, p) => sum + p.weight, 0);
+  const weightsValid = Math.abs(totalWeight - 1) <= WEIGHTS_TOLERANCE;
 
   return (
     <div className="space-y-6">
@@ -56,11 +65,40 @@ export function PortfolioOverview({
         }
       />
 
-      <Panel title="Holdings" note="Click a holding for asset intelligence">
+      <Panel
+        title="Holdings"
+        note={
+          onWeightChange
+            ? "Click for asset intelligence · weights must sum to 100%"
+            : "Click a holding for asset intelligence"
+        }
+      >
+        {onWeightChange && (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <span
+              className={`font-mono text-xs tabular-nums ${
+                weightsValid ? "text-ink-tertiary" : "text-risk-negative-strong"
+              }`}
+            >
+              Weights sum to {formatPercent(totalWeight, 1)}
+              {!weightsValid && " — adjust to 100% before running a stress test"}
+            </span>
+            {onResetPortfolio && (
+              <button
+                type="button"
+                onClick={onResetPortfolio}
+                className="border border-line-strong px-2.5 py-1 text-xs text-ink-secondary transition-colors hover:border-accent hover:text-accent-strong"
+              >
+                Reset demo portfolio
+              </button>
+            )}
+          </div>
+        )}
         <HoldingsTable
           onSelect={onSelectAsset}
           portfolio={portfolio}
           assets={assets}
+          onWeightChange={onWeightChange}
           returns={
             prices.history
               ? {
@@ -107,7 +145,6 @@ export function PortfolioOverview({
           <ScenarioExposureChart exposures={exposures} onOpen={onOpenScenario} />
         )}
       </Panel>
-
     </div>
   );
 }

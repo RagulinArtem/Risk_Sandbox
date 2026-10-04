@@ -48,8 +48,8 @@ by `make setup`.
 | Polymarket integration | `apps/api/app/integrations/risk_sources/polymarket.py` |
 | News integration | `apps/api/app/integrations/risk_sources/news.py` |
 | LLM calls, prompts (OpenRouter) | `apps/api/app/integrations/ai/openrouter.py` |
-| AI Risk Committee (roles, prompts) | `apps/api/app/integrations/ai/committee.py` + `services/committee_service.py` |
-| Committee UI | `apps/web/src/features/committee/` |
+| AI Risk Committee (seats, prompts) | `apps/api/app/integrations/ai/committee.py` + `apps/api/app/api/routes/committee.py` |
+| Committee UI | `apps/web/src/features/stress-test/CommitteePanel.tsx` |
 | Price history (Yahoo Finance) | `apps/api/app/integrations/market_data/yahoo.py` |
 | Asset descriptions, roles, risk factors | `data/assets/supported_assets.json` (JSON, no code change) |
 | News headlines | `apps/api/app/integrations/news/` |

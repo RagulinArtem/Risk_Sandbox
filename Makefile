@@ -1,4 +1,4 @@
-.PHONY: setup dev test lint typecheck check smoke clean
+.PHONY: setup dev test lint typecheck check smoke smoke-live clean
 
 setup:
 	./scripts/bootstrap.sh
@@ -23,3 +23,6 @@ smoke:
 
 clean:
 	rm -rf apps/api/.venv apps/web/node_modules apps/web/dist
+
+smoke-live:
+	apps/api/.venv/bin/python scripts/live_smoke.py --yes

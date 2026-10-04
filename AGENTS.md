@@ -22,7 +22,7 @@ Impact Decomposition → AI Explanation → User Decision. It stops before
    Risk Committee member's view, the committee consensus, shock ranges)
    is computed by deterministic Python in
    `apps/api/app/domain/risk/engine.py`, via
-   `services/stress_test_service.py` or `services/committee_service.py`.
+   `services/stress_test_service.py` or `api/routes/committee.py`.
 2. **The offline MVP must always work.** No AWS/Polymarket/news credentials
    are required to run `make dev` and complete a full demo. `AI_PROVIDER`
    defaults to `mock`; live integrations are additive, never a hard
@@ -49,10 +49,12 @@ Full write-up: `docs/MULTI_AGENT_ORCHESTRATION.md`.
 
 Rules for anyone touching AI code:
 
-- **All LLM calls go through `chat_json()`** in
-  `integrations/ai/openrouter.py`. It handles auth, the `reasoning:
-  {effort: "low"}` latency setting, code-fence stripping and friendly
-  401/402/403/429 errors. Don't call httpx directly from new AI code.
+- **All LLM calls go through `complete_json()`** in
+  `integrations/ai/openrouter.py`. It handles auth, transient retries,
+  the `reasoning: {effort: "low"}` latency setting, code-fence stripping
+  and friendly 401/402/403/429 errors (`chat_json()` remains a thin alias
+  for the move-driver interpreter). Don't call httpx directly from new AI
+  code.
 - **Clean every model output** with `clean_shocks()` / `clean_rationale()`
   (known symbols only, shocks within −95%…+200%). Treat model output as
   untrusted input.
@@ -65,11 +67,12 @@ Rules for anyone touching AI code:
   `app/core/config.py`. To swap a seat, change the env var. Benchmark
   latency first (section 7 of the orchestration doc): a slow seat stalls
   the whole committee.
-- **Tests never hit a live model.** Patch `chat_json` or `httpx.post`; see
+- **Tests never hit a live model.** Patch `complete_json` or `httpx.post`; see
   `tests/test_ai_providers.py` and `tests/test_committee.py`.
 - **Degrade gracefully.** With `AI_PROVIDER=mock`, `/api/ai/status`
   reports `is_live: false` and the UI hides AI-only controls. Committee
-  endpoints return 503 with a readable `detail`.
+  analyst/verdict calls return HTTP 200 with a readable `message` (422 for
+  an unknown seat); the rest of the app keeps working.
 
 ## Market data
 

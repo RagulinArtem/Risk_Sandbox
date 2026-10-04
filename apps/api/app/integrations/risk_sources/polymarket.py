@@ -13,58 +13,33 @@ that stays an explicit, editable, illustrative assumption the user can
 inspect and override. A market that doesn't match any known scenario is
 skipped, not invented a scenario for.
 
-NOTE ON VERIFICATION: this was implemented and unit-tested against a
-realistic fixture matching Polymarket's documented Gamma API response
-shape (https://docs.polymarket.com/), but could not be verified against
-the *live* API from the sandbox this was built in — its network policy
-denies gamma-api.polymarket.com. Before relying on this in a demo, verify
-it once against the real endpoint (run it somewhere with normal internet,
-or widen this environment's allowed network hosts) — see
-apps/api/tests/test_polymarket_source.py for what's already covered.
+NOTE ON VERIFICATION: verified against the live Gamma API on 2026-10-04.
+Markets are fetched with `order=volume24hr&ascending=false` because
+Gamma's default ordering surfaced none of our tracked scenario keywords —
+verified: 0 matches in the default-ordered page vs 3 matches (Fed, Taiwan,
+Hormuz) when ordered by 24 h volume. See
+apps/api/tests/test_polymarket_source.py for what's unit-covered.
 """
 
 import json
 import logging
 from datetime import UTC, datetime
 
+from app.core.config import Settings, get_settings
 from app.integrations.risk_sources.base import RiskSource
 from app.schemas.risk import RiskSignal
 
 logger = logging.getLogger(__name__)
 
-GAMMA_API_URL = "https://gamma-api.polymarket.com/events"
+GAMMA_API_URL = "https://gamma-api.polymarket.com/markets"
 REQUEST_TIMEOUT_SECONDS = 8.0
-EVENTS_PER_TAG = 20
-# Querying by topic tag (instead of "top 50 markets overall", which were all
-# election bets) is what makes macro/geopolitical risk markets show up.
-TAGS = ("economy", "fed", "geopolitics", "china", "oil", "tariffs")
-MIN_VOLUME_USD = 10_000  # skip illiquid markets whose price says little
-MIN_PROB, MAX_PROB = 0.02, 0.98
-MAX_PER_SCENARIO = 2  # most liquid markets per scenario
-
-
-def _volume(market: dict) -> float:
-    try:
-        return float(market.get("volumeNum", market.get("volume")) or 0.0)
-    except (TypeError, ValueError):
-        return 0.0
-
+MARKET_FETCH_LIMIT = 100
 
 # Maps a demo scenario id to keywords that, if found in a Polymarket
 # market's question, suggest that market is a live probability signal for
 # that scenario. Deliberately simple keyword matching — same philosophy as
 # integrations/ai/mock.py, not NLP. Keep in sync with data/scenarios/demo/.
 SCENARIO_KEYWORDS: dict[str, tuple[str, ...]] = {
-    # Most specific first: the first matching scenario wins.
-    "taiwan-strait-blockade": (
-        "invade taiwan",
-        "taiwan strait",
-        "blockade taiwan",
-        "blockade of taiwan",
-    ),
-    "strait-of-hormuz-closure": ("hormuz", "bab el-mandeb", "iranian blockade"),
-    "regional-bank-run": ("bank failure", "fdic", "bank run"),
-    "china-property-crisis": ("evergrande", "china property", "china gdp"),
     "interest-rate-shock": ("fed", "fomc", "interest rate", "rate cut", "rate hike", "powell"),
     "oil-supply-disruption": ("oil", "opec", "strait of hormuz", "crude"),
     "semiconductor-supply-shock": ("chip", "semiconductor", "tsmc", "export control", "taiwan"),
@@ -79,28 +54,21 @@ class PolymarketFetchError(RuntimeError):
 
 
 class PolymarketRiskSource(RiskSource):
+    def __init__(self, settings: Settings | None = None):
+        self._settings = settings or get_settings()
+
     def get_risk_signals(self) -> list[RiskSignal]:
         markets = self._fetch_markets()
         retrieved_at = datetime.now(UTC).isoformat()
 
-        by_scenario: dict[str, list[tuple[float, RiskSignal]]] = {}
+        signals: list[RiskSignal] = []
         for market in markets:
             scenario_id = self._match_scenario(market)
             if scenario_id is None:
                 continue
-            probability = self._extract_yes_probability(market)
-            # Near-certain outcomes (e.g. the 30 "Will N Fed cuts happen?"
-            # sub-markets at 0%) say little; keep informative prices only.
-            if probability is None or not MIN_PROB <= probability <= MAX_PROB:
-                continue
             signal = self._to_risk_signal(market, scenario_id, retrieved_at)
             if signal is not None:
-                by_scenario.setdefault(scenario_id, []).append((_volume(market), signal))
-
-        signals: list[RiskSignal] = []
-        for ranked in by_scenario.values():
-            ranked.sort(key=lambda pair: pair[0], reverse=True)
-            signals.extend(signal for _, signal in ranked[:MAX_PER_SCENARIO])
+                signals.append(signal)
         return signals
 
     def _fetch_markets(self) -> list[dict]:
@@ -111,44 +79,29 @@ class PolymarketRiskSource(RiskSource):
                 "httpx is not installed — required for PolymarketRiskSource."
             ) from exc
 
-        markets: dict[str, dict] = {}
-        for tag in TAGS:
-            try:
-                response = httpx.get(
-                    GAMMA_API_URL,
-                    params={
-                        "closed": "false",
-                        "limit": EVENTS_PER_TAG,
-                        "tag_slug": tag,
-                        "order": "volume24hr",
-                        "ascending": "false",
-                    },
-                    timeout=REQUEST_TIMEOUT_SECONDS,
-                )
-                response.raise_for_status()
-                data = response.json()
-            except Exception as exc:
-                raise PolymarketFetchError(f"Polymarket API request failed: {exc}") from exc
-            if not isinstance(data, list):
-                raise PolymarketFetchError(
-                    "Unexpected Polymarket response shape: expected a list, "
-                    f"got {type(data).__name__}"
-                )
-            for item in data:
-                # Events wrap markets; tolerate bare market objects too.
-                inner = item.get("markets") if isinstance(item, dict) else None
-                for market in inner if isinstance(inner, list) else [item]:
-                    if not isinstance(market, dict) or market.get("closed") is True:
-                        continue
-                    volume = market.get("volumeNum", market.get("volume"))
-                    try:
-                        if volume is not None and float(volume) < MIN_VOLUME_USD:
-                            continue
-                    except (TypeError, ValueError):
-                        pass
-                    key = str(market.get("id") or market.get("slug"))
-                    markets.setdefault(key, market)
-        return list(markets.values())
+        try:
+            response = httpx.get(
+                GAMMA_API_URL,
+                params={
+                    "active": "true",
+                    "closed": "false",
+                    "limit": MARKET_FETCH_LIMIT,
+                    "order": "volume24hr",
+                    "ascending": "false",
+                },
+                timeout=REQUEST_TIMEOUT_SECONDS,
+                proxy=self._settings.https_proxy or None,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception as exc:
+            raise PolymarketFetchError(f"Polymarket API request failed: {exc}") from exc
+
+        if not isinstance(data, list):
+            raise PolymarketFetchError(
+                f"Unexpected Polymarket response shape: expected a list, got {type(data).__name__}"
+            )
+        return data
 
     def _match_scenario(self, market: dict) -> str | None:
         question = (market.get("question") or "").lower()
@@ -195,7 +148,8 @@ class PolymarketRiskSource(RiskSource):
     def _extract_yes_probability(market: dict) -> float | None:
         """Polymarket's Gamma API returns `outcomes` and `outcomePrices` as
         JSON-encoded string arrays, e.g. '["Yes","No"]' / '["0.62","0.38"]'.
-        The price of the "Yes" outcome is the market-implied probability."""
+        Only an explicit "Yes" outcome yields a probability we can attribute
+        to the question; multi-outcome markets without one return None."""
         try:
             outcomes = json.loads(market.get("outcomes") or "[]")
             prices = json.loads(market.get("outcomePrices") or "[]")
@@ -211,10 +165,4 @@ class PolymarketRiskSource(RiskSource):
                     return float(price)
                 except (TypeError, ValueError):
                     return None
-
-        # No explicit "Yes" outcome (e.g. a multi-outcome market) — fall
-        # back to the first outcome's price rather than guessing further.
-        try:
-            return float(prices[0])
-        except (TypeError, ValueError, IndexError):
-            return None
+        return None

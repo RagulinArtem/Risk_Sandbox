@@ -50,7 +50,7 @@ don't let it drift from reality.
     assumptions on the left, result (headline impact, contribution chart,
     "why this matters") on the right.
   All wired to the live API, no mock data or impact math in the frontend.
-- 99 backend tests passing; `ruff check` clean; frontend `typecheck` +
+- 160 backend tests passing; `ruff check` clean; frontend `typecheck` +
   `lint` + `build` clean. Full user flow verified in an actual browser
   (Risk Radar → scenario → stress test → custom "what if").
 - CORS, structured error responses (422 for validation, 404 for unknown
@@ -65,10 +65,13 @@ don't let it drift from reality.
   surfaces the market's real current price as `probability_signal` with
   full provenance (`source_name`, `source_url`, `retrieved_at`,
   `source_status: "live"`). 6 unit tests against a fixture matching the
-  documented API shape. On production (2026-10-04) the API is reachable
-  (HTTP 200) but **no signals appear**: it only fetches the top 50 active
-  markets, which were all 2028-election markets, so no keyword matches.
-  Fix: query by tag/keyword or fetch more markets.
+  documented API shape. **Live-verified 2026-10-04:** the source queries
+  the Gamma markets endpoint ordered by 24 h volume
+  (`order=volume24hr&ascending=false`) — Gamma's default ordering matched 0
+  of the tracked scenarios, this ordering matched 3 real markets (Fed
+  rate-cut 0.45%, Taiwan 2.25%, Strait of Hormuz 2.8%). Probability
+  extraction accepts only an explicit "Yes" outcome; multi-outcome markets
+  without one are skipped, never approximated from the first price.
 - **OpenRouter scenario parsing + AI shock estimation**
   (`integrations/ai/openrouter.py`, `AI_PROVIDER=openrouter`; `mock`
   remains the default). The LLM proposes a shock **and a one-line
@@ -80,7 +83,7 @@ don't let it drift from reality.
   `illustrative`. HTTP 401/402/403/429 map to actionable messages.
   Verified live on 2026-10-04.
 - **AI Risk Committee** (`integrations/ai/committee.py`,
-  `services/committee_service.py`, Stress Test tab) — three analysts on
+  `api/routes/committee.py`, Stress Test tab) — three analysts on
   models from different labs (macro & rates: `openai/gpt-6.1-sol`; sector
   & earnings: `~google/gemini-pro-latest`; cross-asset & history:
   `moonshotai/kimi-k3`) estimate shocks with a thesis, tail risk and
@@ -91,7 +94,10 @@ don't let it drift from reality.
   Models picked by benchmarking 8 OpenRouter models on the same scenarios
   (2026-10-04); reasoning effort "low" keeps a full run at ~25-35s and
   ~$0.04. Single-model default (What if / Estimate) is now
-  `anthropic/claude-sonnet-5.5`. Verified live end to end.
+  `anthropic/claude-sonnet-5.5`. Client-supplied views are re-validated
+  server-side; an opt-in rebuttal round (`debate: true`) lets analysts
+  revise after seeing anonymized peers; passing a tracked `market_id`
+  attaches the live Polymarket probability. Verified live end to end.
 - **Scenario library: 23 scenarios.**
   - 9 **verified historical** episodes: GFC 2008, China 2015, Q4 2018,
     COVID 2020, 2022 rate hikes, Russia–Ukraine 2022, SVB 2023, yen carry
@@ -145,6 +151,44 @@ don't let it drift from reality.
   a "compare holdings" chart, ranges 1M–5Y, plus a per-holding return
   column. Fails with 503 and a UI message — never partial or invented
   prices. Verified against the live endpoint on 2026-10-04.
+- **Market probability paths** (`services/market_service.py`, routes
+  `/api/markets/tracked`, `/api/markets/{id}/history`) — curated markets
+  from `data/mapping.json`; live Gamma probability + CLOB daily price
+  history; computes 7d/30d changes in percentage points and a `repriced`
+  flag (|7d| >= 10pp, or last day > 2 sigma of the prior 30d). Disk
+  snapshots in `data/cache/` (TTL 60s/300s); `DEMO_MODE=true` (or a live
+  failure) serves them as `source_status: "cached"` with `as_of` — never
+  fabricated. Verified live on 2026-10-04. Frontend: `PathChart` hero
+  chart with a 7d-ago reference line, repriced pill, and a
+  tracked-markets list on the Risk Radar ranked by recent repricing.
+- **Factor-betas engine** (`FactorStressEngine`, PRD FR4) — `POST
+  /api/stress-test` accepts `factor_shocks` (oil/nasdaq/semis/usd/crypto/
+  gold in %, rates in pp) and applies `data/betas.csv` per-asset betas,
+  floors each asset at -100%. Golden test reproduces the PRD case exactly
+  (-9.2%, $100k -> $90,800, shares 78.3%/21.7%). Result carries
+  `beta_version` (content hash). **Probability-weighted exposure**:
+  pass `probability` and the result includes `probability x impact`
+  labeled as a risk-weighted exposure, not an expected return. The
+  committed table is a hand-curated DEMO table; `scripts/build_betas.py`
+  regenerates it from real returns but could not run from the venue
+  network (Yahoo HTTP 429) — it fails with a clear message rather than
+  writing a bad table.
+- **Editable portfolio weights (FR3)** — the Portfolio tab's holdings
+  table has percent inputs; edits propagate everywhere (allocation, worst
+  scenario, every stress run uses the edited portfolio). A live sum
+  indicator mirrors the backend's tolerance (must sum to 100% ±1%), the
+  run buttons refuse with a clear message while it's off, and one click
+  resets to the demo portfolio.
+- **AI explanation** (`POST /api/ai/explain`, FR7) — the LLM receives
+  only the engine result JSON and must pass a **number guard** (every
+  figure in its text must exist in the result, rounding-tolerant); any
+  failure falls back to the deterministic template labeled
+  `ai_status: "template"`.
+- **Offline demo snapshots committed** — `data/cache/` holds a real
+  Polymarket snapshot (2026-10-04) so the probability path renders with
+  the network off (`DEMO_MODE=true`). `scripts/snapshot_polymarket.py`
+  shortlists markets and refreshes snapshots; `make smoke` covers every
+  endpoint including the new ones.
 
 ## MOCKED
 
@@ -166,8 +210,5 @@ don't let it drift from reality.
   TODO stub.
 - **Institutional research source**
   (`integrations/risk_sources/institutional.py`) — documented TODO stub.
-- **`FactorStressEngine`** — abstraction point exists
-  (`domain/risk/engine.py`), not implemented. See `docs/DECISIONS.md` for
-  why direct-shock came first.
 - Multi-portfolio support, authentication, a database, broker integration —
   all explicitly out of scope for this MVP (P2, see `ROADMAP.md`).

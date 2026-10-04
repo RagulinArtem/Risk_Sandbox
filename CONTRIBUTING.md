@@ -46,6 +46,8 @@ chore: bootstrap project structure
 ## Before opening a PR
 
 - `make check` passes.
+- The change keeps the Community Edition fully functional offline (see
+  `docs/BUSINESS_MODEL.md` "Non-goals").
 - No secrets in the diff (check `git diff` yourself, not just CI).
 - No fabricated data presented as `verified`/`live` (see
   `docs/DATA_SOURCES.md`).
