@@ -21,7 +21,9 @@ Verified against the live API on 2026-10-04 (anthropic/claude-haiku-4.5).
 """
 
 import json
+import logging
 import re
+import time
 
 import httpx
 
@@ -32,6 +34,44 @@ from app.integrations.ai.base import (
     UnrecognizedScenarioError,
 )
 from app.schemas.scenario import Scenario
+
+logger = logging.getLogger(__name__)
+
+_RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
+_RETRY_DELAYS_SECONDS = (0.5, 1.5)  # 3 attempts total; 429/5xx fail fast
+
+
+def _post_with_retries(settings: Settings, headers: dict, body: dict) -> httpx.Response:
+    """POST to OpenRouter, retrying only fast transient failures (429/5xx).
+    Timeouts are deliberately not retried — a retry would double a 45 s
+    wait; the caller shows a friendly 'try again' message instead."""
+    for attempt in range(len(_RETRY_DELAYS_SECONDS) + 1):
+        try:
+            response = httpx.post(
+                _API_URL,
+                headers=headers,
+                json=body,
+                timeout=_REQUEST_TIMEOUT_SECONDS,
+                proxy=settings.https_proxy or None,
+            )
+        except httpx.TimeoutException as exc:
+            logger.warning("OpenRouter timed out: %s", exc)
+            raise AIProviderUnavailableError(
+                f"OpenRouter timed out after {_REQUEST_TIMEOUT_SECONDS:.0f} seconds — "
+                "the model may be slow right now. Try again."
+            ) from exc
+        except httpx.HTTPError as exc:
+            logger.warning("OpenRouter connection error: %s", exc)
+            raise AIProviderUnavailableError(
+                "Could not reach OpenRouter — check your connection (or HTTPS_PROXY) "
+                "and try again."
+            ) from exc
+        if response.status_code in _RETRYABLE_STATUS and attempt < len(_RETRY_DELAYS_SECONDS):
+            time.sleep(_RETRY_DELAYS_SECONDS[attempt])
+            continue
+        return response
+    raise AssertionError("unreachable")  # pragma: no cover
+
 
 _ASSETS = {
     "NVDA": "NVIDIA (single semiconductor stock, high beta)",
@@ -184,21 +224,25 @@ def complete_json(
         # Cuts latency 2-3x on reasoning models with no visible quality
         # loss for this task (committee benchmark 2026-10-04).
         body["reasoning"] = {"effort": reasoning_effort}
+    response = _post_with_retries(settings, headers, body)
     try:
-        response = httpx.post(
-            _API_URL,
-            headers=headers,
-            json=body,
-            timeout=_REQUEST_TIMEOUT_SECONDS,
-            proxy=settings.https_proxy or None,
-        )
         response.raise_for_status()
-        raw_text = response.json()["choices"][0]["message"]["content"]
-        data = json.loads(_CODE_FENCE_RE.sub("", raw_text.strip()).strip())
     except httpx.HTTPStatusError as exc:
         raise AIProviderUnavailableError(_friendly_status_error(exc.response.status_code)) from exc
-    except Exception as exc:
-        raise AIProviderUnavailableError(f"OpenRouter request failed: {exc}") from exc
+    try:
+        raw_text = response.json()["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError, ValueError) as exc:
+        logger.warning("Unexpected OpenRouter response shape: %s", exc)
+        raise AIProviderUnavailableError(
+            "OpenRouter returned an unexpected response. Try again."
+        ) from exc
+    try:
+        data = json.loads(_CODE_FENCE_RE.sub("", raw_text.strip()).strip())
+    except (json.JSONDecodeError, TypeError) as exc:
+        logger.warning("OpenRouter returned non-JSON content: %.200s", raw_text)
+        raise AIProviderUnavailableError(
+            "OpenRouter returned a response we couldn't parse as JSON. Try again."
+        ) from exc
     if not isinstance(data, dict):
         raise AIProviderUnavailableError("OpenRouter did not return a JSON object.")
     return data
