@@ -1,5 +1,6 @@
 import { formatCurrency, formatSignedCurrency, formatSignedPercent } from "../../lib/format";
 import type { StressTestResult as StressTestResultType } from "../../types";
+import { AiExplanation } from "./AiExplanation";
 import { ContributionChart } from "./ContributionChart";
 import { ExplanationNote } from "./ExplanationNote";
 
@@ -57,7 +58,31 @@ export function StressTestResult({
               </div>
             </div>
           )}
+          {result.weighted_exposure_pct != null && (
+            <div>
+              <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+                Risk-Weighted Exposure
+                {result.probability != null && ` · p=${(result.probability * 100).toFixed(1)}%`}
+              </div>
+              <div className="mt-1 font-mono text-lg text-ink">
+                {formatSignedPercent(result.weighted_exposure_pct)}
+              </div>
+            </div>
+          )}
         </div>
+        {result.weighted_exposure_pct != null && (
+          <p className="mt-3 font-mono text-[11px] text-ink-tertiary">
+            Risk-weighted exposure = market probability × estimated impact. It scales the
+            scenario loss by how likely the market says the event is — not an expected return.
+          </p>
+        )}
+        {result.warnings && result.warnings.length > 0 && (
+          <ul className="mt-3 space-y-1 font-mono text-[11px] text-ink-tertiary">
+            {result.warnings.map((warning, i) => (
+              <li key={i}>{warning}</li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div>
@@ -68,6 +93,8 @@ export function StressTestResult({
       </div>
 
       <ExplanationNote result={result} />
+
+      <AiExplanation result={result} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
-import { formatSignedPercent } from "../../lib/format";
+import { formatPercent, formatSignedPercent } from "../../lib/format";
 import type { Portfolio } from "../../types";
 import { AllocationDonut } from "./AllocationDonut";
 import { AssetClassBreakdown } from "./AssetClassBreakdown";
@@ -23,16 +23,25 @@ function Panel({ title, note, children }: { title: string; note?: string; childr
   );
 }
 
+// Mirrors the backend tolerance (Portfolio._weights_sum_to_one, abs_tol 0.01).
+export const WEIGHTS_TOLERANCE = 0.01;
+
 export function PortfolioOverview({
   portfolio,
   onOpenScenario,
+  onWeightChange,
+  onResetPortfolio,
 }: {
   portfolio: Portfolio;
   onOpenScenario: (scenarioId: string) => void;
+  onWeightChange?: (symbol: string, weight: number) => void;
+  onResetPortfolio?: () => void;
 }) {
   const assets = useAssets();
   const { exposures, error, loading } = useScenarioExposure(portfolio);
   const worst = exposures[0];
+  const totalWeight = portfolio.positions.reduce((sum, p) => sum + p.weight, 0);
+  const weightsValid = Math.abs(totalWeight - 1) <= WEIGHTS_TOLERANCE;
 
   return (
     <div className="space-y-6">
@@ -67,8 +76,29 @@ export function PortfolioOverview({
         )}
       </Panel>
 
-      <Panel title="Holdings">
-        <HoldingsTable portfolio={portfolio} assets={assets} />
+      <Panel title="Holdings" note={onWeightChange ? "Editable — weights must sum to 100%" : undefined}>
+        {onWeightChange && (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <span
+              className={`font-mono text-xs tabular-nums ${
+                weightsValid ? "text-ink-tertiary" : "text-risk-negative-strong"
+              }`}
+            >
+              Weights sum to {formatPercent(totalWeight, 1)}
+              {!weightsValid && " — adjust to 100% before running a stress test"}
+            </span>
+            {onResetPortfolio && (
+              <button
+                type="button"
+                onClick={onResetPortfolio}
+                className="border border-line-strong px-2.5 py-1 text-xs text-ink-secondary transition-colors hover:border-accent hover:text-accent-strong"
+              >
+                Reset demo portfolio
+              </button>
+            )}
+          </div>
+        )}
+        <HoldingsTable portfolio={portfolio} assets={assets} onWeightChange={onWeightChange} />
       </Panel>
     </div>
   );

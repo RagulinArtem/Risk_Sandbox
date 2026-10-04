@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ErrorBanner } from "./components/ErrorBanner";
 import { LoadingLine } from "./components/LoadingLine";
 import { type TabDef, Tabs } from "./components/Tabs";
@@ -6,9 +6,16 @@ import { PortfolioOverview } from "./features/portfolio/PortfolioOverview";
 import { usePortfolio } from "./features/portfolio/usePortfolio";
 import { RiskRadar } from "./features/risk-radar/RiskRadar";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
+import { CommitteePanel } from "./features/stress-test/CommitteePanel";
+import { MarketStressPanel } from "./features/stress-test/MarketStressPanel";
 import { StressTestResult } from "./features/stress-test/StressTestResult";
 import { ApiError, api } from "./lib/apiClient";
-import type { Scenario, StressTestResult as StressTestResultType } from "./types";
+import type {
+  MarketSummary,
+  Portfolio,
+  Scenario,
+  StressTestResult as StressTestResultType,
+} from "./types";
 
 type View = "portfolio" | "radar" | "stress";
 
@@ -26,11 +33,21 @@ function viewFromHash(): View {
 export default function App() {
   const { portfolio, error: portfolioError, loading: portfolioLoading } = usePortfolio();
 
+  // FR3: the demo portfolio's weights are editable. `editedPortfolio` is
+  // null until the user changes something, so "Reset demo portfolio" just
+  // clears it. Every stress run uses the edited version.
+  const [editedPortfolio, setEditedPortfolio] = useState<Portfolio | null>(null);
+  const activePortfolio = editedPortfolio ?? portfolio;
+
   const [view, setViewState] = useState<View>(viewFromHash);
 
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [scenarioLoading, setScenarioLoading] = useState(false);
   const [scenarioError, setScenarioError] = useState<string | null>(null);
+
+  // A tracked market selected from the Risk Radar opens the Stress Test tab
+  // in "market mode": probability path + mapped factor scenario.
+  const [market, setMarket] = useState<MarketSummary | null>(null);
 
   const [result, setResult] = useState<StressTestResultType | null>(null);
   const [running, setRunning] = useState(false);
@@ -55,6 +72,7 @@ export default function App() {
   const selectScenario = useCallback(
     async (scenarioId: string) => {
       setView("stress");
+      setMarket(null);
       setScenarioLoading(true);
       setScenarioError(null);
       setResult(null);
@@ -65,6 +83,17 @@ export default function App() {
       } finally {
         setScenarioLoading(false);
       }
+    },
+    [setView],
+  );
+
+  const openMarket = useCallback(
+    (selected: MarketSummary) => {
+      setMarket(selected);
+      setView("stress");
+      setResult(null);
+      setRunError(null);
+      setScenario(null);
     },
     [setView],
   );
@@ -81,8 +110,55 @@ export default function App() {
     );
   }, []);
 
+  const handleWeightChange = useCallback(
+    (symbol: string, weight: number) => {
+      setEditedPortfolio((prev) => {
+        const base = prev ?? portfolio;
+        if (!base) return prev;
+        return {
+          ...base,
+          positions: base.positions.map((p) =>
+            p.symbol === symbol ? { ...p, weight } : p,
+          ),
+        };
+      });
+    },
+    [portfolio],
+  );
+
+  const handleResetPortfolio = useCallback(() => setEditedPortfolio(null), []);
+
+  const handleUseConsensus = useCallback(
+    (shocks: Record<string, number>, rationale: Record<string, string>) => {
+      setMarket(null);
+      setScenario((prev) =>
+        prev
+          ? { ...prev, asset_shocks: shocks, shock_rationale: rationale }
+          : prev,
+      );
+      setResult(null);
+    },
+    [],
+  );
+
+  const portfolioWeightsValid = useMemo(() => {
+    if (!activePortfolio) return false;
+    const total = activePortfolio.positions.reduce((sum, p) => sum + p.weight, 0);
+    return Math.abs(total - 1) <= 0.01; // mirrors Portfolio._weights_sum_to_one
+  }, [activePortfolio]);
+
+  const weightSumMessage = useMemo(() => {
+    if (!activePortfolio || portfolioWeightsValid) return null;
+    const total = activePortfolio.positions.reduce((sum, p) => sum + p.weight, 0);
+    return `Portfolio weights must sum to 100% (currently ${(total * 100).toFixed(1)}%). Adjust them in the Portfolio tab or reset to the demo portfolio.`;
+  }, [activePortfolio, portfolioWeightsValid]);
+
   const runStressTest = useCallback(async () => {
-    if (!scenario || !portfolio) return;
+    if (!scenario || !activePortfolio) return;
+    if (weightSumMessage) {
+      setRunError(weightSumMessage);
+      return;
+    }
     setRunning(true);
     setRunError(null);
     try {
@@ -90,7 +166,7 @@ export default function App() {
       // rather than scenario_id — the workspace is the source of truth for
       // what's about to be tested, not the library the scenario came from.
       const data = await api.runStressTest({
-        portfolio,
+        portfolio: activePortfolio,
         custom_shocks: scenario.asset_shocks,
       });
       setResult(data);
@@ -102,7 +178,40 @@ export default function App() {
     } finally {
       setRunning(false);
     }
-  }, [scenario, portfolio]);
+  }, [scenario, activePortfolio, weightSumMessage]);
+
+  const runMarketStress = useCallback(
+    async (
+      factorShocks: Record<string, number>,
+      probability: number | null,
+      title: string,
+    ) => {
+      if (!activePortfolio) return;
+      if (weightSumMessage) {
+        setRunError(weightSumMessage);
+        return;
+      }
+      setRunning(true);
+      setRunError(null);
+      try {
+        const data = await api.runStressTest({
+          portfolio: activePortfolio,
+          factor_shocks: factorShocks,
+          probability,
+          scenario_title: title,
+        });
+        setResult(data);
+        requestAnimationFrame(() => {
+          resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+      } catch (err) {
+        setRunError(err instanceof ApiError ? err.message : "Failed to run stress test.");
+      } finally {
+        setRunning(false);
+      }
+    },
+    [activePortfolio, weightSumMessage],
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
@@ -124,34 +233,62 @@ export default function App() {
         {portfolioLoading && <LoadingLine label="Loading portfolio…" />}
         {portfolioError && <ErrorBanner message={portfolioError} />}
 
-        {view === "portfolio" && portfolio && (
-          <PortfolioOverview portfolio={portfolio} onOpenScenario={selectScenario} />
+        {view === "portfolio" && activePortfolio && (
+          <PortfolioOverview
+            portfolio={activePortfolio}
+            onOpenScenario={selectScenario}
+            onWeightChange={handleWeightChange}
+            onResetPortfolio={handleResetPortfolio}
+          />
         )}
 
-        {view === "radar" && <RiskRadar onStressTest={selectScenario} />}
+        {view === "radar" && (
+          <RiskRadar onStressTest={selectScenario} onOpenMarket={openMarket} />
+        )}
 
         {view === "stress" && (
           <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <ScenarioWorkspace
-              scenario={scenario}
-              loading={scenarioLoading}
-              error={scenarioError}
-              running={running}
-              onSelect={selectScenario}
-              onParsed={handleParsed}
-              onShockChange={handleShockChange}
-              onRun={runStressTest}
-            />
+            {market ? (
+              <MarketStressPanel
+                market={market}
+                running={running}
+                onRun={runMarketStress}
+                onClear={() => setMarket(null)}
+              />
+            ) : (
+              <ScenarioWorkspace
+                scenario={scenario}
+                loading={scenarioLoading}
+                error={scenarioError}
+                running={running}
+                onSelect={selectScenario}
+                onParsed={handleParsed}
+                onShockChange={handleShockChange}
+                onRun={runStressTest}
+              />
+            )}
             <div ref={resultRef} className="min-w-0">
               {runError && <ErrorBanner message={runError} />}
               {result ? (
-                <StressTestResult result={result} scenarioTitle={scenario?.title} />
+                <StressTestResult
+                  result={result}
+                  scenarioTitle={market?.scenario?.name ?? scenario?.title}
+                />
               ) : (
                 <div className="border border-dashed border-line-strong px-6 py-12 text-center text-sm text-ink-tertiary">
-                  {scenario
-                    ? "Adjust the assumptions if you like, then run the stress test."
-                    : "Pick a scenario or describe one to see its impact on your portfolio here."}
+                  {market
+                    ? "Run the stress test to see this market's mapped scenario applied to your portfolio."
+                    : scenario
+                      ? "Adjust the assumptions if you like, then run the stress test."
+                      : "Pick a scenario or describe one to see its impact on your portfolio here."}
                 </div>
+              )}
+              {!market && (
+                <CommitteePanel
+                  scenario={scenario}
+                  portfolio={activePortfolio}
+                  onUseConsensus={handleUseConsensus}
+                />
               )}
             </div>
           </div>

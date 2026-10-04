@@ -1,5 +1,7 @@
 export * from "./api";
 export * from "./asset";
+export * from "./committee";
+export * from "./market";
 export * from "./portfolio";
 export * from "./risk";
 export * from "./scenario";

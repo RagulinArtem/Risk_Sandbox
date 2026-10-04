@@ -1,12 +1,21 @@
 import type {
   AIStatusResponse,
+  AnalystRequest,
+  AnalystResponse,
   Asset,
+  ExplainRequest,
+  ExplainResponse,
+  MarketHistoryResponse,
+  MarketSummary,
   ParseScenarioResponse,
   Portfolio,
   RiskRadarItem,
   Scenario,
   StressTestRequest,
   StressTestResult,
+  VerdictRequest,
+  VerdictResponse,
+  CommitteeRoster,
 } from "../types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
@@ -46,6 +55,27 @@ export const api = {
   listAssets: () => request<Asset[]>("/api/assets"),
   getRiskRadar: () => request<RiskRadarItem[]>("/api/risk-radar"),
   getAiStatus: () => request<AIStatusResponse>("/api/ai/status"),
+  listTrackedMarkets: () => request<MarketSummary[]>("/api/markets/tracked"),
+  getMarketHistory: (marketId: string) =>
+    request<MarketHistoryResponse>(
+      `/api/markets/${encodeURIComponent(marketId)}/history`,
+    ),
+  getCommitteeRoster: () => request<CommitteeRoster>("/api/ai/committee"),
+  runCommitteeAnalyst: (body: AnalystRequest) =>
+    request<AnalystResponse>("/api/ai/committee/analyst", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  runCommitteeVerdict: (body: VerdictRequest) =>
+    request<VerdictResponse>("/api/ai/committee/verdict", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  explainResult: (body: ExplainRequest) =>
+    request<ExplainResponse>("/api/ai/explain", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   runStressTest: (body: StressTestRequest) =>
     request<StressTestResult>("/api/stress-test", {
       method: "POST",
