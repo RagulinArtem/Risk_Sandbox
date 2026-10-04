@@ -56,6 +56,12 @@ database in v0). AI only ever *interprets* scenarios into structured
 assumptions; a deterministic Python engine does all the math. Full detail
 and diagram: `docs/ARCHITECTURE.md`.
 
+**AI Risk Committee:** three analyst agents on models from different labs
+(GPT-6.1 Sol, Gemini Pro, Kimi K3) assess a scenario independently, and
+Claude Opus 5.5 chairs and reconciles them into consensus assumptions and
+portfolio insights. How it's orchestrated, why these models, benchmarks
+and guard rails: `docs/MULTI_AGENT_ORCHESTRATION.md`.
+
 ## Quick start
 
 ```bash
@@ -88,12 +94,13 @@ to a server? Read `docs/DEPLOYMENT.md`.
 ## Current capabilities
 
 See `docs/CURRENT_STATE.md` for the authoritative, kept-current list.
-Today: demo portfolio, 6 demo scenarios (5 illustrative + 1 verified
-historical benchmark), deterministic stress engine, impact decomposition,
-risk radar, rule-based "what if" scenario parsing, and live Polymarket
-risk discovery (`ENABLE_POLYMARKET=true`, implemented and unit-tested —
-not yet verified against the live API, see `docs/CURRENT_STATE.md`) — all
-working offline by default. Bedrock and news ingestion are designed-for
+Today: demo portfolio with real price history (Yahoo Finance), 6 demo
+scenarios (5 illustrative + 1 verified historical benchmark), deterministic
+stress engine, impact decomposition, risk radar, "what if" scenario
+parsing (rule-based offline, Claude Sonnet 5.5 live), AI shock estimation,
+the multi-model AI Risk Committee, and Polymarket risk discovery
+(`ENABLE_POLYMARKET=true`). Everything still works offline by default
+(`AI_PROVIDER=mock`). Bedrock and news ingestion are designed-for
 but not implemented (see the TODO stubs in `apps/api/app/integrations/`).
 
 ## Roadmap
