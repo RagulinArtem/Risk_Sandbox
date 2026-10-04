@@ -93,20 +93,28 @@ async def main() -> int:
             response = await client.post(
                 "/api/ai/committee/analyst", json={**context, "seat": seat}
             )
+            if response.status_code != 200:
+                return {
+                    "view": None,
+                    "message": f"HTTP {response.status_code}: {response.text[:200]}",
+                }
             return response.json()
 
         t0 = time.monotonic()
         views = await asyncio.gather(*(run_seat(s["seat"]) for s in roster["seats"]))
         analysts_seconds = time.monotonic() - t0
-        usable = [
-            v["view"]
-            for v in views
-            if v["view"] and set(v["view"]["asset_shocks"]) & ALLOWED_SYMBOLS
-        ]
+        usable = []
+        for seat_result in views:
+            view = seat_result.get("view")
+            if view and set(view["asset_shocks"]) & ALLOWED_SYMBOLS:
+                usable.append(view)
+            else:
+                print(f"      seat error: {seat_result.get('message') or seat_result}")
         check("three analyst views", len(usable) == 3, f"{analysts_seconds:.1f}s")
         check(
             "views carry the live market signal",
-            all(
+            bool(usable)
+            and all(
                 v["market_context"] and v["market_context"]["probability"] is not None
                 for v in usable
             ),
@@ -124,6 +132,13 @@ async def main() -> int:
         )
         verdict_seconds = time.monotonic() - t1
         body = response.json()
+        if "verdict" not in body:
+            check(
+                "chair verdict returned",
+                False,
+                f"HTTP {response.status_code}: {response.text[:200]}",
+            )
+            return report()
         verdict = body["verdict"]
         check("chair verdict returned", verdict is not None, body.get("message") or "")
         if verdict is None:

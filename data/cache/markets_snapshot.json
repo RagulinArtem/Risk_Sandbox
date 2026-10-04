@@ -1,5 +1,5 @@
 {
-  "saved_at": "2026-10-04T05:40:08.573390+00:00",
+  "saved_at": "2026-10-04T06:26:56.070691+00:00",
   "markets": [
     {
       "market_id": "567621",
@@ -11,8 +11,8 @@
       "change_7d_pp": -1.45,
       "change_30d_pp": -1.4,
       "repriced": false,
-      "liquidity_usd": 725576.28613,
-      "volume_usd": 43461905.064111896,
+      "liquidity_usd": 715739.66627,
+      "volume_usd": 43462129.61287088,
       "end_date": "2027-01-01T04:59:00Z",
       "scenario": {
         "id": "taiwan-chip-disruption",
@@ -37,7 +37,7 @@
         ],
         "source_status": "illustrative"
       },
-      "as_of": "2026-10-04T05:40:08.573390+00:00"
+      "as_of": "2026-10-04T06:26:56.070691+00:00"
     }
   ]
 }

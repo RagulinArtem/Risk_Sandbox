@@ -10,7 +10,9 @@ disk so the demo works offline (DEMO_MODE) or after an upstream failure
 
 import json
 import logging
+import os
 import statistics
+import tempfile
 from datetime import UTC, datetime
 from typing import Any
 
@@ -385,9 +387,18 @@ class MarketService:
         path = self._cache_path(name)
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            tmp_path = path.with_name(f".{path.name}.tmp")
-            tmp_path.write_text(json.dumps(payload, indent=2))
-            tmp_path.replace(path)
+            # Unique temp file per write: parallel committee requests refetch
+            # the same snapshot concurrently, and a fixed temp name races.
+            fd, tmp_name = tempfile.mkstemp(
+                dir=path.parent, prefix=f".{path.name}.", suffix=".tmp"
+            )
+            try:
+                with os.fdopen(fd, "w") as handle:
+                    handle.write(json.dumps(payload, indent=2))
+                os.replace(tmp_name, path)
+            finally:
+                if os.path.exists(tmp_name):
+                    os.unlink(tmp_name)
         except OSError as exc:
             logger.warning("Could not write cache file %s: %s", path, exc)
 
