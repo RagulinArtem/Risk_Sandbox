@@ -214,7 +214,7 @@ With `AI_PROVIDER=openrouter` (`integrations/ai/openrouter.py`), this
 calls a real LLM via [OpenRouter](https://openrouter.ai) (OpenAI-compatible
 chat completions) instead of the rule-based mock. Requires
 `OPENROUTER_API_KEY`; `OPENROUTER_MODEL` defaults to
-`anthropic/claude-haiku-4.5`. Same contract either way — the frontend
+`anthropic/claude-sonnet-5.5`. Same contract either way — the frontend
 doesn't need to know which provider answered.
 
 Always `200` — an unrecognized or unconfigured-provider case is a normal,

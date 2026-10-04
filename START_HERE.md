@@ -16,7 +16,14 @@ bot. See `docs/PRODUCT.md`.
 The full offline loop: demo portfolio → Risk Radar → pick or describe a
 scenario → edit assumptions → run stress test → see impact, per-asset
 contribution chart, and a deterministic "why this matters" explanation. No
-external API keys needed. See `docs/CURRENT_STATE.md` for the precise
+external API keys needed.
+
+With `AI_PROVIDER=openrouter` you also get live LLM features: "What if…?"
+parsing and "Estimate shocks with AI" with a per-asset rationale. There is
+also the **AI Risk Committee**: 3 analyst models from different labs plus
+a chair that reconciles them (`docs/MULTI_AGENT_ORCHESTRATION.md`). The
+Portfolio tab shows real price history from Yahoo Finance. Live app:
+https://risk.5-129-243-18.sslip.io See `docs/CURRENT_STATE.md` for the precise
 working/mocked/not-implemented breakdown.
 
 ## 3. How do I run it?
@@ -40,6 +47,11 @@ by `make setup`.
 | Demo scenarios | `data/scenarios/demo/` (JSON, no code change needed) |
 | Polymarket integration | `apps/api/app/integrations/risk_sources/polymarket.py` |
 | News integration | `apps/api/app/integrations/risk_sources/news.py` |
+| LLM calls, prompts (OpenRouter) | `apps/api/app/integrations/ai/openrouter.py` |
+| AI Risk Committee (roles, prompts) | `apps/api/app/integrations/ai/committee.py` + `services/committee_service.py` |
+| Committee UI | `apps/web/src/features/committee/` |
+| Price history (Yahoo Finance) | `apps/api/app/integrations/market_data/yahoo.py` |
+| Model choices | env vars `OPENROUTER_MODEL`, `COMMITTEE_*_MODEL` (`app/core/config.py`) |
 | AWS Bedrock integration | `apps/api/app/integrations/ai/bedrock.py` |
 | API routes | `apps/api/app/api/routes/` |
 | Types/contracts | `apps/api/app/schemas/` + `apps/web/src/types/` |
@@ -52,9 +64,10 @@ For a task-by-task walkthrough with code snippets, see
 ## 11. What should I work on next?
 
 Check `ROADMAP.md` for status and owners, and `docs/CURRENT_STATE.md` for
-what's genuinely missing. As of this bootstrap, the top open items are the
-P1 differentiators: a real Bedrock or Polymarket integration, and demo
-polish. Don't start P2 (factor model, auth, DB, broker integration) before
+what's genuinely missing. As of 2026-10-04 the open items are demo
+polish (`docs/DEMO_SCRIPT.md`), Polymarket matching (it currently finds no
+relevant markets in the top 50) and the committee ideas in section 12 of
+`docs/MULTI_AGENT_ORCHESTRATION.md`. Don't start P2 (factor model, auth, DB, broker integration) before
 P0 is demo-solid.
 
 ## 12. What should I NOT modify without coordination?
@@ -68,6 +81,9 @@ P0 is demo-solid.
   tuned around these exact numbers (NVDA 30% is the point).
 - Anything in `.github/workflows/` or `.claude/` without a heads-up — these
   affect everyone's CI and agent behavior.
+- `main` directly: work on your own branch and merge via PR. Deploy
+  through Actions, and tell the team before deploying a non-`main` branch
+  to the shared server.
 
 Everything else (a new scenario file, a new frontend feature folder, a new
 integration stub) is safe to touch independently — see

@@ -54,9 +54,10 @@ don't let it drift from reality.
   surfaces the market's real current price as `probability_signal` with
   full provenance (`source_name`, `source_url`, `retrieved_at`,
   `source_status: "live"`). 6 unit tests against a fixture matching the
-  documented API shape. **Not yet verified against the live API** — built
-  in a sandbox whose network policy denies `gamma-api.polymarket.com`;
-  verify once outside it (see the module's docstring).
+  documented API shape. On production (2026-10-04) the API is reachable
+  (HTTP 200) but **no signals appear**: it only fetches the top 50 active
+  markets, which were all 2028-election markets, so no keyword matches.
+  Fix: query by tag/keyword or fetch more markets.
 - **OpenRouter scenario parsing + AI shock estimation**
   (`integrations/ai/openrouter.py`, `AI_PROVIDER=openrouter`; `mock`
   remains the default). The LLM proposes a shock **and a one-line
