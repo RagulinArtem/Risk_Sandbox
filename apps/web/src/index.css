@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html,
@@ -14,6 +14,77 @@ body,
 
 body {
   @apply bg-surface font-sans text-ink antialiased;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-content :where(section, details)[class*="border"] {
+  border-radius: 1.5rem;
+}
+
+.app-content :where(button, input, select)[class*="border"] {
+  border-radius: 0.9rem;
+}
+
+.app-content :where(section)[class*="bg-surface-raised"] {
+  box-shadow: 0 8px 30px rgba(17, 24, 39, 0.045);
+}
+
+.app-range {
+  height: 0.35rem;
+  appearance: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  accent-color: #a99fff;
+}
+
+.app-range::-webkit-slider-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  appearance: none;
+  cursor: pointer;
+  border: 4px solid #ffffff;
+  border-radius: 999px;
+  background: #8d83ff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.app-range::-moz-range-thumb {
+  width: 0.9rem;
+  height: 0.9rem;
+  cursor: pointer;
+  border: 4px solid #ffffff;
+  border-radius: 999px;
+  background: #8d83ff;
+}
+
+.risk-gauge-progress {
+  animation: gauge-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes gauge-in {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 ::selection {

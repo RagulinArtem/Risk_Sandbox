@@ -41,22 +41,21 @@ export function AllocationDonut({
             </Pie>
             <Tooltip
               contentStyle={{
-                background: "#1D1D21",
-                border: "1px solid #2B2B30",
-                borderRadius: 0,
+                background: "#FFFFFF",
+                border: "1px solid #E3E6EB",
+                borderRadius: 16,
+                boxShadow: "0 12px 30px rgba(17, 24, 39, 0.12)",
                 fontSize: 12,
-                fontFamily: "IBM Plex Mono",
+                fontFamily: "Inter, system-ui, sans-serif",
               }}
-              itemStyle={{ color: "#EDEBE6" }}
+              itemStyle={{ color: "#121318" }}
               formatter={(value: number, name: string) => [formatPercent(value, 0), name]}
             />
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-            Total
-          </div>
-          <div className="font-mono text-lg text-ink">
+          <div className="text-xs font-medium text-ink-tertiary">Total</div>
+          <div className="text-lg font-bold tracking-tight text-ink">
             {formatCurrency(portfolio.total_value, portfolio.currency)}
           </div>
         </div>
@@ -68,14 +67,14 @@ export function AllocationDonut({
             <button
               type="button"
               onClick={() => onSelect(d.symbol)}
-              className="grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-3 px-1 py-0.5 text-left hover:bg-surface-raised focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent"
+              className="grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-3 rounded-xl px-2 py-1.5 text-left hover:bg-surface focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent"
             >
               <span className="h-2.5 w-2.5" style={{ background: d.color }} />
-              <span className="font-mono text-ink">{d.symbol}</span>
-              <span className="font-mono tabular-nums text-ink-secondary">
+              <span className="font-semibold text-ink">{d.symbol}</span>
+              <span className="tabular-nums text-ink-secondary">
                 {formatPercent(d.weight, 0)}
               </span>
-              <span className="w-16 text-right font-mono tabular-nums text-ink-tertiary">
+              <span className="w-16 text-right tabular-nums text-ink-tertiary">
                 {formatCurrency(d.value, portfolio.currency)}
               </span>
             </button>

@@ -3,9 +3,9 @@ import { formatSignedCurrency, formatSignedPercent } from "../../lib/format";
 import { reducedMotion } from "../../lib/useCountUp";
 import type { AssetImpact } from "../../types";
 
-const NEGATIVE = "#C4453F";
-const POSITIVE = "#4A9B6E";
-const NEUTRAL = "#706E6A";
+const NEGATIVE = "#E5485D";
+const POSITIVE = "#168A62";
+const NEUTRAL = "#7B828E";
 
 export function ContributionChart({ assetImpacts }: { assetImpacts: AssetImpact[] }) {
   const data = [...assetImpacts]
@@ -28,34 +28,35 @@ export function ContributionChart({ assetImpacts }: { assetImpacts: AssetImpact[
           <XAxis
             type="number"
             tickFormatter={(v: number) => formatSignedCurrency(v)}
-            tick={{ fill: "#A8A6A0", fontSize: 11, fontFamily: "IBM Plex Mono" }}
-            axisLine={{ stroke: "#2B2B30" }}
+            tick={{ fill: "#7B828E", fontSize: 11, fontFamily: "Inter, system-ui, sans-serif" }}
+            axisLine={{ stroke: "#E3E6EB" }}
             tickLine={false}
           />
           <YAxis
             interval={0}
             type="category"
             dataKey="symbol"
-            tick={{ fill: "#EDEBE6", fontSize: 12, fontFamily: "IBM Plex Mono" }}
-            axisLine={{ stroke: "#2B2B30" }}
+            tick={{ fill: "#121318", fontSize: 12, fontFamily: "Inter, system-ui, sans-serif" }}
+            axisLine={{ stroke: "#E3E6EB" }}
             tickLine={false}
             width={56}
           />
           <Tooltip
-            cursor={{ fill: "rgba(255,255,255,0.03)" }}
+            cursor={{ fill: "rgba(99,91,255,0.04)" }}
             contentStyle={{
-              background: "#1D1D21",
-              border: "1px solid #2B2B30",
-              borderRadius: 0,
+              background: "#FFFFFF",
+              border: "1px solid #E3E6EB",
+              borderRadius: 16,
+              boxShadow: "0 12px 30px rgba(17, 24, 39, 0.12)",
               fontSize: 12,
-              fontFamily: "IBM Plex Mono",
+              fontFamily: "Inter, system-ui, sans-serif",
             }}
-            labelStyle={{ color: "#EDEBE6" }}
+            labelStyle={{ color: "#121318", fontWeight: 600 }}
             formatter={(value: number) => [formatSignedCurrency(value), "Estimated impact"]}
           />
           <Bar
             dataKey="impact"
-            radius={0}
+            radius={[0, 8, 8, 0]}
             isAnimationActive={!reducedMotion()}
             animationDuration={1400}
             animationEasing="ease-out"
@@ -63,7 +64,7 @@ export function ContributionChart({ assetImpacts }: { assetImpacts: AssetImpact[
             <LabelList
               dataKey="label"
               position="right"
-              style={{ fill: "#A8A6A0", fontSize: 11, fontFamily: "IBM Plex Mono" }}
+              style={{ fill: "#5B6170", fontSize: 11, fontFamily: "Inter, system-ui, sans-serif" }}
             />
             {data.map((entry) => (
               <Cell

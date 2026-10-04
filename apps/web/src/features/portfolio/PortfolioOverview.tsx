@@ -20,9 +20,9 @@ import { useScenarioExposure } from "./useScenarioExposure";
 
 function Panel({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
   return (
-    <section className="min-w-0 border border-line bg-surface-raised/40 p-5">
+    <section className="min-w-0 rounded-[1.75rem] border border-line bg-surface-raised p-5 shadow-card sm:p-6">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">{title}</h2>
+        <h2 className="text-base font-bold tracking-tight text-ink">{title}</h2>
         {note && <span className="text-xs text-ink-tertiary">{note}</span>}
       </div>
       {children}
@@ -40,6 +40,7 @@ export function PortfolioOverview({
   onSeeRisks,
   onWeightChange,
   onResetPortfolio,
+  showHero = true,
 }: {
   portfolio: Portfolio;
   onOpenScenario: (scenarioId: string) => void;
@@ -47,6 +48,7 @@ export function PortfolioOverview({
   onSeeRisks: () => void;
   onWeightChange?: (symbol: string, weight: number) => void;
   onResetPortfolio?: () => void;
+  showHero?: boolean;
 }) {
   const assets = useAssets();
   const { exposures, error, loading } = useScenarioExposure(portfolio);
@@ -57,14 +59,16 @@ export function PortfolioOverview({
 
   return (
     <div className="space-y-6">
-      <ErrorBoundary resetKey={portfolio.id} fallback={null}>
-        <HeroSummary
-          portfolio={portfolio}
-          exposures={exposures}
-          onOpenScenario={onOpenScenario}
-          onSeeRisks={onSeeRisks}
-        />
-      </ErrorBoundary>
+      {showHero && (
+        <ErrorBoundary resetKey={portfolio.id} fallback={null}>
+          <HeroSummary
+            portfolio={portfolio}
+            exposures={exposures}
+            onOpenScenario={onOpenScenario}
+            onSeeRisks={onSeeRisks}
+          />
+        </ErrorBoundary>
+      )}
 
       <PortfolioSummary portfolio={portfolio} />
 
@@ -79,7 +83,7 @@ export function PortfolioOverview({
         {onWeightChange && (
           <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <span
-              className={`font-mono text-xs tabular-nums ${
+              className={`text-xs font-medium tabular-nums ${
                 weightsValid ? "text-ink-tertiary" : "text-risk-negative-strong"
               }`}
             >
@@ -90,7 +94,7 @@ export function PortfolioOverview({
               <button
                 type="button"
                 onClick={onResetPortfolio}
-                className="border border-line-strong px-2.5 py-1 text-xs text-ink-secondary transition-colors hover:border-accent hover:text-accent-strong"
+                className="rounded-xl border border-line-strong px-3 py-1.5 text-xs font-medium text-ink-secondary transition-colors hover:border-accent hover:text-accent-strong"
               >
                 Reset demo portfolio
               </button>
@@ -132,7 +136,7 @@ export function PortfolioOverview({
         )}
       </Panel>
 
-      <details className="group border border-line bg-surface-raised/20">
+      <details className="group rounded-[1.75rem] border border-line bg-surface-raised shadow-card">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm text-ink-secondary hover:text-ink">
           <span>
             <span className="font-medium text-ink">More analytics</span>
@@ -140,7 +144,7 @@ export function PortfolioOverview({
               risk summary, every scenario ranked, allocation, attribution, risk drivers
             </span>
           </span>
-          <span className="font-mono text-ink-tertiary transition-transform group-open:rotate-90">›</span>
+          <span className="text-ink-tertiary transition-transform group-open:rotate-90">›</span>
         </summary>
         <div className="space-y-6 border-t border-line p-5">
       <Panel title="Portfolio Risk Summary" note="Transparent metrics · no composite risk score">

@@ -2,12 +2,12 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { formatPrice, formatShortDate } from "../../lib/format";
 import type { AssetPriceResponse } from "../../types";
 
-const AXIS_TICK = { fill: "#A8A6A0", fontSize: 10, fontFamily: "IBM Plex Mono" };
+const AXIS_TICK = { fill: "#7B828E", fontSize: 10, fontFamily: "Inter, system-ui, sans-serif" };
 
 export function AssetPriceChart({ prices }: { prices: AssetPriceResponse }) {
   const data = prices.dates.map((date, i) => ({ date, price: prices.prices[i] }));
   const up = prices.prices[prices.prices.length - 1] >= prices.prices[0];
-  const color = up ? "#4A9B6E" : "#C4453F";
+  const color = up ? "#168A62" : "#E5485D";
   const longRange = prices.range === "2y" || prices.range === "5y";
 
   return (
@@ -20,7 +20,7 @@ export function AssetPriceChart({ prices }: { prices: AssetPriceResponse }) {
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#2B2B30" strokeDasharray="2 4" vertical={false} />
+          <CartesianGrid stroke="#E8EAF0" strokeDasharray="2 5" vertical={false} />
           <XAxis
             dataKey="date"
             tickFormatter={(d: string) =>
@@ -31,7 +31,7 @@ export function AssetPriceChart({ prices }: { prices: AssetPriceResponse }) {
               })
             }
             tick={AXIS_TICK}
-            axisLine={{ stroke: "#2B2B30" }}
+            axisLine={{ stroke: "#E3E6EB" }}
             tickLine={false}
             minTickGap={36}
           />
@@ -45,13 +45,14 @@ export function AssetPriceChart({ prices }: { prices: AssetPriceResponse }) {
           />
           <Tooltip
             contentStyle={{
-              background: "#1D1D21",
-              border: "1px solid #2B2B30",
-              borderRadius: 0,
+              background: "#FFFFFF",
+              border: "1px solid #E3E6EB",
+              borderRadius: 16,
+              boxShadow: "0 12px 30px rgba(17, 24, 39, 0.12)",
               fontSize: 12,
-              fontFamily: "IBM Plex Mono",
+              fontFamily: "Inter, system-ui, sans-serif",
             }}
-            labelStyle={{ color: "#EDEBE6" }}
+            labelStyle={{ color: "#121318", fontWeight: 600 }}
             labelFormatter={(d: string) => formatShortDate(d)}
             formatter={(v: number) => [formatPrice(v), "Close (adj.)"]}
           />
@@ -59,7 +60,7 @@ export function AssetPriceChart({ prices }: { prices: AssetPriceResponse }) {
             type="monotone"
             dataKey="price"
             stroke={color}
-            strokeWidth={1.5}
+            strokeWidth={2.25}
             fill={`url(#asset-fill-${prices.symbol})`}
             isAnimationActive={false}
           />

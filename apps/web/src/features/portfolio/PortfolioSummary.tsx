@@ -38,18 +38,14 @@ export function PortfolioSummary({
   if (extraStat) stats.push(extraStat);
 
   return (
-    <div>
-      <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-        {portfolio.name}
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+    <section className="rounded-[1.75rem] border border-line bg-surface-raised p-5 shadow-card sm:p-6">
+      <div className="text-sm font-semibold text-ink-secondary">{portfolio.name}</div>
+      <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.label} className="min-w-0">
-            <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-              {stat.label}
-            </div>
+            <div className="text-xs font-medium text-ink-tertiary">{stat.label}</div>
             <div
-              className={`mt-1 font-mono text-xl tabular-nums ${
+              className={`mt-1 text-xl font-bold tracking-tight tabular-nums ${
                 stat.tone === "negative" ? "text-risk-negative-strong" : "text-ink"
               }`}
             >
@@ -61,6 +57,6 @@ export function PortfolioSummary({
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
