@@ -48,6 +48,8 @@ _MAX_LIST_ITEMS = 5
 # visible quality loss for this task (benchmark 2026-10-04).
 _OPENROUTER_REASONING_EFFORT = "low"
 
+_ALLOWED_SEATS = ("macro", "sector", "cross_asset")
+
 
 def _seat_specs(settings: Settings) -> list[dict]:
     return [
@@ -79,6 +81,40 @@ def chair_spec(settings: Settings) -> dict:
         "lens": "Reconciles the analysts and writes the portfolio takeaways",
         "model": settings.committee_chair_model,
     }
+
+
+def _coerce_confidence(raw: object) -> str:
+    confidence = str(raw or "medium").strip().lower()
+    return confidence if confidence in ("low", "medium", "high") else "medium"
+
+
+def sanitize_views(views: list[AnalystView]) -> list[AnalystView]:
+    """Apply the same guard rails to client-supplied views that we apply to
+    model output: known seats only, no duplicates, supported symbols, shocks
+    clamped to -95%..+200%, rationale only for kept symbols, texts capped."""
+    cleaned: list[AnalystView] = []
+    seen: set[str] = set()
+    for view in views:
+        if view.seat not in _ALLOWED_SEATS or view.seat in seen:
+            logger.warning("Dropping committee view with seat %r", view.seat)
+            continue
+        shocks = clean_shocks(view.asset_shocks)
+        if not shocks:
+            logger.warning("Dropping committee view %r with no usable shocks", view.seat)
+            continue
+        seen.add(view.seat)
+        cleaned.append(
+            view.model_copy(
+                update={
+                    "asset_shocks": shocks,
+                    "rationale": clean_rationale(view.rationale, shocks),
+                    "thesis": view.thesis[:_MAX_TEXT_CHARS],
+                    "key_risk": view.key_risk[:_MAX_TEXT_CHARS],
+                    "confidence": _coerce_confidence(view.confidence),
+                }
+            )
+        )
+    return cleaned
 
 
 def get_roster(settings: Settings) -> CommitteeRoster:
@@ -155,9 +191,7 @@ def run_analyst(seat_key: str, context: CommitteeContext, settings: Settings) ->
     shocks = clean_shocks(data.get("asset_shocks"))
     if not shocks:
         raise AIProviderUnavailableError(f"The {spec['label']} returned no usable shocks.")
-    confidence = str(data.get("confidence") or "medium").strip().lower()
-    if confidence not in ("low", "medium", "high"):
-        confidence = "medium"
+    confidence = _coerce_confidence(data.get("confidence"))
 
     return AnalystView(
         seat=spec["seat"],
@@ -230,9 +264,7 @@ def run_chair(request: VerdictRequest, settings: Settings) -> tuple[AnalystView,
     shocks = clean_shocks(data.get("consensus") or data.get("asset_shocks"))
     if not shocks:
         raise AIProviderUnavailableError("The committee chair returned no usable consensus.")
-    confidence = str(data.get("confidence") or "medium").strip().lower()
-    if confidence not in ("low", "medium", "high"):
-        confidence = "medium"
+    confidence = _coerce_confidence(data.get("confidence"))
 
     chair_view = AnalystView(
         seat="chair",

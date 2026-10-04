@@ -8,6 +8,7 @@ from app.integrations.ai.committee import (
     get_roster,
     run_analyst,
     run_chair,
+    sanitize_views,
 )
 from app.schemas.committee import (
     AnalystRequest,
@@ -54,6 +55,10 @@ def committee_verdict(request: VerdictRequest) -> VerdictResponse:
     recomputes portfolio impact for the consensus AND each analyst's shocks,
     plus per-asset shock ranges. Zero successful views never reaches here
     (VerdictRequest requires at least one)."""
+    views = sanitize_views(request.views)
+    if not views:
+        raise HTTPException(status_code=422, detail="No usable analyst views in the request.")
+    request = request.model_copy(update={"views": views})
     settings = get_settings()
     try:
         chair_view, chair_raw = run_chair(request, settings)

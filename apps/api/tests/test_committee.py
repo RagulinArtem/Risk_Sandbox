@@ -5,7 +5,7 @@ import pytest
 
 from app.domain.risk.engine import DirectAssetShockEngine
 from app.integrations.ai.base import AIProviderUnavailableError
-from app.schemas.committee import AnalystRequest, VerdictRequest
+from app.schemas.committee import AnalystRequest, AnalystView, VerdictRequest
 from app.schemas.portfolio import Portfolio, PortfolioPosition
 
 _ENGINE = DirectAssetShockEngine()
@@ -221,3 +221,50 @@ def test_analyst_endpoint_maps_provider_errors_to_message(client):
     body = response.json()
     assert body["view"] is None
     assert "out of credits" in body["message"]
+
+
+def test_sanitize_views_drops_unknown_seats_dupes_and_bad_shocks():
+    from app.integrations.ai.committee import sanitize_views
+
+    views = [
+        {
+            "seat": "macro",
+            "label": "M",
+            "model": "m1",
+            "asset_shocks": {"NVDA": -0.2, "ZZZ": 9, "SPY": -5},
+        },
+        {"seat": "macro", "label": "M", "model": "m1", "asset_shocks": {"NVDA": -0.1}},  # dupe
+        {"seat": "chair", "label": "C", "model": "m2", "asset_shocks": {"NVDA": -0.1}},  # bad seat
+        {"seat": "sector", "label": "S", "model": "m3", "asset_shocks": {"XTRA": -0.2}},  # no usable
+    ]
+    cleaned = sanitize_views([AnalystView.model_validate(v) for v in views])
+    assert [v.seat for v in cleaned] == ["macro"]
+    assert cleaned[0].asset_shocks == {"NVDA": -0.2}  # ZZZ dropped, SPY -500% clamped away
+
+
+def test_verdict_rejects_views_with_no_usable_shocks(client):
+    request = {
+        "scenario_title": "X",
+        "portfolio": _portfolio().model_dump(),
+        "views": [{"seat": "macro", "label": "M", "model": "m", "asset_shocks": {"ZZZ": 1}}],
+    }
+    response = client.post("/api/ai/committee/verdict", json=request)
+    assert response.status_code == 422
+
+
+def test_verdict_context_rejects_oversized_prompt_inputs(client):
+    base = {
+        "scenario_title": "X",
+        "portfolio": _portfolio().model_dump(),
+        "views": [
+            {"seat": "macro", "label": "M", "model": "m", "asset_shocks": {"NVDA": -0.2}}
+        ],
+    }
+    response = client.post(
+        "/api/ai/committee/verdict", json={**base, "scenario_description": "x" * 4001}
+    )
+    assert response.status_code == 422
+    response = client.post(
+        "/api/ai/committee/verdict", json={**base, "transmission": ["s"] * 11}
+    )
+    assert response.status_code == 422

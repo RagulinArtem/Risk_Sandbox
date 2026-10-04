@@ -1,12 +1,14 @@
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 from app.schemas.portfolio import Portfolio
 from app.schemas.scenario import SourceStatus
 
 CommitteeSeat = Literal["macro", "sector", "cross_asset"]
 Confidence = Literal["low", "medium", "high"]
+
+TransmissionStep = Annotated[str, StringConstraints(max_length=500)]
 
 
 class CommitteeSeatInfo(BaseModel):
@@ -32,10 +34,10 @@ class CommitteeContext(BaseModel):
     """The scenario + portfolio context every committee member sees. Scenario
     narrative only — never numbers the engine should compute."""
 
-    scenario_title: str
-    scenario_description: str = ""
-    horizon: str = "30d"
-    transmission: list[str] = []
+    scenario_title: str = Field(max_length=200)
+    scenario_description: str = Field(default="", max_length=4000)
+    horizon: str = Field(default="30d", max_length=40)
+    transmission: list[TransmissionStep] = Field(default=[], max_length=10)
     portfolio: Portfolio
 
 
@@ -65,7 +67,7 @@ class AnalystResponse(BaseModel):
 
 
 class VerdictRequest(CommitteeContext):
-    views: list[AnalystView] = Field(min_length=1)
+    views: list[AnalystView] = Field(min_length=1, max_length=3)
 
 
 class ViewImpact(BaseModel):
