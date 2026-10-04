@@ -323,7 +323,7 @@ export default function App() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-x-8 px-4 pt-4 sm:px-6">
           <div className="pb-3">
             <h1 className="text-base font-semibold tracking-tight text-ink">
-              AI Portfolio Risk Copilot
+              ShockLense
             </h1>
             <p className="text-xs text-ink-tertiary">
               Understand what could hurt your portfolio before it happens.

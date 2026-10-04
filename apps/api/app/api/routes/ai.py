@@ -27,7 +27,7 @@ that results use historical betas and the scenario assumptions and are not a \
 forecast. Do not tell the user to buy, sell or hold. Do not mention \
 probabilities unless the JSON has a probability.
 
-Respond with ONLY a JSON object: {"text": "your explanation"}
+Respond with ONLY a JSON object: {{"text": "your explanation"}}
 
 Result JSON:
 {result_json}"""

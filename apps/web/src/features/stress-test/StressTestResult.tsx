@@ -1,5 +1,6 @@
 import { formatCurrency, formatSignedCurrency, formatSignedPercent } from "../../lib/format";
 import type { StressTestResult as StressTestResultType } from "../../types";
+import { useCountUp } from "../../lib/useCountUp";
 import { AiExplanation } from "./AiExplanation";
 import { ContributionChart } from "./ContributionChart";
 import { ExplanationNote } from "./ExplanationNote";
@@ -12,6 +13,10 @@ export function StressTestResult({
   scenarioTitle?: string;
 }) {
   const isLoss = result.estimated_impact_value < 0;
+  // Headline counts from "nothing happened" to the result on every Run.
+  const pct = useCountUp(0, result.estimated_impact_pct, result);
+  const value = useCountUp(0, result.estimated_impact_value, result);
+  const stressed = useCountUp(result.initial_value, result.stressed_value, result);
 
   return (
     <div className="space-y-8">
@@ -24,10 +29,10 @@ export function StressTestResult({
             isLoss ? "text-risk-negative-strong" : "text-risk-positive"
           }`}
         >
-          {formatSignedPercent(result.estimated_impact_pct)}
+          {formatSignedPercent(pct)}
         </div>
         <div className="mt-1 font-mono text-xl tabular-nums text-ink-secondary">
-          {formatSignedCurrency(result.estimated_impact_value)}
+          {formatSignedCurrency(value)}
         </div>
 
         <div className="mt-5 flex flex-wrap gap-x-10 gap-y-3 border-t border-line pt-4">
@@ -44,7 +49,7 @@ export function StressTestResult({
               Stressed Portfolio Value
             </div>
             <div className="mt-1 font-mono text-lg text-ink">
-              {formatCurrency(result.stressed_value)}
+              {formatCurrency(stressed)}
             </div>
           </div>
           {result.biggest_negative_contributor && (
