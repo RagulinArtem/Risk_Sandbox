@@ -24,6 +24,12 @@ export function formatSignedPercent(value: number, digits = 1): string {
   return value < 0 ? `-${formatted}` : `+${formatted}`;
 }
 
+export function formatSignedPercentagePoints(value: number, digits = 1): string {
+  const points = Math.abs(value * 100).toFixed(digits);
+  const sign = value < 0 ? "-" : value > 0 ? "+" : "";
+  return `${sign}${points}pp`;
+}
+
 export function formatPrice(value: number, currency = "USD"): string {
   // min and max must move together: min 2 / max 0 throws a RangeError
   // (that crashed the BTC drawer, whose price is above $1,000).

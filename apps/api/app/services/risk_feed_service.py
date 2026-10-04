@@ -45,6 +45,7 @@ TIER_WEIGHT = {1: 1.0, 2: 0.9, 3: 0.5, 4: 0.8}
 RECENCY_HALF_LIFE_HOURS = 48.0
 MOVE_SIGMA_THRESHOLD = 2.0  # daily move vs. 1y daily volatility
 MAX_ITEMS = 400
+FIRST_LOAD_TIMEOUT_SECONDS = 45.0
 
 
 # --- connectors that wrap existing integrations -------------------------
@@ -174,6 +175,7 @@ class _Monitor:
         self.refreshed_iso: str | None = None
         self.lock = threading.Lock()
         self.refreshing = False
+        self.loaded = threading.Event()  # set once the first refresh finishes
 
     def connectors(self) -> list[FeedConnector]:
         held = sorted({p.symbol for pf in list_portfolios() for p in pf.positions})
@@ -227,13 +229,17 @@ class _Monitor:
         finally:
             with self.lock:
                 self.refreshing = False
+            self.loaded.set()
 
     def ensure_fresh(self) -> None:
         """First call blocks until data exists; later stale calls refresh in
         the background so the page never waits on slow sources."""
         interval = get_settings().risk_feed_refresh_seconds
         if self.refreshed_at is None:
+            # A concurrent first request may already be loading: wait for it
+            # instead of returning an empty feed.
             self.refresh()
+            self.loaded.wait(timeout=FIRST_LOAD_TIMEOUT_SECONDS)
         elif time.monotonic() - self.refreshed_at > interval and not self.refreshing:
             threading.Thread(target=self.refresh, daemon=True).start()
 

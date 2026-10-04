@@ -1,4 +1,14 @@
 export type SourceStatus = "illustrative" | "verified" | "live";
+export type RiskDriverDirection = "negative" | "positive" | "mixed";
+export type RiskDriverImportance = "low" | "medium" | "high";
+export type AssumptionSource = "scenario" | "historical" | "ai_estimate" | "user_edited";
+
+export interface RiskDriverRef {
+  driver: string;
+  label: string;
+  direction: RiskDriverDirection;
+  importance: RiskDriverImportance;
+}
 
 export interface Scenario {
   id: string;
@@ -18,4 +28,6 @@ export interface Scenario {
   unavailable_assets?: string[];
   references?: { title: string; url: string }[];
   window?: { start: string; end: string } | null;
+  risk_drivers: RiskDriverRef[];
+  assumption_source: AssumptionSource;
 }

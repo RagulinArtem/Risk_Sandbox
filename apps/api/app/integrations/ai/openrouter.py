@@ -325,6 +325,7 @@ class OpenRouterScenarioProvider(ScenarioAIProvider):
             ],
             asset_shocks=shocks,
             shock_rationale=clean_rationale(data.get("rationale"), shocks),
+            assumption_source="ai_estimate",
         )
 
     def estimate_shocks(self, scenario: Scenario) -> Scenario:
@@ -351,5 +352,6 @@ class OpenRouterScenarioProvider(ScenarioAIProvider):
                 "source_name": self._source_name,
                 "source_url": None,
                 "source_date": None,
+                "assumption_source": "ai_estimate",
             }
         )

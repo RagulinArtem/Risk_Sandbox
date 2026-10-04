@@ -25,10 +25,13 @@ export function CommitteePanel({
   scenario,
   portfolio,
   onUseConsensus,
+  onVerdict,
 }: {
   scenario: Scenario | null;
   portfolio: Portfolio | null;
   onUseConsensus: (shocks: Record<string, number>, rationale: Record<string, string>) => void;
+  /** Optional: lets the parent keep the verdict (e.g. to feed the risk brief). */
+  onVerdict?: (verdict: CommitteeVerdict) => void;
 }) {
   const [roster, setRoster] = useState<CommitteeRoster | null>(null);
   const [seatStates, setSeatStates] = useState<Record<string, SeatState>>({});
@@ -111,6 +114,7 @@ export function CommitteePanel({
       if (runIdRef.current !== runId) return;
       if (response.verdict) {
         setVerdict(response.verdict);
+        onVerdict?.(response.verdict);
       } else {
         setVerdictMessage(response.message ?? "The chair could not produce a verdict.");
       }

@@ -28,3 +28,32 @@ input[type="number"]::-webkit-inner-spin-button {
   appearance: none;
   margin: 0;
 }
+
+@media print {
+  :root {
+    color-scheme: light;
+  }
+
+  body,
+  #root {
+    background: #ffffff !important;
+    color: #111111 !important;
+  }
+
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-report,
+  .print-report * {
+    background: transparent !important;
+    border-color: #b8b8b8 !important;
+    color: #111111 !important;
+  }
+
+  .print-report section,
+  .print-report footer {
+    break-inside: avoid;
+  }
+}

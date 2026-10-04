@@ -27,28 +27,30 @@ future.
 
 ![Risk Radar](docs/screenshots/risk-radar.png)
 
-1. Start from the demo Technology Heavy Portfolio.
-2. Browse the **Risk Radar** — five illustrative scenarios and one
-   verified historical benchmark (real 2022 asset returns), each scored
-   for relevance to this specific portfolio.
-3. Pick one (or type `"What if oil rises 40% and Nasdaq falls 15%?"` into
-   the scenario builder).
-4. Inspect and edit the scenario's transmission chain and asset
-   assumptions.
-5. Run the stress test.
+1. Start on **Portfolio** and inspect transparent risk metrics, performance
+   contribution and recurring modeled risk drivers.
+2. Browse **Risk Radar** for portfolio-relevant events and real external
+   probability signals when a live source is enabled.
+3. Open **Scenarios** to compare the complete risk surface, then drill into the
+   worst or most relevant row.
+4. Inspect/edit its transmission and shocks, run the deterministic stress test,
+   and review the Risk Brief plus evidence panel.
+5. Open **Mitigation**, change a hypothetical weight manually and compare the
+   same scenarios before vs after. The product describes the result; it does not
+   recommend a trade.
 
 ![Stress test result](docs/screenshots/stress-test-result.png)
 
-6. See estimated impact, stressed portfolio value, a per-asset
-   contribution chart, and a deterministic "why this matters" note.
+6. Use **Report** for a compact print/PDF-ready risk brief.
 
 Full walkthrough: `docs/DEMO_SCRIPT.md`.
 
 ## Architecture summary
 
 ```
-Risk Sources → Risk Discovery → Portfolio Relevance → Scenario Builder
-  → Stress Engine → Impact Decomposition → AI Explanation → User Decision
+Portfolio → Modeled Risk Drivers
+Event / Market Signal → Risk Radar → Scenario Engine → Portfolio Stress
+  → Impact / Comparison → Risk Brief → Mitigation What-if → User Decision
 ```
 
 React/TypeScript frontend, FastAPI/Python backend, JSON/CSV data files (no
@@ -112,13 +114,13 @@ to a server? Read `docs/DEPLOYMENT.md`.
 ## Current capabilities
 
 See `docs/CURRENT_STATE.md` for the authoritative, kept-current list.
-Today: demo portfolio with real price history (Yahoo Finance), 6 demo
-scenarios (5 illustrative + 1 verified historical benchmark), deterministic
-stress engine, impact decomposition, risk radar, "what if" scenario
-parsing (rule-based offline, Claude Sonnet 5.5 live), AI shock estimation,
-the multi-model AI Risk Committee, and Polymarket risk discovery
+Today: two demo portfolios, 23 illustrative/verified scenarios, real Yahoo
+price history, deterministic stress and scenario comparison, explainable risk
+drivers, Risk Radar/Attention Map, manual mitigation what-if, current-weight
+performance contribution, evidence-backed Risk Brief, AI scenario tooling and
+committee, print report, and optional Polymarket discovery
 (`ENABLE_POLYMARKET=true`). Everything still works offline by default
-(`AI_PROVIDER=mock`). Bedrock and news ingestion are designed-for
+(`AI_PROVIDER=mock`). Bedrock and risk-source news ingestion remain designed-for
 but not implemented (see the TODO stubs in `apps/api/app/integrations/`).
 
 ## Roadmap

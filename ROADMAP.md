@@ -79,6 +79,15 @@ see `docs/HACKATHON_RULES_CHECK.md`.
 | P0 | Global Multi-Asset Risk Portfolio (15 holdings) | TBD | DONE | Primary demo, weights sum to 1, every scenario shocks every held asset |
 | P1 | Asset Intelligence drawer | TBD | DONE | Static metadata offline; prices, news and AI "move drivers" each degrade independently |
 | P2 | ETF look-through (constituent exposure) | TBD | TODO | Needs real constituent data; until then overlap (SPY/QQQ/NVDA/TSM) is described, not computed |
+| P0 | Scenario Comparison Matrix | Codex | DONE | One batch endpoint, exact holding contributions, accessible heatmap and stress-test drill-down |
+| P0 | Explainable modeled risk drivers | Codex | DONE | Categorical taxonomy only; no unsupported betas or correlations |
+| P0 | Risk Attention Map | Codex | DONE | Real numeric source probability only, separate from deterministic impact; unpriced scenarios listed |
+| P0 | Mitigation Sandbox | Codex | DONE | Manual weights, validation/reset/normalize and same-engine before/after comparison |
+| P0 | Evidence / provenance panel | Codex | DONE | Component-level evidence categories and links; no composite confidence score |
+| P1 | AI Risk Brief | Codex | DONE | Engine-computed metrics, optional OpenRouter prose and complete offline fallback |
+| P1 | Lightweight performance attribution | Codex | DONE | Yahoo adjusted closes, current-weight buy-and-hold contribution, explicit failure on missing data |
+| P1 | Multi-dimensional portfolio risk summary | Codex | DONE | Transparent individual metrics; no arbitrary risk score |
+| P2 | Print/share-friendly risk report | Codex | DONE | Polished browser report with print/PDF stylesheet; no server PDF dependency |
 
 ## Hackathon day — October 4 (Asia/Hong_Kong)
 

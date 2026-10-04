@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { ApiError, api } from "../../lib/apiClient";
-import type { Portfolio, Scenario, StressTestResult } from "../../types";
+import type { Portfolio, ScenarioComparisonRow } from "../../types";
 
-export interface ScenarioExposure {
-  scenario: Scenario;
-  result: StressTestResult;
-}
+export type ScenarioExposure = ScenarioComparisonRow;
 
-/** Runs every library scenario against the portfolio through the stress-test
- * API, so the overview can rank them. All impact math stays in the backend. */
+/** Loads the backend's batch comparison so the overview can rank every library
+ * scenario without duplicating impact math or issuing an N-request waterfall. */
 export function useScenarioExposure(portfolio: Portfolio | null) {
   const [exposures, setExposures] = useState<ScenarioExposure[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -20,22 +17,10 @@ export function useScenarioExposure(portfolio: Portfolio | null) {
     setLoading(true);
     setError(null);
     api
-      .listScenarios()
-      .then((scenarios) =>
-        Promise.all(
-          scenarios.map(async (scenario) => ({
-            scenario,
-            result: await api.runStressTest({ portfolio, scenario_id: scenario.id }),
-          })),
-        ),
-      )
+      .compareScenarios({ portfolio })
       .then((data) => {
         if (!cancelled) {
-          setExposures(
-            [...data].sort(
-              (a, b) => a.result.estimated_impact_pct - b.result.estimated_impact_pct,
-            ),
-          );
+          setExposures(data.scenarios);
         }
       })
       .catch((err: unknown) => {

@@ -140,3 +140,28 @@ second math layer that needs its own validation — not worth the risk
 before the direct-shock path is proven end-to-end. `StressEngine` is
 already an abstract base so this can be added later without touching
 callers (`apps/api/app/domain/risk/engine.py`).
+
+## 2026-10-04 — Why the cockpit uses explainable drivers, separate attention axes and current-weight attribution
+
+The event-driven cockpit deliberately adds orchestration and explanation around
+the existing direct-shock engine rather than introducing unvalidated finance
+models:
+
+1. **Risk drivers are categorical transmission channels.** Scenario metadata
+   can say that semiconductor supply or US rates matters with low/medium/high
+   importance. It cannot claim a calibrated beta, correlation or confidence
+   interval that the repository does not have.
+2. **Prediction-market probability is an attention signal.** The Risk Attention
+   Map plots probability and absolute modeled impact on separate axes. It never
+   calls their product expected loss because a market question and a portfolio
+   stress scenario are not necessarily the same event definition.
+3. **Mitigation is manual and descriptive.** Users can change hypothetical
+   weights and compare deterministic results, but the product neither optimizes
+   the portfolio nor recommends a trade.
+4. **Performance contribution uses today's weights.** Without transactions or
+   historical holdings, the honest metric is an approximate buy-and-hold return
+   contribution from current weights, clearly labeled as such.
+5. **Trust is component-level evidence, not a score.** LIVE, VERIFIED,
+   HISTORICAL, USER INPUT, AI ESTIMATE, ILLUSTRATIVE and DETERMINISTIC labels
+   expose what each part actually is. No arbitrary 0–100 confidence number is
+   synthesized.

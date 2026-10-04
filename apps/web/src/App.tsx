@@ -8,31 +8,56 @@ import { PortfolioOverview } from "./features/portfolio/PortfolioOverview";
 import { usePortfolio } from "./features/portfolio/usePortfolio";
 import { RiskFeed } from "./features/risk-feed/RiskFeed";
 import { RiskRadar } from "./features/risk-radar/RiskRadar";
+import { RiskBriefPanel } from "./features/risk-brief/RiskBriefPanel";
+import { ScenarioComparison } from "./features/scenario-comparison/ScenarioComparison";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
 import { useAiStatus } from "./features/scenarios/useAiStatus";
 import { CommitteePanel } from "./features/stress-test/CommitteePanel";
 import { MarketStressPanel } from "./features/stress-test/MarketStressPanel";
 import { StressTestResult } from "./features/stress-test/StressTestResult";
+import { MitigationSandbox } from "./features/mitigation/MitigationSandbox";
+import { RiskReport } from "./features/report/RiskReport";
 import { ApiError, api } from "./lib/apiClient";
 import type {
+  CommitteeVerdict,
   MarketSummary,
   Portfolio,
   Scenario,
   StressTestResult as StressTestResultType,
 } from "./types";
 
-type View = "portfolio" | "feed" | "radar" | "stress";
+// Three steps a first-time viewer can follow, plus a printable report.
+type View = "portfolio" | "risks" | "stress" | "report";
+type RisksView = "feed" | "library" | "radar";
 
 const TABS: TabDef<View>[] = [
-  { id: "portfolio", label: "Portfolio" },
-  { id: "feed", label: "Risk Feed" },
-  { id: "radar", label: "Risk Radar" },
-  { id: "stress", label: "Stress Test" },
+  { id: "portfolio", label: "① Overview" },
+  { id: "risks", label: "② What could hurt it" },
+  { id: "stress", label: "③ Stress test" },
 ];
+
+const RISKS_TABS: { id: RisksView; label: string; hint: string }[] = [
+  { id: "feed", label: "Live signals", hint: "official sources, filings, news, prediction markets" },
+  { id: "library", label: "Scenario library", hint: "real past crises and hypothetical shocks, ranked" },
+  { id: "radar", label: "Risk radar", hint: "likelihood vs impact" },
+];
+
+// Old deep links (#feed, #radar, #scenarios, #mitigation) still land somewhere sensible.
+const LEGACY: Record<string, [View, RisksView?]> = {
+  feed: ["risks", "feed"],
+  radar: ["risks", "radar"],
+  scenarios: ["risks", "library"],
+  mitigation: ["stress"],
+};
 
 function viewFromHash(): View {
   const hash = window.location.hash.replace("#", "");
-  return TABS.some((t) => t.id === hash) ? (hash as View) : "portfolio";
+  if (hash in LEGACY) return LEGACY[hash][0];
+  return ["portfolio", "risks", "stress", "report"].includes(hash) ? (hash as View) : "portfolio";
+}
+
+function risksViewFromHash(): RisksView {
+  return LEGACY[window.location.hash.replace("#", "")]?.[1] ?? "feed";
 }
 
 export default function App() {
@@ -53,6 +78,7 @@ export default function App() {
   const activePortfolio = editedPortfolio ?? portfolio;
 
   const [view, setViewState] = useState<View>(viewFromHash);
+  const [risksView, setRisksView] = useState<RisksView>(risksViewFromHash);
 
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [scenarioLoading, setScenarioLoading] = useState(false);
@@ -63,6 +89,7 @@ export default function App() {
   const [market, setMarket] = useState<MarketSummary | null>(null);
 
   const [result, setResult] = useState<StressTestResultType | null>(null);
+  const [committeeVerdict, setCommitteeVerdict] = useState<CommitteeVerdict | null>(null);
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
 
@@ -94,6 +121,7 @@ export default function App() {
       setScenarioError(null);
       setEstimateError(null);
       setResult(null);
+      setCommitteeVerdict(null);
       try {
         setScenario(await api.getScenario(scenarioId));
       } catch (err) {
@@ -112,6 +140,7 @@ export default function App() {
       setResult(null);
       setRunError(null);
       setScenario(null);
+      setCommitteeVerdict(null);
     },
     [setView],
   );
@@ -120,6 +149,7 @@ export default function App() {
     setScenario(parsed);
     setScenarioError(null);
     setResult(null);
+    setCommitteeVerdict(null);
   }, []);
 
   const estimateWithAi = useCallback(async () => {
@@ -131,6 +161,7 @@ export default function App() {
       if (response.scenario) {
         setScenario(response.scenario);
         setResult(null);
+        setCommitteeVerdict(null);
       } else {
         setEstimateError(response.message ?? "The AI couldn't estimate this scenario.");
       }
@@ -147,6 +178,7 @@ export default function App() {
       setScenarioLoading(true);
       setScenarioError(null);
       setResult(null);
+      setCommitteeVerdict(null);
       try {
         const res = await api.parseScenario(headline);
         if (res.recognized && res.scenario) setScenario(res.scenario);
@@ -160,10 +192,21 @@ export default function App() {
     [setView],
   );
 
+  const handleCommitteeVerdict = useCallback((verdict: CommitteeVerdict) => {
+    setCommitteeVerdict(verdict);
+  }, []);
+
   const handleShockChange = useCallback((symbol: string, value: number) => {
     setScenario((prev) =>
-      prev ? { ...prev, asset_shocks: { ...prev.asset_shocks, [symbol]: value } } : prev,
+      prev
+        ? {
+            ...prev,
+            asset_shocks: { ...prev.asset_shocks, [symbol]: value },
+            assumption_source: "user_edited",
+          }
+        : prev,
     );
+    setCommitteeVerdict(null);
   }, []);
 
   const handleWeightChange = useCallback(
@@ -189,7 +232,12 @@ export default function App() {
       setMarket(null);
       setScenario((prev) =>
         prev
-          ? { ...prev, asset_shocks: shocks, shock_rationale: rationale }
+          ? {
+              ...prev,
+              asset_shocks: shocks,
+              shock_rationale: rationale,
+              assumption_source: "ai_estimate",
+            }
           : prev,
       );
       setResult(null);
@@ -271,7 +319,7 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <header className="sticky top-0 z-10 border-b border-line bg-surface/95 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-line bg-surface/95 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-x-8 px-4 pt-4 sm:px-6">
           <div className="pb-3">
             <h1 className="text-base font-semibold tracking-tight text-ink">
@@ -291,6 +339,7 @@ export default function App() {
                   onChange={(e) => {
                     selectPortfolio(e.target.value);
                     setResult(null);
+                    setCommitteeVerdict(null);
                   }}
                   className="border border-line-strong bg-surface-raised px-2 py-1 text-xs text-ink focus:border-accent focus:outline-none"
                 >
@@ -303,11 +352,22 @@ export default function App() {
               </label>
             )}
             <Tabs tabs={TABS} active={view} onChange={setView} />
+            <button
+              type="button"
+              onClick={() => setView("report")}
+              className={`mb-2 border px-3 py-1.5 text-xs font-medium ${
+                view === "report"
+                  ? "border-accent text-accent-strong"
+                  : "border-line-strong text-ink-secondary hover:border-accent hover:text-ink"
+              }`}
+            >
+              Report
+            </button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0">
         {portfolioLoading && <LoadingLine label="Loading portfolio…" />}
         {portfolioError && <ErrorBanner message={portfolioError} />}
 
@@ -317,26 +377,60 @@ export default function App() {
             portfolio={activePortfolio}
             onOpenScenario={selectScenario}
             onSelectAsset={setAssetSymbol}
+            onSeeRisks={() => {
+              setRisksView("feed");
+              setView("risks");
+            }}
             onWeightChange={handleWeightChange}
             onResetPortfolio={handleResetPortfolio}
           />
         )}
 
-        {view === "feed" && (
-          <RiskFeed
-            portfolioId={portfolio?.id}
-            onStressTest={selectScenario}
-            onDraft={isLiveAi ? draftFromHeadline : undefined}
-            onAsset={setAssetSymbol}
-          />
-        )}
+        {view === "risks" && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line">
+              <div role="tablist" aria-label="Risk views" className="-mb-px flex flex-wrap gap-1">
+                {RISKS_TABS.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={risksView === t.id}
+                    onClick={() => setRisksView(t.id)}
+                    className={`border-b-2 px-3 py-2 text-sm font-medium ${
+                      risksView === t.id
+                        ? "border-accent text-ink"
+                        : "border-transparent text-ink-tertiary hover:text-ink-secondary"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <p className="pb-2 text-xs text-ink-tertiary">
+                {RISKS_TABS.find((t) => t.id === risksView)?.hint}
+              </p>
+            </div>
 
-        {view === "radar" && (
-          <RiskRadar
-            portfolioId={portfolio?.id}
-            onStressTest={selectScenario}
-            onOpenMarket={openMarket}
-          />
+            {risksView === "feed" && (
+              <RiskFeed
+                portfolioId={portfolio?.id}
+                onStressTest={selectScenario}
+                onDraft={isLiveAi ? draftFromHeadline : undefined}
+                onAsset={setAssetSymbol}
+              />
+            )}
+            {risksView === "library" && portfolio && (
+              <ScenarioComparison portfolio={portfolio} onOpenScenario={selectScenario} />
+            )}
+            {risksView === "radar" && (
+              <RiskRadar
+                portfolio={activePortfolio}
+                onStressTest={selectScenario}
+                onOpenMarket={openMarket}
+              />
+            )}
+          </div>
         )}
 
         {view === "stress" && (
@@ -394,10 +488,40 @@ export default function App() {
                   scenario={scenario}
                   portfolio={activePortfolio}
                   onUseConsensus={handleUseConsensus}
+                  onVerdict={handleCommitteeVerdict}
                 />
               )}
             </div>
+            {result && scenario && activePortfolio && (
+              <div className="lg:col-span-2">
+                <RiskBriefPanel
+                  portfolio={activePortfolio}
+                  scenario={scenario}
+                  committee={committeeVerdict}
+                />
+              </div>
+            )}
+            {activePortfolio && (
+              <details className="group border border-line bg-surface-raised/20 lg:col-span-2">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm hover:text-ink">
+                  <span>
+                    <span className="font-medium text-ink">What if I change the allocation?</span>
+                    <span className="ml-2 text-ink-tertiary">
+                      compare a hypothetical allocation across every scenario
+                    </span>
+                  </span>
+                  <span className="font-mono text-ink-tertiary transition-transform group-open:rotate-90">›</span>
+                </summary>
+                <div className="border-t border-line p-5">
+                  <MitigationSandbox portfolio={activePortfolio} />
+                </div>
+              </details>
+            )}
           </div>
+        )}
+
+        {view === "report" && portfolio && (
+          <RiskReport portfolio={portfolio} selectedScenario={scenario} />
         )}
       </main>
 
@@ -412,7 +536,7 @@ export default function App() {
         </ErrorBoundary>
       )}
 
-      <footer className="border-t border-line">
+      <footer className="border-t border-line print:hidden">
         <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-ink-tertiary sm:px-6">
           Estimates are illustrative scenario assumptions, not forecasts or guaranteed outcomes.
           This tool does not provide investment advice and does not execute trades.

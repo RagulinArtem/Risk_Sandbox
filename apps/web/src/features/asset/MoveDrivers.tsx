@@ -91,7 +91,7 @@ export function MoveDrivers({ symbol }: { symbol: string }) {
           <ul className="space-y-2.5">
             {result.drivers.map((d, i) => (
               <li key={i} className="text-sm leading-relaxed text-ink-secondary">
-                <span className="mr-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+                <span className="mr-2 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
                   {KIND_LABEL[d.kind] ?? d.kind}
                 </span>
                 {d.text}
@@ -124,7 +124,7 @@ export function MoveDrivers({ symbol }: { symbol: string }) {
       )}
 
       {result?.model && (
-        <p className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <p className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           {result.label} · {result.model.replace(/^~/, "")}
           {result.confidence ? ` · ${result.confidence} confidence` : ""} · not investment advice
         </p>

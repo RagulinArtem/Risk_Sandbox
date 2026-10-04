@@ -8,3 +8,5 @@ export * from "./scenario";
 export * from "./stressTest";
 export * from "./priceHistory";
 export * from "./riskFeed";
+export * from "./cockpit";
+export * from "./insights";

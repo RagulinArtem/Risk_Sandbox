@@ -22,6 +22,12 @@ responds).
 | `horizon` | string | Free text, e.g. `"30d"`, `"60d"`, `"90d"`. Display only, not used in math. |
 | `transmission` | string[] | Ordered steps shown as an arrow chain in the UI (event → factor → asset → portfolio). Keep each step short. |
 | `asset_shocks` | object (symbol → number) | Signed decimal shock per symbol, e.g. `-0.25` = −25%. Only symbols with a defined shock get a non-zero impact — anything else in a portfolio defaults to 0% with a note (see `AssetImpact.has_assumption`). |
+| `shock_rationale` | object (symbol → string) | Optional per-symbol explanation, populated for AI-estimated assumptions. |
+| `unavailable_assets` | string[] | Historical assets without a valid observation in the event window. They are reported as unavailable, never converted to a fabricated 0% move. |
+| `references` | `{title, url}[]` | Supporting sources for verified/historical episodes. |
+| `window` | `{start, end}` \| null | ISO-date event window for a historical episode. |
+| `risk_drivers` | `RiskDriverRef[]` | Explainable transmission channels. `direction` is negative/positive/mixed and `importance` is low/medium/high categorical metadata — never a beta or calibrated confidence. Missing values are enriched from `data/risk_factors.json` when the scenario is loaded. |
+| `assumption_source` | `"scenario" \| "historical" \| "ai_estimate" \| "user_edited"` | Origin of the active shocks. Library defaults remain backwards compatible; verified episodes load as historical, AI output is always AI-estimated, and frontend edits are user-edited. |
 
 ## Example
 

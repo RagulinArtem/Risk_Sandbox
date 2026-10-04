@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from app.api.routes import (
     ai,
     assets,
+    cockpit,
     committee,
     health,
     insights,
@@ -54,6 +55,7 @@ app.include_router(risk_feed.router)
 app.include_router(markets.router)
 app.include_router(ai.router)
 app.include_router(committee.router)
+app.include_router(cockpit.router)
 
 
 @app.exception_handler(Exception)

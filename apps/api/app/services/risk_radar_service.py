@@ -92,6 +92,7 @@ class RiskRadarService:
             summary=signal.summary,
             portfolio_relevance=relevance,
             probability_signal=signal.probability_signal,
+            probability_value=signal.probability_value,
             source_status=signal.source_status,
             source_name=signal.source_name,
             source_url=signal.source_url,

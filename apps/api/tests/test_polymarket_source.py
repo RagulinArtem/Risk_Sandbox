@@ -48,6 +48,7 @@ def test_matches_known_scenario_and_extracts_probability():
     assert signal.source_name == "Polymarket"
     assert signal.source_url == "https://polymarket.com/event/test-market"
     assert signal.probability_signal == "71% (Polymarket)"
+    assert signal.probability_value == 0.71
     assert signal.retrieved_at is not None
 
 
