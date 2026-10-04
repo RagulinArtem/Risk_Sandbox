@@ -21,7 +21,6 @@ jobs:
     environment: production
     steps:
       - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.2.5
         env:
           DEPLOY_REF: ${{ github.event.inputs.ref || 'main' }}
           AI_PROVIDER: ${{ vars.AI_PROVIDER || 'mock' }}
@@ -35,68 +34,93 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5' }}
           HTTPS_PROXY: ${{ vars.HTTPS_PROXY }}
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          envs: DEPLOY_REF,AI_PROVIDER,ENABLE_POLYMARKET,ENABLE_NEWS,VITE_API_BASE_URL,FRONTEND_ORIGIN,API_PORT,WEB_PORT,API_PUBLISH,OPENROUTER_API_KEY,OPENROUTER_MODEL,HTTPS_PROXY
-          script: |
-            set -euo pipefail
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+          SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+        # Plain ssh instead of appleboy/ssh-action: that action downloads its
+        # drone-ssh binary at runtime, and the download started returning
+        # 403 on GitHub-hosted runners (2026-10-04).
+        run: |
+          set -euo pipefail
+          SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 -p "$SSH_PORT")
+          if [ -n "${SSH_PRIVATE_KEY:-}" ]; then
+            install -m 700 -d ~/.ssh
+            printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+            chmod 600 ~/.ssh/deploy_key
+            SSH=(ssh -i ~/.ssh/deploy_key "${SSH_OPTS[@]}")
+          else
+            sudo apt-get install -y -qq sshpass >/dev/null
+            export SSHPASS="$SSH_PASSWORD"
+            SSH=(sshpass -e ssh -o PubkeyAuthentication=no "${SSH_OPTS[@]}")
+          fi
 
-            DEPLOY_DIR=/opt/risk-copilot
-            REPO_URL=https://github.com/RagulinArtem/Risk_Sandbox.git
-
-            if [ ! -d "$DEPLOY_DIR/.git" ]; then
-              sudo mkdir -p "$DEPLOY_DIR"
-              sudo chown "$(whoami)" "$DEPLOY_DIR"
-              git clone "$REPO_URL" "$DEPLOY_DIR"
-            fi
-
-            cd "$DEPLOY_DIR"
-            git fetch origin
-            git checkout "$DEPLOY_REF"
-            git reset --hard "origin/$DEPLOY_REF"
-
-            # .env is git-ignored and lives only on the server — never
-            # committed. Heredoc delimiter is intentionally unquoted so
-            # ${VAR} substitutes; this assumes secret values don't contain
-            # shell metacharacters ($, `, \), which API keys/URLs/bools
-            # don't in practice — if that ever changes, quote the
-            # delimiter and substitute with envsubst instead.
-            cat > .env <<ENVEOF
-            APP_ENV=production
-            API_HOST=0.0.0.0
-            API_PORT=${API_PORT}
-            WEB_PORT=${WEB_PORT}
-            API_PUBLISH=${API_PUBLISH}
-            VITE_API_BASE_URL=${VITE_API_BASE_URL}
-            FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
-            AI_PROVIDER=${AI_PROVIDER}
-            AWS_REGION=
-            AWS_PROFILE=
-            BEDROCK_MODEL_ID=
-            OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
-            OPENROUTER_MODEL=${OPENROUTER_MODEL}
-            ENABLE_POLYMARKET=${ENABLE_POLYMARKET}
-            ENABLE_NEWS=${ENABLE_NEWS}
-            NEWS_API_KEY=
-            HTTPS_PROXY=${HTTPS_PROXY}
-            NO_PROXY=localhost,127.0.0.1
-            ENVEOF
-            chmod 600 .env
-
-            docker compose up -d --build
-            docker image prune -f
-
-            echo "Waiting for API to come up..."
-            for _ in $(seq 1 30); do
-              if curl -sf "http://127.0.0.1:${API_PUBLISH##*:}/health" >/dev/null; then
-                echo "API is healthy."
-                exit 0
-              fi
-              sleep 2
+          # Forward the deploy settings as exported shell variables, then the
+          # remote script itself (quoted heredoc: nothing expands locally).
+          {
+            for v in DEPLOY_REF AI_PROVIDER ENABLE_POLYMARKET ENABLE_NEWS VITE_API_BASE_URL \
+                     FRONTEND_ORIGIN API_PORT WEB_PORT API_PUBLISH OPENROUTER_API_KEY \
+                     OPENROUTER_MODEL HTTPS_PROXY; do
+              printf 'export %s=%q\n' "$v" "${!v}"
             done
-            echo "API did not become healthy within 60s — check 'docker compose logs' on the server." >&2
-            exit 1
+            cat <<'REMOTE'
+          set -euo pipefail
+
+          DEPLOY_DIR=/opt/risk-copilot
+          REPO_URL=https://github.com/RagulinArtem/Risk_Sandbox.git
+
+          if [ ! -d "$DEPLOY_DIR/.git" ]; then
+            sudo mkdir -p "$DEPLOY_DIR"
+            sudo chown "$(whoami)" "$DEPLOY_DIR"
+            git clone "$REPO_URL" "$DEPLOY_DIR"
+          fi
+
+          cd "$DEPLOY_DIR"
+          git fetch origin
+          git checkout "$DEPLOY_REF"
+          git reset --hard "origin/$DEPLOY_REF"
+
+          # .env is git-ignored and lives only on the server — never
+          # committed. Heredoc delimiter is intentionally unquoted so
+          # ${VAR} substitutes; this assumes secret values don't contain
+          # shell metacharacters ($, `, \), which API keys/URLs/bools
+          # don't in practice — if that ever changes, quote the
+          # delimiter and substitute with envsubst instead.
+          cat > .env <<ENVEOF
+          APP_ENV=production
+          API_HOST=0.0.0.0
+          API_PORT=${API_PORT}
+          WEB_PORT=${WEB_PORT}
+          API_PUBLISH=${API_PUBLISH}
+          VITE_API_BASE_URL=${VITE_API_BASE_URL}
+          FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
+          AI_PROVIDER=${AI_PROVIDER}
+          AWS_REGION=
+          AWS_PROFILE=
+          BEDROCK_MODEL_ID=
+          OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+          OPENROUTER_MODEL=${OPENROUTER_MODEL}
+          ENABLE_POLYMARKET=${ENABLE_POLYMARKET}
+          ENABLE_NEWS=${ENABLE_NEWS}
+          NEWS_API_KEY=
+          HTTPS_PROXY=${HTTPS_PROXY}
+          NO_PROXY=localhost,127.0.0.1
+          ENVEOF
+          chmod 600 .env
+
+          docker compose up -d --build
+          docker image prune -f
+
+          echo "Waiting for API to come up..."
+          for _ in $(seq 1 30); do
+            if curl -sf "http://127.0.0.1:${API_PUBLISH##*:}/health" >/dev/null; then
+              echo "API is healthy."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become healthy within 60s — check 'docker compose logs' on the server." >&2
+          exit 1
+          REMOTE
+          } | "${SSH[@]}" "$SSH_USER@$SSH_HOST" bash -s
