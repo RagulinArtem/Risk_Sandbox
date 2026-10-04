@@ -30,7 +30,9 @@ export function PortfolioSummary({
     {
       label: "Largest Position",
       value: `${largest.symbol} · ${formatPercent(largest.weight, 0)}`,
-      caption: largest.weight >= 0.25 ? "Concentrated" : "Diversified",
+      // Deliberately no "Diversified" label: several holdings can share the
+      // same risk (SPY, QQQ, NVDA and TSM all lean on large-cap tech).
+      caption: largest.weight >= 0.25 ? "Concentrated" : "Largest single holding",
     },
   ];
   if (extraStat) stats.push(extraStat);

@@ -6,10 +6,15 @@ import type {
   CommitteeVerdict,
   VerdictRequest,
   Asset,
+  AssetNewsResponse,
+  AssetPriceResponse,
+  MovePeriod,
+  MoveDriversResponse,
   EstimateShocksResponse,
   ParseScenarioResponse,
   Portfolio,
   PriceHistoryRequest,
+  PriceRange,
   PriceHistoryResponse,
   RiskRadarItem,
   Scenario,
@@ -62,8 +67,27 @@ export const api = {
   listScenarios: () => request<Scenario[]>("/api/scenarios"),
   getScenario: (id: string) => request<Scenario>(`/api/scenarios/${encodeURIComponent(id)}`),
   getDemoPortfolio: () => request<Portfolio>("/api/portfolio/demo"),
+  listPortfolios: () => request<Portfolio[]>("/api/portfolios"),
+  getPortfolio: (id: string) => request<Portfolio>(`/api/portfolios/${encodeURIComponent(id)}`),
   listAssets: () => request<Asset[]>("/api/assets"),
-  getRiskRadar: () => request<RiskRadarItem[]>("/api/risk-radar"),
+  getAsset: (symbol: string) => request<Asset>(`/api/assets/${encodeURIComponent(symbol)}`),
+  getAssetPrices: (symbol: string, range: PriceRange) =>
+    request<AssetPriceResponse>(
+      `/api/assets/${encodeURIComponent(symbol)}/prices?range=${encodeURIComponent(range)}`,
+    ),
+  getAssetNews: (symbol: string) =>
+    request<AssetNewsResponse>(`/api/assets/${encodeURIComponent(symbol)}/news`),
+  getMoveDrivers: (symbol: string, period: MovePeriod) =>
+    request<MoveDriversResponse>(`/api/assets/${encodeURIComponent(symbol)}/move-drivers`, {
+      method: "POST",
+      body: JSON.stringify({ period }),
+    }),
+  getRiskRadar: (portfolioId?: string) =>
+    request<RiskRadarItem[]>(
+      portfolioId
+        ? `/api/risk-radar?portfolio_id=${encodeURIComponent(portfolioId)}`
+        : "/api/risk-radar",
+    ),
   getAiStatus: () => request<AIStatusResponse>("/api/ai/status"),
   runStressTest: (body: StressTestRequest) =>
     request<StressTestResult>("/api/stress-test", {

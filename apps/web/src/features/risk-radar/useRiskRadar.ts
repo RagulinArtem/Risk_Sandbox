@@ -2,15 +2,17 @@ import { useEffect, useState } from "react";
 import { ApiError, api } from "../../lib/apiClient";
 import type { RiskRadarItem } from "../../types";
 
-export function useRiskRadar() {
+export function useRiskRadar(portfolioId: string | undefined) {
   const [items, setItems] = useState<RiskRadarItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(null);
     api
-      .getRiskRadar()
+      .getRiskRadar(portfolioId)
       .then((data) => {
         if (!cancelled) setItems(data);
       })
@@ -25,7 +27,7 @@ export function useRiskRadar() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [portfolioId]);
 
   return { items, error, loading };
 }

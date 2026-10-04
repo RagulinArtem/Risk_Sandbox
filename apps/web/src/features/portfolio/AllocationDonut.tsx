@@ -3,7 +3,13 @@ import { holdingColors } from "../../lib/assetClasses";
 import { formatCurrency, formatPercent } from "../../lib/format";
 import type { Portfolio } from "../../types";
 
-export function AllocationDonut({ portfolio }: { portfolio: Portfolio }) {
+export function AllocationDonut({
+  portfolio,
+  onSelect,
+}: {
+  portfolio: Portfolio;
+  onSelect: (symbol: string) => void;
+}) {
   const colors = holdingColors(portfolio.positions);
   const data = [...portfolio.positions]
     .sort((a, b) => b.weight - a.weight)
@@ -56,17 +62,23 @@ export function AllocationDonut({ portfolio }: { portfolio: Portfolio }) {
         </div>
       </div>
 
-      <ul className="grid w-full min-w-0 grid-cols-1 gap-y-2 text-sm">
+      <ul className="grid w-full min-w-0 grid-cols-1 gap-x-6 gap-y-0.5 text-sm sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         {data.map((d) => (
-          <li key={d.symbol} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3">
-            <span className="h-2.5 w-2.5" style={{ background: d.color }} />
-            <span className="font-mono text-ink">{d.symbol}</span>
-            <span className="font-mono tabular-nums text-ink-secondary">
-              {formatPercent(d.weight, 0)}
-            </span>
-            <span className="w-20 text-right font-mono tabular-nums text-ink-tertiary">
-              {formatCurrency(d.value, portfolio.currency)}
-            </span>
+          <li key={d.symbol}>
+            <button
+              type="button"
+              onClick={() => onSelect(d.symbol)}
+              className="grid w-full grid-cols-[auto_1fr_auto_auto] items-center gap-3 px-1 py-0.5 text-left hover:bg-surface-raised focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent"
+            >
+              <span className="h-2.5 w-2.5" style={{ background: d.color }} />
+              <span className="font-mono text-ink">{d.symbol}</span>
+              <span className="font-mono tabular-nums text-ink-secondary">
+                {formatPercent(d.weight, 0)}
+              </span>
+              <span className="w-16 text-right font-mono tabular-nums text-ink-tertiary">
+                {formatCurrency(d.value, portfolio.currency)}
+              </span>
+            </button>
           </li>
         ))}
       </ul>

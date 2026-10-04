@@ -3,6 +3,7 @@ import json
 import pytest
 
 from app.core.config import get_settings
+from app.services.asset_service import get_supported_assets
 from app.services.scenario_service import ScenarioNotFoundError, get_scenario_service
 
 
@@ -45,4 +46,4 @@ def test_historical_2022_scenario_is_verified_and_present():
     assert scenario.source_status == "verified"
     assert scenario.source_name
     assert scenario.source_url.startswith("https://")
-    assert set(scenario.asset_shocks) == {"NVDA", "QQQ", "SPY", "BTC", "GLD", "TLT"}
+    assert set(scenario.asset_shocks) == {a.symbol for a in get_supported_assets()}

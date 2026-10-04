@@ -69,6 +69,17 @@ before the event. Do not present work completed before the hackathon
 window as having been built during it if event rules require disclosure —
 see `docs/HACKATHON_RULES_CHECK.md`.
 
+### October 4 — Delivered on hackathon day
+
+| Priority | Feature | Owner | Status | Acceptance |
+| --- | --- | --- | --- | --- |
+| P1 | Real price history (Yahoo Finance) | TBD | DONE | Performance chart + returns, source and retrieval time shown, 503 instead of made-up data |
+| P1 | Live LLM scenario parsing + AI shock estimates | TBD | DONE | OpenRouter, per-asset rationale, labelled illustrative |
+| P1 | Multi-model AI Risk Committee | TBD | DONE | `docs/MULTI_AGENT_ORCHESTRATION.md` |
+| P0 | Global Multi-Asset Risk Portfolio (15 holdings) | TBD | DONE | Primary demo, weights sum to 1, every scenario shocks every held asset |
+| P1 | Asset Intelligence drawer | TBD | DONE | Static metadata offline; prices, news and AI "move drivers" each degrade independently |
+| P2 | ETF look-through (constituent exposure) | TBD | TODO | Needs real constituent data; until then overlap (SPY/QQQ/NVDA/TSM) is described, not computed |
+
 ## Hackathon day — October 4 (Asia/Hong_Kong)
 
 | Time | Block | Goal |

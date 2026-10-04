@@ -38,8 +38,21 @@ def test_demo_portfolio(client):
     response = client.get("/api/portfolio/demo")
     assert response.status_code == 200
     body = response.json()
-    assert body["id"] == "demo-tech"
-    assert abs(sum(p["weight"] for p in body["positions"]) - 1.0) < 0.01
+    assert body["id"] == "global-multi-asset"
+    assert len(body["positions"]) == 15
+    assert abs(sum(p["weight"] for p in body["positions"]) - 1.0) < 1e-9
+
+
+def test_portfolios_list_and_lookup(client):
+    ids = [p["id"] for p in client.get("/api/portfolios").json()]
+    assert ids == ["global-multi-asset", "demo-tech"]
+    assert client.get("/api/portfolios/demo-tech").json()["name"] == "Technology Heavy Portfolio"
+    assert client.get("/api/portfolios/nope").status_code == 404
+
+
+def test_risk_radar_accepts_portfolio_id(client):
+    assert client.get("/api/risk-radar?portfolio_id=demo-tech").status_code == 200
+    assert client.get("/api/risk-radar?portfolio_id=nope").status_code == 404
 
 
 def test_stress_test_with_known_scenario(client, demo_portfolio_payload):

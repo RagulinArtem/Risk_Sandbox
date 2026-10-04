@@ -19,8 +19,7 @@ from app.integrations.ai.base import (
     UnrecognizedScenarioError,
 )
 from app.schemas.scenario import Scenario
-
-_SUPPORTED_SYMBOLS = ("NVDA", "QQQ", "SPY", "BTC", "GLD", "TLT")
+from app.services.asset_service import get_supported_assets
 
 _PROMPT_TEMPLATE = """You translate a plain-English market scenario into illustrative \
 percentage shocks for these assets: {symbols}.
@@ -63,7 +62,8 @@ class BedrockScenarioProvider(ScenarioAIProvider):
                 "fully functional offline in the meantime."
             )
 
-        prompt = _PROMPT_TEMPLATE.format(symbols=", ".join(_SUPPORTED_SYMBOLS), text=text)
+        symbols = ", ".join(a.symbol for a in get_supported_assets())
+        prompt = _PROMPT_TEMPLATE.format(symbols=symbols, text=text)
 
         try:
             response = self._client.invoke_model(

@@ -3,8 +3,14 @@ import { LoadingLine } from "../../components/LoadingLine";
 import { RiskRadarRow } from "./RiskRadarRow";
 import { useRiskRadar } from "./useRiskRadar";
 
-export function RiskRadar({ onStressTest }: { onStressTest: (scenarioId: string) => void }) {
-  const { items, error, loading } = useRiskRadar();
+export function RiskRadar({
+  portfolioId,
+  onStressTest,
+}: {
+  portfolioId: string | undefined;
+  onStressTest: (scenarioId: string) => void;
+}) {
+  const { items, error, loading } = useRiskRadar(portfolioId);
 
   return (
     <div>

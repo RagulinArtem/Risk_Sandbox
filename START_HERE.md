@@ -51,6 +51,9 @@ by `make setup`.
 | AI Risk Committee (roles, prompts) | `apps/api/app/integrations/ai/committee.py` + `services/committee_service.py` |
 | Committee UI | `apps/web/src/features/committee/` |
 | Price history (Yahoo Finance) | `apps/api/app/integrations/market_data/yahoo.py` |
+| Asset descriptions, roles, risk factors | `data/assets/supported_assets.json` (JSON, no code change) |
+| News headlines | `apps/api/app/integrations/news/` |
+| Asset Intelligence drawer | `apps/web/src/features/asset/` |
 | Model choices | env vars `OPENROUTER_MODEL`, `COMMITTEE_*_MODEL` (`app/core/config.py`) |
 | AWS Bedrock integration | `apps/api/app/integrations/ai/bedrock.py` |
 | API routes | `apps/api/app/api/routes/` |
@@ -77,8 +80,10 @@ P0 is demo-solid.
   breaks the other side silently.
 - `apps/api/app/domain/risk/engine.py` — the math everyone's demo depends
   on. Changes need a test update in the same commit.
-- `data/portfolios/demo_tech_portfolio.json` — the whole team's demo is
-  tuned around these exact numbers (NVDA 30% is the point).
+- `data/portfolios/global_multi_asset_portfolio.json` (the primary demo) and
+  `data/scenarios/demo/*.json`: the demo story is tuned around these
+  numbers. If you add a supported asset, every scenario must get a shock for
+  it (a test enforces this).
 - Anything in `.github/workflows/` or `.claude/` without a heads-up — these
   affect everyone's CI and agent behavior.
 - `main` directly: work on your own branch and merge via PR. Deploy

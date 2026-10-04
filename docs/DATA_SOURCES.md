@@ -59,6 +59,29 @@ cached in-process for an hour. The UI cites the source and retrieval time
 under the chart. Prices are only used for the performance charts; the
 stress engine never reads them.
 
+## News headlines (Yahoo Finance): implemented
+
+`integrations/news/` has a `NewsProvider` interface and
+`YahooNewsProvider`, which uses `query1.finance.yahoo.com/v1/finance/search`
+with no key.
+- **Validation:** headlines are kept as published. Items without a title,
+  timestamp or http(s) URL are dropped. Results are filtered to items
+  Yahoo tags with the asset's ticker (BTC is searched as "Bitcoin" and
+  filtered by `BTC-USD`).
+- **Caching and failure:** cached 15 min. On failure the API returns 503
+  and the UI shows "Recent news unavailable". We never invent or
+  paraphrase headlines, and we never copy article bodies.
+
+## What kind of information is each thing? (Asset Intelligence drawer)
+
+| Shown in the drawer | Kind | Source |
+| --- | --- | --- |
+| Name, instrument, category, region, description, role, risk factors | **Static metadata**, hand-written reference notes | `data/assets/supported_assets.json` |
+| Portfolio weight and position value | Deterministic | Demo portfolio JSON |
+| Latest available close, chart, 1D…1Y returns | **Market data** (adjusted close; not a live quote) | Yahoo Finance chart endpoint |
+| Latest news | **Sourced news**, verbatim headlines and links | Yahoo Finance search endpoint |
+| "What may be driving the recent move?" | **AI-generated interpretation**, labelled, citing headlines | OpenRouter (`OPENROUTER_MODEL`), from the two rows above |
+
 ## Future data sources (documented, not all implemented)
 
 ### Prediction markets (Polymarket)

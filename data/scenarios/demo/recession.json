@@ -15,11 +15,20 @@
     "Central banks pivot toward rate cuts; government bonds and gold rally on flight-to-quality"
   ],
   "asset_shocks": {
-    "NVDA": -0.30,
+    "NVDA": -0.3,
     "QQQ": -0.22,
     "SPY": -0.18,
     "BTC": -0.35,
     "GLD": 0.08,
-    "TLT": 0.10
+    "TLT": 0.1,
+    "TSM": -0.28,
+    "JPM": -0.2,
+    "XOM": -0.22,
+    "XLV": -0.06,
+    "LMT": -0.05,
+    "FXI": -0.25,
+    "VNQ": -0.2,
+    "HYG": -0.1,
+    "BIL": 0.005
   }
 }

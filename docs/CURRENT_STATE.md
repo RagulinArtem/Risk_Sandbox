@@ -6,8 +6,19 @@ don't let it drift from reality.
 
 ## WORKING
 
-- Demo portfolio (`GET /api/portfolio/demo`) — technology-heavy, 6
-  positions, weights validated to sum to ~1.0.
+- **Demo portfolios** (`GET /api/portfolios`, `/api/portfolio/demo`). The
+  primary is the **Global Multi-Asset Risk Portfolio**: 15 holdings across
+  US/China equities, semis, banks, energy, healthcare, defence, REITs,
+  long Treasuries, high yield, T-bills, gold and BTC; $100k; weights sum to
+  exactly 1. The original 6-asset Technology Heavy Portfolio is still
+  selectable from the header. The overlap between SPY, QQQ, NVDA and TSM is
+  intentional (holdings ≠ independent risk factors). It is described in
+  the asset notes but **not computed**: there is no ETF look-through data.
+- **Every scenario shocks all 15 supported assets**, so the engine never
+  silently treats a held asset as unshocked (enforced by a test). Values
+  for the 9 new assets in illustrative scenarios are illustrative. In the
+  verified 2022 scenario they are real 2022 total returns (see
+  `docs/research/2022-rate-hike-selloff.md`).
 - 6 demo scenarios (`GET /api/scenarios`, `GET /api/scenarios/{id}`) —
   semiconductor supply shock, interest rate shock, oil supply disruption,
   technology correction, global recession (all `source_status:
@@ -39,7 +50,7 @@ don't let it drift from reality.
     assumptions on the left, result (headline impact, contribution chart,
     "why this matters") on the right.
   All wired to the live API, no mock data or impact math in the frontend.
-- 62 backend tests passing; `ruff check` clean; frontend `typecheck` +
+- 83 backend tests passing; `ruff check` clean; frontend `typecheck` +
   `lint` + `build` clean. Full user flow verified in an actual browser
   (Risk Radar → scenario → stress test → custom "what if").
 - CORS, structured error responses (422 for validation, 404 for unknown
@@ -81,6 +92,21 @@ don't let it drift from reality.
   (2026-10-04); reasoning effort "low" keeps a full run at ~25-35s and
   ~$0.04. Single-model default (What if / Estimate) is now
   `anthropic/claude-sonnet-5.5`. Verified live end to end.
+- **Asset Intelligence drawer**: click any holding (table or donut legend)
+  on the Portfolio tab. Sections and their sources:
+  - Static, always offline: what it is, role in the portfolio, risk factor
+    tags, instrument/category/region.
+  - Deterministic: weight and position value.
+  - Yahoo: latest available close (labelled "not a live quote"), 1M–5Y
+    chart, and 1D/1W/1M/3M/YTD/1Y returns computed in Python on real
+    trading dates (null when history is too short).
+  - Yahoo headlines: up to 5, verbatim, with links.
+  - Live AI only: "What may be driving the recent move?" (1W/1M), an
+    LLM interpretation of the real move vs SPY and real headlines. Every
+    non-market driver must cite a headline; with no headlines the model
+    isn't called.
+  Each live section fails on its own ("Price data unavailable", "Recent
+  news unavailable"). Verified live on 2026-10-04.
 - **Real price history** (`integrations/market_data/yahoo.py`,
   `POST /api/price-history`) — dividend-adjusted closes from Yahoo
   Finance's public chart endpoint, cached 1h, aligned to the stock

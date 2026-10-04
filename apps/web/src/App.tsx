@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "./components/ErrorBanner";
+import { AssetDrawer } from "./features/asset/AssetDrawer";
 import { CommitteePanel } from "./features/committee/CommitteePanel";
 import { LoadingLine } from "./components/LoadingLine";
 import { type TabDef, Tabs } from "./components/Tabs";
@@ -30,7 +31,15 @@ function viewFromHash(): View {
 }
 
 export default function App() {
-  const { portfolio, error: portfolioError, loading: portfolioLoading } = usePortfolio();
+  const {
+    portfolios,
+    portfolio,
+    select: selectPortfolio,
+    error: portfolioError,
+    loading: portfolioLoading,
+  } = usePortfolio();
+  const [assetSymbol, setAssetSymbol] = useState<string | null>(null);
+  const closeAsset = useCallback(() => setAssetSymbol(null), []);
 
   const [view, setViewState] = useState<View>(viewFromHash);
 
@@ -153,7 +162,29 @@ export default function App() {
               Understand what could hurt your portfolio before it happens.
             </p>
           </div>
-          <Tabs tabs={TABS} active={view} onChange={setView} />
+          <div className="flex flex-wrap items-end gap-x-6 gap-y-2">
+            {portfolios.length > 1 && portfolio && (
+              <label className="flex items-center gap-2 pb-2.5 text-xs text-ink-tertiary">
+                <span className="font-mono uppercase tracking-wider">Portfolio</span>
+                <select
+                  id="portfolio-picker"
+                  value={portfolio.id}
+                  onChange={(e) => {
+                    selectPortfolio(e.target.value);
+                    setResult(null);
+                  }}
+                  className="border border-line-strong bg-surface-raised px-2 py-1 text-xs text-ink focus:border-accent focus:outline-none"
+                >
+                  {portfolios.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <Tabs tabs={TABS} active={view} onChange={setView} />
+          </div>
         </div>
       </header>
 
@@ -162,10 +193,15 @@ export default function App() {
         {portfolioError && <ErrorBanner message={portfolioError} />}
 
         {view === "portfolio" && portfolio && (
-          <PortfolioOverview portfolio={portfolio} onOpenScenario={selectScenario} />
+          <PortfolioOverview
+            key={portfolio.id}
+            portfolio={portfolio}
+            onOpenScenario={selectScenario}
+            onSelectAsset={setAssetSymbol}
+          />
         )}
 
-        {view === "radar" && <RiskRadar onStressTest={selectScenario} />}
+        {view === "radar" && <RiskRadar portfolioId={portfolio?.id} onStressTest={selectScenario} />}
 
         {view === "stress" && (
           <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -212,6 +248,15 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {assetSymbol && portfolio && (
+        <AssetDrawer
+          symbol={assetSymbol}
+          portfolio={portfolio}
+          isLiveAi={isLiveAi}
+          onClose={closeAsset}
+        />
+      )}
 
       <footer className="border-t border-line">
         <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-ink-tertiary sm:px-6">

@@ -1,0 +1,68 @@
+{
+  "id": "global-multi-asset",
+  "name": "Global Multi-Asset Risk Portfolio",
+  "currency": "USD",
+  "total_value": 100000,
+  "positions": [
+    {
+      "symbol": "SPY",
+      "weight": 0.15
+    },
+    {
+      "symbol": "QQQ",
+      "weight": 0.1
+    },
+    {
+      "symbol": "NVDA",
+      "weight": 0.07
+    },
+    {
+      "symbol": "TSM",
+      "weight": 0.06
+    },
+    {
+      "symbol": "JPM",
+      "weight": 0.06
+    },
+    {
+      "symbol": "XOM",
+      "weight": 0.06
+    },
+    {
+      "symbol": "XLV",
+      "weight": 0.05
+    },
+    {
+      "symbol": "LMT",
+      "weight": 0.04
+    },
+    {
+      "symbol": "FXI",
+      "weight": 0.05
+    },
+    {
+      "symbol": "VNQ",
+      "weight": 0.05
+    },
+    {
+      "symbol": "TLT",
+      "weight": 0.09
+    },
+    {
+      "symbol": "HYG",
+      "weight": 0.05
+    },
+    {
+      "symbol": "BIL",
+      "weight": 0.04
+    },
+    {
+      "symbol": "GLD",
+      "weight": 0.07
+    },
+    {
+      "symbol": "BTC",
+      "weight": 0.06
+    }
+  ]
+}
