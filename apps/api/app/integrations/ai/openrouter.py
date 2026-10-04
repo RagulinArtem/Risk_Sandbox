@@ -84,6 +84,15 @@ Transmission:
 
 {response_format}"""
 
+_FRIENDLY_ERRORS = {
+    401: "The OpenRouter API key was rejected. Check OPENROUTER_API_KEY.",
+    402: "The OpenRouter account is out of credits — top it up at "
+    "https://openrouter.ai/settings/credits, then try again.",
+    403: "OpenRouter refused the request from this server (region block?). "
+    "Check HTTPS_PROXY in the server's .env.",
+    429: "OpenRouter is rate-limiting requests. Wait a moment and try again.",
+}
+
 # Real LLMs frequently wrap JSON in a markdown code fence even when told
 # not to — strip ```json ... ``` / ``` ... ``` before parsing rather than
 # failing on well-formed-but-fenced output.
@@ -144,9 +153,13 @@ class OpenRouterScenarioProvider(ScenarioAIProvider):
                 },
                 timeout=_REQUEST_TIMEOUT_SECONDS,
             )
+            if response.status_code in _FRIENDLY_ERRORS:
+                raise AIProviderUnavailableError(_FRIENDLY_ERRORS[response.status_code])
             response.raise_for_status()
             raw_text = response.json()["choices"][0]["message"]["content"]
             data = json.loads(_CODE_FENCE_RE.sub("", raw_text.strip()).strip())
+        except AIProviderUnavailableError:
+            raise
         except Exception as exc:
             raise AIProviderUnavailableError(f"OpenRouter request failed: {exc}") from exc
         if not isinstance(data, dict):

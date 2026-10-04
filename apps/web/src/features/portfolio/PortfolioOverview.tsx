@@ -1,14 +1,17 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
 import { formatSignedPercent } from "../../lib/format";
-import type { Portfolio } from "../../types";
+import type { Portfolio, PriceRange } from "../../types";
 import { AllocationDonut } from "./AllocationDonut";
 import { AssetClassBreakdown } from "./AssetClassBreakdown";
 import { HoldingsTable } from "./HoldingsTable";
+import { PerformanceChart } from "./PerformanceChart";
+import { RANGES } from "./priceRanges";
 import { PortfolioSummary } from "./PortfolioSummary";
 import { ScenarioExposureChart } from "./ScenarioExposureChart";
 import { useAssets } from "./useAssets";
+import { usePriceHistory } from "./usePriceHistory";
 import { useScenarioExposure } from "./useScenarioExposure";
 
 function Panel({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
@@ -33,6 +36,9 @@ export function PortfolioOverview({
   const assets = useAssets();
   const { exposures, error, loading } = useScenarioExposure(portfolio);
   const worst = exposures[0];
+  const [range, setRange] = useState<PriceRange>("1y");
+  const prices = usePriceHistory(portfolio, range);
+  const rangeLabel = RANGES.find((r) => r.id === range)?.label ?? range;
 
   return (
     <div className="space-y-6">
@@ -49,6 +55,21 @@ export function PortfolioOverview({
             : undefined
         }
       />
+
+      <Panel title="Performance">
+        {prices.error && <ErrorBanner message={prices.error} />}
+        {!prices.history && prices.loading && <LoadingLine label="Loading real prices…" />}
+        {prices.history && (
+          <div className={prices.loading ? "opacity-60 transition-opacity" : undefined}>
+            <PerformanceChart
+              portfolio={portfolio}
+              history={prices.history}
+              range={range}
+              onRangeChange={setRange}
+            />
+          </div>
+        )}
+      </Panel>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Allocation by Holding">
@@ -68,7 +89,20 @@ export function PortfolioOverview({
       </Panel>
 
       <Panel title="Holdings">
-        <HoldingsTable portfolio={portfolio} assets={assets} />
+        <HoldingsTable
+          portfolio={portfolio}
+          assets={assets}
+          returns={
+            prices.history
+              ? {
+                  label: rangeLabel,
+                  bySymbol: Object.fromEntries(
+                    prices.history.series.map((s) => [s.symbol, s.change_pct]),
+                  ),
+                }
+              : undefined
+          }
+        />
       </Panel>
     </div>
   );

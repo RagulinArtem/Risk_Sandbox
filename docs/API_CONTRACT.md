@@ -66,6 +66,36 @@ table and asset-type breakdown.
 // asset_class: "equity" | "equity_etf" | "crypto" | "bond_etf" | "commodity_etf"
 ```
 
+## `POST /api/price-history`
+
+Real historical prices for a portfolio's holdings (Yahoo Finance,
+adjusted close), aligned to the stock trading calendar.
+
+### Request
+
+```ts
+{ portfolio: Portfolio; range?: "1mo" | "3mo" | "6mo" | "1y" | "2y" | "5y" }  // default "1y"
+```
+
+### Response (`PriceHistoryResponse`)
+
+```ts
+{
+  range: string;
+  interval: "1d" | "1wk";
+  dates: string[];                      // ISO dates
+  series: { symbol: string; ticker: string; prices: number[]; change_pct: number }[];
+  portfolio_values: number[];           // hypothetical buy-and-hold of today's weights
+  portfolio_change_pct: number;
+  source_name: string;                  // "Yahoo Finance"
+  source_url: string;
+  retrieved_at: string;                 // ISO datetime
+  price_field: string;                  // "adjusted close"
+}
+```
+
+`503` with `detail` when prices can't be fetched.
+
 ## `POST /api/stress-test`
 
 ### Request (`StressTestRequest`)

@@ -48,6 +48,17 @@ Not currently used — no live source is wired up (see
   not fabricate a plausible-looking signal (see the TODO stubs in
   `apps/api/app/integrations/risk_sources/`).
 
+## Market prices (Yahoo Finance) — implemented
+
+`integrations/market_data/yahoo.py` reads
+`https://query1.finance.yahoo.com/v8/finance/chart/{ticker}` (no key;
+`BTC` → `BTC-USD`). It's a public, unofficial endpoint: it may
+rate-limit or change shape, so any failure becomes a 503 and a "price data
+unavailable" message in the UI — never substituted data. Responses are
+cached in-process for an hour. The UI cites the source and retrieval time
+under the chart. Prices are only used for the performance charts; the
+stress engine never reads them.
+
 ## Future data sources (documented, not all implemented)
 
 ### Prediction markets (Polymarket)

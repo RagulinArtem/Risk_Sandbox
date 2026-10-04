@@ -119,6 +119,13 @@ def test_openrouter_estimate_shocks_replaces_assumptions_only(client):
     assert estimated.source_url is None
 
 
+def test_openrouter_out_of_credits_gives_actionable_message():
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    with patch("httpx.post", return_value=MagicMock(status_code=402)):
+        with pytest.raises(AIProviderUnavailableError, match="out of credits"):
+            provider.parse_scenario("What if oil rises 40%?")
+
+
 def test_mock_provider_cannot_estimate_shocks():
     scenario = MockScenarioProvider().parse_scenario("What if oil rises 40%?")
     with pytest.raises(AIProviderUnavailableError):

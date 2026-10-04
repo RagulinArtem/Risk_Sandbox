@@ -4,6 +4,8 @@ import type {
   EstimateShocksResponse,
   ParseScenarioResponse,
   Portfolio,
+  PriceHistoryRequest,
+  PriceHistoryResponse,
   RiskRadarItem,
   Scenario,
   StressTestRequest,
@@ -56,6 +58,11 @@ export const api = {
     request<EstimateShocksResponse>("/api/ai/estimate-shocks", {
       method: "POST",
       body: JSON.stringify({ scenario }),
+    }),
+  getPriceHistory: (body: PriceHistoryRequest) =>
+    request<PriceHistoryResponse>("/api/price-history", {
+      method: "POST",
+      body: JSON.stringify(body),
     }),
   parseScenario: (text: string) =>
     request<ParseScenarioResponse>("/api/ai/parse-scenario", {

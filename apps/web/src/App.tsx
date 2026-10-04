@@ -47,8 +47,8 @@ export default function App() {
     setViewState(next);
     if (window.location.hash !== `#${next}`) {
       window.history.replaceState(null, "", `#${next}`);
+      window.scrollTo({ top: 0 });
     }
-    window.scrollTo({ top: 0 });
   }, []);
 
   useEffect(() => {

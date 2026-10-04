@@ -1,16 +1,17 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
-import { HOLDING_COLORS } from "../../lib/assetClasses";
+import { holdingColors } from "../../lib/assetClasses";
 import { formatCurrency, formatPercent } from "../../lib/format";
 import type { Portfolio } from "../../types";
 
 export function AllocationDonut({ portfolio }: { portfolio: Portfolio }) {
+  const colors = holdingColors(portfolio.positions);
   const data = [...portfolio.positions]
     .sort((a, b) => b.weight - a.weight)
-    .map((p, i) => ({
+    .map((p) => ({
       symbol: p.symbol,
       weight: p.weight,
       value: p.weight * portfolio.total_value,
-      color: HOLDING_COLORS[i % HOLDING_COLORS.length],
+      color: colors[p.symbol],
     }));
 
   return (
