@@ -55,6 +55,17 @@ Returns the one demo `Portfolio`.
 }
 ```
 
+## `GET /api/assets`
+
+Returns display metadata for every supported asset, from
+`data/assets/supported_assets.json`. Used by the Portfolio tab's holdings
+table and asset-type breakdown.
+
+```ts
+{ symbol: string; name: string; asset_class: string }[]
+// asset_class: "equity" | "equity_etf" | "crypto" | "bond_etf" | "commodity_etf"
+```
+
 ## `POST /api/stress-test`
 
 ### Request (`StressTestRequest`)

@@ -154,3 +154,14 @@ def test_parse_scenario_unrecognized_is_graceful(client):
     assert body["recognized"] is False
     assert body["scenario"] is None
     assert body["message"]
+
+
+def test_list_assets_covers_demo_portfolio(client):
+    response = client.get("/api/assets")
+    assert response.status_code == 200
+    assets = {a["symbol"]: a for a in response.json()}
+    portfolio = client.get("/api/portfolio/demo").json()
+    for position in portfolio["positions"]:
+        assert position["symbol"] in assets
+        assert assets[position["symbol"]]["name"]
+        assert assets[position["symbol"]]["asset_class"]

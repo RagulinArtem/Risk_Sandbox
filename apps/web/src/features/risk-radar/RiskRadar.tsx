@@ -1,6 +1,5 @@
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
-import { Section } from "../../components/Section";
 import { RiskRadarRow } from "./RiskRadarRow";
 import { useRiskRadar } from "./useRiskRadar";
 
@@ -8,7 +7,10 @@ export function RiskRadar({ onStressTest }: { onStressTest: (scenarioId: string)
   const { items, error, loading } = useRiskRadar();
 
   return (
-    <Section eyebrow="Risk Discovery" title="Risk Radar">
+    <div>
+      <p className="mb-2 max-w-2xl text-sm text-ink-secondary">
+        Risks ranked by how much they matter to this portfolio. Pick one to stress-test it.
+      </p>
       {loading && <LoadingLine label="Loading risk signals…" />}
       {error && <ErrorBanner message={error} />}
       {!loading && !error && (
@@ -18,6 +20,6 @@ export function RiskRadar({ onStressTest }: { onStressTest: (scenarioId: string)
           ))}
         </div>
       )}
-    </Section>
+    </div>
   );
 }

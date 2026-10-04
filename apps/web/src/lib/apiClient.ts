@@ -1,5 +1,6 @@
 import type {
   AIStatusResponse,
+  Asset,
   ParseScenarioResponse,
   Portfolio,
   RiskRadarItem,
@@ -42,6 +43,7 @@ export const api = {
   listScenarios: () => request<Scenario[]>("/api/scenarios"),
   getScenario: (id: string) => request<Scenario>(`/api/scenarios/${encodeURIComponent(id)}`),
   getDemoPortfolio: () => request<Portfolio>("/api/portfolio/demo"),
+  listAssets: () => request<Asset[]>("/api/assets"),
   getRiskRadar: () => request<RiskRadarItem[]>("/api/risk-radar"),
   getAiStatus: () => request<AIStatusResponse>("/api/ai/status"),
   runStressTest: (body: StressTestRequest) =>

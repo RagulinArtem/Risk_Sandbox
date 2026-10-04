@@ -1,4 +1,5 @@
 export * from "./api";
+export * from "./asset";
 export * from "./portfolio";
 export * from "./risk";
 export * from "./scenario";

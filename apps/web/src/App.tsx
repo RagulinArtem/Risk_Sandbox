@@ -1,8 +1,8 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "./components/ErrorBanner";
 import { LoadingLine } from "./components/LoadingLine";
-import { Section } from "./components/Section";
-import { PortfolioSummary } from "./features/portfolio/PortfolioSummary";
+import { type TabDef, Tabs } from "./components/Tabs";
+import { PortfolioOverview } from "./features/portfolio/PortfolioOverview";
 import { usePortfolio } from "./features/portfolio/usePortfolio";
 import { RiskRadar } from "./features/risk-radar/RiskRadar";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
@@ -10,8 +10,23 @@ import { StressTestResult } from "./features/stress-test/StressTestResult";
 import { ApiError, api } from "./lib/apiClient";
 import type { Scenario, StressTestResult as StressTestResultType } from "./types";
 
+type View = "portfolio" | "radar" | "stress";
+
+const TABS: TabDef<View>[] = [
+  { id: "portfolio", label: "Portfolio" },
+  { id: "radar", label: "Risk Radar" },
+  { id: "stress", label: "Stress Test" },
+];
+
+function viewFromHash(): View {
+  const hash = window.location.hash.replace("#", "");
+  return TABS.some((t) => t.id === hash) ? (hash as View) : "portfolio";
+}
+
 export default function App() {
   const { portfolio, error: portfolioError, loading: portfolioLoading } = usePortfolio();
+
+  const [view, setViewState] = useState<View>(viewFromHash);
 
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [scenarioLoading, setScenarioLoading] = useState(false);
@@ -21,33 +36,43 @@ export default function App() {
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
 
-  const workspaceRef = useRef<HTMLDivElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const selectScenario = useCallback(async (scenarioId: string) => {
-    setScenarioLoading(true);
-    setScenarioError(null);
-    setResult(null);
-    try {
-      const data = await api.getScenario(scenarioId);
-      setScenario(data);
-      requestAnimationFrame(() => {
-        workspaceRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    } catch (err) {
-      setScenarioError(err instanceof ApiError ? err.message : "Failed to load scenario.");
-    } finally {
-      setScenarioLoading(false);
+  const setView = useCallback((next: View) => {
+    setViewState(next);
+    if (window.location.hash !== `#${next}`) {
+      window.history.replaceState(null, "", `#${next}`);
     }
+    window.scrollTo({ top: 0 });
   }, []);
+
+  useEffect(() => {
+    const onHashChange = () => setViewState(viewFromHash());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  const selectScenario = useCallback(
+    async (scenarioId: string) => {
+      setView("stress");
+      setScenarioLoading(true);
+      setScenarioError(null);
+      setResult(null);
+      try {
+        setScenario(await api.getScenario(scenarioId));
+      } catch (err) {
+        setScenarioError(err instanceof ApiError ? err.message : "Failed to load scenario.");
+      } finally {
+        setScenarioLoading(false);
+      }
+    },
+    [setView],
+  );
 
   const handleParsed = useCallback((parsed: Scenario) => {
     setScenario(parsed);
     setScenarioError(null);
     setResult(null);
-    requestAnimationFrame(() => {
-      workspaceRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
   }, []);
 
   const handleShockChange = useCallback((symbol: string, value: number) => {
@@ -70,7 +95,7 @@ export default function App() {
       });
       setResult(data);
       requestAnimationFrame(() => {
-        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
     } catch (err) {
       setRunError(err instanceof ApiError ? err.message : "Failed to run stress test.");
@@ -80,57 +105,61 @@ export default function App() {
   }, [scenario, portfolio]);
 
   return (
-    <div className="min-h-screen bg-surface">
-      <header className="border-b border-line">
-        <div className="mx-auto max-w-5xl px-6 py-5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <div>
-              <h1 className="text-lg font-semibold tracking-tight text-ink">
-                AI Portfolio Risk Copilot
-              </h1>
-              <p className="mt-0.5 text-sm text-ink-secondary">
-                Understand what could hurt your portfolio before it happens.
-              </p>
-            </div>
-            <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
-              iFX Hack Hong Kong 2026
-            </div>
+    <div className="flex min-h-screen flex-col bg-surface">
+      <header className="sticky top-0 z-10 border-b border-line bg-surface/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-x-8 px-4 pt-4 sm:px-6">
+          <div className="pb-3">
+            <h1 className="text-base font-semibold tracking-tight text-ink">
+              AI Portfolio Risk Copilot
+            </h1>
+            <p className="text-xs text-ink-tertiary">
+              Understand what could hurt your portfolio before it happens.
+            </p>
           </div>
+          <Tabs tabs={TABS} active={view} onChange={setView} />
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl space-y-10 px-6 py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {portfolioLoading && <LoadingLine label="Loading portfolio…" />}
         {portfolioError && <ErrorBanner message={portfolioError} />}
-        {portfolio && <PortfolioSummary portfolio={portfolio} />}
 
-        <RiskRadar onStressTest={selectScenario} />
+        {view === "portfolio" && portfolio && (
+          <PortfolioOverview portfolio={portfolio} onOpenScenario={selectScenario} />
+        )}
 
-        <div ref={workspaceRef}>
-          <ScenarioWorkspace
-            scenario={scenario}
-            loading={scenarioLoading}
-            error={scenarioError}
-            running={running}
-            onParsed={handleParsed}
-            onShockChange={handleShockChange}
-            onRun={runStressTest}
-          />
-        </div>
+        {view === "radar" && <RiskRadar onStressTest={selectScenario} />}
 
-        {runError && <ErrorBanner message={runError} />}
-
-        {result && (
-          <div ref={resultRef}>
-            <Section eyebrow="Impact Decomposition" title="Stress Test Result">
-              <StressTestResult result={result} scenarioTitle={scenario?.title} />
-            </Section>
+        {view === "stress" && (
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <ScenarioWorkspace
+              scenario={scenario}
+              loading={scenarioLoading}
+              error={scenarioError}
+              running={running}
+              onSelect={selectScenario}
+              onParsed={handleParsed}
+              onShockChange={handleShockChange}
+              onRun={runStressTest}
+            />
+            <div ref={resultRef} className="min-w-0">
+              {runError && <ErrorBanner message={runError} />}
+              {result ? (
+                <StressTestResult result={result} scenarioTitle={scenario?.title} />
+              ) : (
+                <div className="border border-dashed border-line-strong px-6 py-12 text-center text-sm text-ink-tertiary">
+                  {scenario
+                    ? "Adjust the assumptions if you like, then run the stress test."
+                    : "Pick a scenario or describe one to see its impact on your portfolio here."}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
 
       <footer className="border-t border-line">
-        <div className="mx-auto max-w-5xl px-6 py-5 text-xs text-ink-tertiary">
+        <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-ink-tertiary sm:px-6">
           Estimates are illustrative scenario assumptions, not forecasts or guaranteed outcomes.
           This tool does not provide investment advice and does not execute trades.
         </div>

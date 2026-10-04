@@ -1,15 +1,16 @@
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
-import { Section } from "../../components/Section";
 import type { Scenario } from "../../types";
 import { CustomScenarioInput } from "./CustomScenarioInput";
 import { ScenarioEditor } from "./ScenarioEditor";
+import { ScenarioPicker } from "./ScenarioPicker";
 
 export function ScenarioWorkspace({
   scenario,
   loading,
   error,
   running,
+  onSelect,
   onParsed,
   onShockChange,
   onRun,
@@ -18,13 +19,20 @@ export function ScenarioWorkspace({
   loading: boolean;
   error: string | null;
   running: boolean;
+  onSelect: (scenarioId: string) => void;
   onParsed: (scenario: Scenario) => void;
   onShockChange: (symbol: string, value: number) => void;
   onRun: () => void;
 }) {
   return (
-    <Section eyebrow="Scenario Builder" title="Scenario Workspace">
-      <div className="mb-6">
+    <div className="space-y-6">
+      <div className="space-y-5 border border-line bg-surface-raised/40 p-5">
+        <ScenarioPicker selectedId={scenario?.id ?? null} onSelect={onSelect} />
+        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+          <span className="h-px flex-1 bg-line" />
+          or describe one
+          <span className="h-px flex-1 bg-line" />
+        </div>
         <CustomScenarioInput onParsed={onParsed} />
       </div>
       {loading && <LoadingLine label="Loading scenario…" />}
@@ -37,12 +45,6 @@ export function ScenarioWorkspace({
           running={running}
         />
       )}
-      {!loading && !error && !scenario && (
-        <p className="text-sm text-ink-tertiary">
-          Select a risk from the Risk Radar above, or describe one with "What if…?" to get
-          started.
-        </p>
-      )}
-    </Section>
+    </div>
   );
 }

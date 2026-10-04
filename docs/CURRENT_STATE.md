@@ -29,11 +29,18 @@ don't let it drift from reality.
   Bitcoin / broad-market clauses with a stated percentage, combines
   multiple clauses, and returns a full illustrative `Scenario`. Gracefully
   reports "not recognized" otherwise.
-- Frontend: portfolio summary, Risk Radar, scenario workspace (editable
-  assumptions + transmission chain), stress-test result (headline
-  impact, contribution chart, "why this matters" note), custom scenario
-  input — all wired to the live API, no mock data in the frontend itself.
-- 47 backend tests passing; `ruff check` clean; frontend `typecheck` +
+- Frontend, split into three tabs (`#portfolio`, `#radar`, `#stress`):
+  - **Portfolio** — KPIs (incl. worst modelled scenario), allocation donut
+    by holding, allocation by asset type, holdings table (names/types from
+    `GET /api/assets`), and a "scenario exposure" ranking that runs every
+    library scenario through `POST /api/stress-test` — click one to open it.
+  - **Risk Radar** — compact list; "Stress Test →" opens the Stress Test tab.
+  - **Stress Test** — scenario dropdown + "What if…?" input + editable
+    assumptions on the left, result (headline impact, contribution chart,
+    "why this matters") on the right.
+  All wired to the live API, no mock data or impact math in the frontend.
+  No price-history charts: there is no price data source yet.
+- 48 backend tests passing; `ruff check` clean; frontend `typecheck` +
   `lint` + `build` clean. Full user flow verified in an actual browser
   (Risk Radar → scenario → stress test → custom "what if").
 - CORS, structured error responses (422 for validation, 404 for unknown

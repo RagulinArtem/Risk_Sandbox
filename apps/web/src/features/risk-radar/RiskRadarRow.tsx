@@ -10,18 +10,14 @@ export function RiskRadarRow({
   onStressTest: (scenarioId: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-4 border-b border-line py-5 last:border-b-0 sm:grid-cols-[1fr_auto] sm:items-center">
+    <div className="grid grid-cols-1 gap-4 border-b border-line py-4 last:border-b-0 sm:grid-cols-[1fr_auto] sm:items-center">
       <div>
         <div className="flex flex-wrap items-center gap-3">
           <h3 className="text-base font-semibold text-ink">{item.title}</h3>
           <RelevanceBadge relevance={item.portfolio_relevance} />
         </div>
-        <p className="mt-1.5 max-w-2xl text-sm text-ink-secondary">{item.summary}</p>
-        <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1 text-xs sm:grid-cols-4">
-          <div className="flex gap-2">
-            <dt className="text-ink-tertiary">Category</dt>
-            <dd className="font-mono text-ink-secondary">{item.category}</dd>
-          </div>
+        <p className="mt-1.5 line-clamp-2 max-w-3xl text-sm text-ink-secondary" title={item.summary}>{item.summary}</p>
+        <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs">
           <div className="flex gap-2">
             <dt className="text-ink-tertiary">Exposure</dt>
             <dd className="font-mono text-ink-secondary">
