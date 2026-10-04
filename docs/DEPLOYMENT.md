@@ -56,7 +56,7 @@ GitHub UI — never paste them into a chat or commit them to the repo.
 | `SSH_HOST` | The VM's public IP or hostname |
 | `SSH_USER` | SSH username |
 | `SSH_PRIVATE_KEY` | The **private** key matching a public key already in the VM's `~/.ssh/authorized_keys`. Leave unset if using password auth. |
-| `SSH_PASSWORD` | Root/user password, if not using key auth. The workflow passes both `key` and `password` to `appleboy/ssh-action`; it uses whichever is actually set. |
+| `SSH_PASSWORD` | Root/user password, if not using key auth. The workflow uses the key if `SSH_PRIVATE_KEY` is set, otherwise `sshpass` with this password. |
 | `SSH_PORT` | Only if not 22 |
 | `OPENROUTER_API_KEY` | From https://openrouter.ai/keys |
 
@@ -67,7 +67,7 @@ GitHub UI — never paste them into a chat or commit them to the repo.
 | `VITE_API_BASE_URL` | `http://203.0.113.10:8000` | The VM's public address, port 8000. Baked into the frontend at **build** time — changing it requires a redeploy. |
 | `FRONTEND_ORIGIN` | `http://203.0.113.10` | Must match where the frontend is actually served, or CORS blocks every API call — see `app/main.py`. |
 | `AI_PROVIDER` | `openrouter` | `mock` (default) / `bedrock` / `openrouter` |
-| `OPENROUTER_MODEL` | `anthropic/claude-haiku-4.5` | Any model slug OpenRouter serves |
+| `OPENROUTER_MODEL` | `anthropic/claude-sonnet-5.5` | Single-model AI features. Committee models are separate settings; see `docs/MULTI_AGENT_ORCHESTRATION.md` |
 | `HTTPS_PROXY` | `http://82.38.69.22:8888` | Outbound proxy for the API's HTTPS calls. Required on the Timeweb VM: OpenRouter blocks its Russian IP. Points at tinyproxy on the Hostkey US VM, which only accepts connections from `5.129.243.18`. Leave unset elsewhere. |
 | `ENABLE_POLYMARKET` | `true` | Off by default |
 | `ENABLE_NEWS` | `false` | Not implemented yet — leave false |
@@ -91,10 +91,11 @@ a Let's Encrypt cert managed by certbot on the host.
 
 ### Using password auth instead of a key
 
-The workflow already passes both `key` and `password` to
-`appleboy/ssh-action`; it uses whichever secret is actually set. To use
-password auth, just add `SSH_PASSWORD` as a secret and leave
-`SSH_PRIVATE_KEY` unset — no workflow edit needed. Key-based auth is
+The workflow runs plain `ssh`: with `SSH_PRIVATE_KEY` if that secret is
+set, otherwise `sshpass` with `SSH_PASSWORD`. To use password auth, just
+add `SSH_PASSWORD` and leave `SSH_PRIVATE_KEY` unset; no workflow edit is
+needed. (It used to use `appleboy/ssh-action`, which broke on 2026-10-04
+when its runtime binary download started returning 403.) Key-based auth is
 preferred where available; if you start with a password, consider
 generating a keypair later, installing the public key on the server, and
 switching to `SSH_PRIVATE_KEY`.
