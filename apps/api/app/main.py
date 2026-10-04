@@ -9,6 +9,7 @@ from app.api.routes import (
     assets,
     committee,
     health,
+    insights,
     portfolio,
     price_history,
     risk_feed,
@@ -43,6 +44,7 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(scenarios.router)
 app.include_router(portfolio.router)
+app.include_router(insights.router)
 app.include_router(assets.router)
 app.include_router(price_history.router)
 app.include_router(stress_test.router)
