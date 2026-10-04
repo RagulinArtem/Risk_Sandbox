@@ -89,7 +89,16 @@ export function PerformanceChart({
   onRangeChange: (r: PriceRange) => void;
 }) {
   const [mode, setMode] = useState<Mode>("value");
-  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  // With many holdings, start the comparison with the five largest visible.
+  const [hidden, setHidden] = useState<Set<string>>(
+    () =>
+      new Set(
+        [...portfolio.positions]
+          .sort((a, b) => b.weight - a.weight)
+          .slice(5)
+          .map((p) => p.symbol),
+      ),
+  );
   const colors = holdingColors(portfolio.positions);
 
   const valueData = useMemo(

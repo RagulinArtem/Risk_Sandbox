@@ -20,6 +20,32 @@ returns, rounded to 2 significant figures for the scenario's `asset_shocks`
 | GLD (Gold) | ≈ +0.8%, essentially flat | +0.01 | Spot gold ~$1,810/oz (early Jan 2022) → ~$1,824/oz (year-end 2022); World Gold Council Gold Focus, Jan 2023. Note: one GLD total-return source reported -0.77% (dividend-adjusted) vs. the price-return figure of +0.78% used here — the discrepancy is small and doesn't change the "roughly flat" characterization, but flagging it for anyone tightening this number later. |
 | TLT (20+ Year Treasury) | -31.2% to -31.4% | -0.31 | TLT's worst year on record; multiple sources agree (stockrover.com, chartrow.com 2022 historical data) |
 
+### Added 2026-10-04 for the Global Multi-Asset Risk Portfolio
+
+The nine assets added with the multi-asset portfolio use **full calendar-year
+2022 total returns** (dividends reinvested). They were computed from Yahoo
+Finance adjusted closes, last close of 2021 (2021-12-31) → last close of 2022
+(2022-12-30), and rounded to 2 significant figures. Total return is used
+because for income assets (HYG, BIL, XOM) price return misstates the
+economic result. The six original figures above are unchanged; most of them
+are price returns, a difference of 1–2 points for SPY/TLT.
+
+| Symbol | 2022 total return (price return) | Used |
+| --- | --- | --- |
+| TSM | -36.75% (-38.08%) | -0.37 |
+| JPM | -12.64% (-15.31%) | -0.13 |
+| XOM | +87.41% (+80.26%) | +0.87 |
+| XLV | -2.08% (-3.58%) | -0.02 |
+| LMT | +40.48% (+36.88%) | +0.40 |
+| FXI | -20.66% (-22.64%) | -0.21 |
+| VNQ | -26.25% (-28.90%) | -0.26 |
+| HYG | -10.98% (-15.38%) | -0.11 |
+| BIL | +1.40% (+0.04%) | +0.014 |
+
+Source: `https://query1.finance.yahoo.com/v8/finance/chart/{ticker}` with
+`period1`/`period2` covering 2021-12-28 → 2023-01-04, `interval=1d`,
+fields `adjclose` (total) and `close` (price).
+
 **Caveats, stated plainly:**
 - These are full calendar-year 2022 returns, not a single discrete "shock"
   — real markets moved through this over 12 months with plenty of

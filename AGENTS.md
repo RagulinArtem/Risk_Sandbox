@@ -80,6 +80,15 @@ only. **The stress engine never reads prices.** If any holding's prices
 can't be fetched, the endpoint returns 503: never partial series, never
 filled gaps. New market-data sources go in `integrations/market_data/`.
 
+News headlines (`integrations/news/`, `NewsProvider` interface, Yahoo
+implementation) follow the same rule: verbatim headline, publisher, time
+and link only, validated and cached. On failure: 503 and "Recent news
+unavailable", never substitute headlines. The Asset Intelligence drawer's
+"What may be driving the recent move?" is the only place an LLM touches
+news: it may only interpret the real move and real headlines it is given,
+must cite headline ids (uncited non-market drivers are dropped), and is
+labelled "AI-generated interpretation".
+
 ## Repository map
 
 ```
@@ -87,6 +96,7 @@ apps/web/        React + TypeScript + Vite + Tailwind + Recharts dashboard
 apps/api/        FastAPI backend — schemas, domain logic, services, integrations
                  (integrations/ai: LLM providers + committee;
                   integrations/market_data: Yahoo prices;
+                  integrations/news: Yahoo headlines;
                   integrations/risk_sources: Polymarket, stubs)
 data/            Demo portfolio + scenario JSON (edit without touching Python)
 docs/            Architecture, product, data-source, and process docs

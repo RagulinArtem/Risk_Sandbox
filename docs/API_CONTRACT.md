@@ -39,9 +39,13 @@ Returns one `Scenario`, or `404` if unknown.
 }
 ```
 
-## `GET /api/portfolio/demo`
+## `GET /api/portfolio/demo`, `GET /api/portfolios`, `GET /api/portfolios/{id}`
 
-Returns the one demo `Portfolio`.
+`/api/portfolio/demo` returns the primary demo, the **Global Multi-Asset
+Risk Portfolio** (`global-multi-asset`, 15 holdings).
+`/api/portfolios` lists every demo portfolio (primary first; the original
+`demo-tech` portfolio is still available). `/api/portfolios/{id}` returns
+one portfolio, or 404.
 
 ### `Portfolio`
 
@@ -55,16 +59,77 @@ Returns the one demo `Portfolio`.
 }
 ```
 
-## `GET /api/assets`
+## Assets and Asset Intelligence — `/api/assets`
 
-Returns display metadata for every supported asset, from
-`data/assets/supported_assets.json`. Used by the Portfolio tab's holdings
-table and asset-type breakdown.
+Each piece fails independently, so the drawer works whatever is down.
+
+### `GET /api/assets` and `GET /api/assets/{symbol}`: **static, always offline**
+
+Hand-written metadata from `data/assets/supported_assets.json`. The
+symbol is case-insensitive; an unknown symbol returns 404.
 
 ```ts
-{ symbol: string; name: string; asset_class: string }[]
-// asset_class: "equity" | "equity_etf" | "crypto" | "bond_etf" | "commodity_etf"
+interface Asset {
+  symbol: string;
+  name: string;
+  asset_class: "equity" | "equity_etf" | "bond_etf" | "cash_etf" | "commodity_etf"
+             | "real_estate_etf" | "crypto";
+  instrument: "Stock" | "ETF" | "ADR" | "Cryptocurrency";
+  category: string;        // e.g. "Semiconductor foundry"
+  region: string;
+  description: string;     // what it is (ETFs say what they track)
+  portfolio_role: string;
+  risk_factors: string[];
+}
 ```
+
+### `GET /api/assets/{symbol}/prices?range=1y`: **Yahoo Finance**
+
+```ts
+{
+  symbol; ticker; range; interval;
+  dates: string[]; prices: number[];          // adjusted closes for the chart range
+  latest_close: number; latest_close_date: string;   // latest available close, NOT a live quote
+  day_change_pct: number | null;
+  returns: { period: "1D"|"1W"|"1M"|"3M"|"YTD"|"1Y"; return_pct: number | null; from_date: string | null }[];
+  source_name; source_url; retrieved_at; price_field: "adjusted close";
+}
+```
+
+`return = latest_close / close on-or-before (latest date − period) − 1`,
+computed in Python on ~2y of real daily closes. It is `null` when the data
+doesn't reach back far enough. YTD compares with the last close of the
+previous year. Returns 503 when Yahoo fails.
+
+### `GET /api/assets/{symbol}/news`: **Yahoo Finance headlines**
+
+```ts
+{ symbol; source_name; retrieved_at;
+  items: { id; headline; publisher; url; published_at; related_tickers: string[] }[] }  // ≤5, newest first
+```
+
+Headlines are shown as published (no bodies or snippets). Items missing a
+title, time or valid URL, or not tagged with the ticker, are dropped.
+Cached for 15 min. Returns 503 when the source fails. An empty `items`
+list is a valid answer.
+
+### `POST /api/assets/{symbol}/move-drivers` `{ period: "1W" | "1M" }`: **AI interpretation**
+
+```ts
+{
+  symbol; available: boolean; message: string | null;
+  observed: { period; return_pct; from_date; to_date; market_return_pct } | null;  // real prices (asset vs SPY)
+  summary: string | null;
+  drivers: { text; kind: "company"|"sector"|"macro"|"market"; sources: NewsItem[] }[];
+  confidence: "low"|"medium"|"high" | null; model: string | null; generated_at: string | null;
+  label: "AI-generated interpretation";
+}
+```
+
+The LLM sees only the observed move and the real headlines (numbered). A
+non-market driver without a valid cited headline is dropped. With no
+headlines, no live AI or no price data, the model is not called and
+`available: false` comes back with a reason. Cached for 30 min.
 
 ## `POST /api/price-history`
 
@@ -146,8 +211,8 @@ to ~1.0. `404` if `scenario_id` doesn't match a known scenario.
 
 ## `GET /api/risk-radar`
 
-Returns `RiskRadarItem[]`, scored against the demo portfolio (v0 has no
-multi-portfolio support — see `docs/CURRENT_STATE.md`). Combines every
+Returns `RiskRadarItem[]`, scored against `?portfolio_id=` (default: the
+primary demo portfolio; unknown id → 404). Combines every
 configured `RiskSource`; a source that fails (e.g. a live API being down)
 is skipped for that request rather than failing the whole endpoint.
 

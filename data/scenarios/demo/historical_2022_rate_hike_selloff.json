@@ -2,7 +2,7 @@
   "id": "historical-2022-rate-hike-selloff",
   "title": "2022 Rate-Hike Bear Market (Historical)",
   "category": "historical-macro",
-  "description": "Benchmarked against actual full-year 2022 returns during the Federal Reserve's fastest rate-hiking cycle in four decades (+525 basis points, March 2022 to July 2023). These are real, dated asset returns, not an assumption — see docs/research/2022-rate-hike-selloff.md for the full per-asset source list.",
+  "description": "Benchmarked against actual full-year 2022 returns during the Federal Reserve's fastest rate-hiking cycle in four decades (+525 basis points, March 2022 to July 2023). These are real, dated asset returns, not an assumption. The original six assets are cited individually, and the nine multi-asset additions use Yahoo Finance 2022 total returns; see docs/research/2022-rate-hike-selloff.md.",
   "source_status": "verified",
   "source_name": "S&P Global Market Intelligence",
   "source_url": "https://www.spglobal.com/market-intelligence/en/news-insights/articles/2023/1/s-p-500-logs-its-worst-annual-performance-since-2008-73687583",

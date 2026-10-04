@@ -1,9 +1,22 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ApiError, api } from "../../lib/apiClient";
 import type { Portfolio } from "../../types";
 
+const STORAGE_KEY = "risk-sandbox.portfolio-id";
+
+function readStoredId(): string | null {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/** All demo portfolios plus the selected one (remembered per browser).
+ * The first portfolio from the API is the primary demo. */
 export function usePortfolio() {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(readStoredId);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -11,9 +24,9 @@ export function usePortfolio() {
     let cancelled = false;
     setLoading(true);
     api
-      .getDemoPortfolio()
+      .listPortfolios()
       .then((data) => {
-        if (!cancelled) setPortfolio(data);
+        if (!cancelled) setPortfolios(data);
       })
       .catch((err: unknown) => {
         if (!cancelled) {
@@ -28,5 +41,16 @@ export function usePortfolio() {
     };
   }, []);
 
-  return { portfolio, error, loading };
+  const select = useCallback((id: string) => {
+    setSelectedId(id);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, id);
+    } catch {
+      // Storage unavailable (private mode): the choice just isn't remembered.
+    }
+  }, []);
+
+  const portfolio = portfolios.find((p) => p.id === selectedId) ?? portfolios[0] ?? null;
+
+  return { portfolios, portfolio, select, error, loading };
 }
