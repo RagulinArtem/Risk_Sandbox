@@ -11,6 +11,11 @@ export default defineConfig({
     // and do not need to be downloaded as part of the application shell.
     rollupOptions: {
       output: {
+        // `r2` intentionally invalidates asset URLs from the earlier
+        // uncompressed deployment; those responses were cacheable for a year.
+        entryFileNames: "assets/[name]-r2-[hash].js",
+        chunkFileNames: "assets/[name]-r2-[hash].js",
+        assetFileNames: "assets/[name]-r2-[hash][extname]",
         manualChunks(id) {
           if (id.indexOf("node_modules") === -1) return undefined;
           if (id.indexOf("/react/") !== -1 || id.indexOf("/react-dom/") !== -1 || id.indexOf("/scheduler/") !== -1) {
