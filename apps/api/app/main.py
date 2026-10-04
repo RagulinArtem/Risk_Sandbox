@@ -4,7 +4,17 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import ai, assets, health, portfolio, risk_radar, scenarios, stress_test
+from app.api.routes import (
+    ai,
+    assets,
+    committee,
+    health,
+    markets,
+    portfolio,
+    risk_radar,
+    scenarios,
+    stress_test,
+)
 from app.core.config import get_settings
 
 logger = logging.getLogger("portfolio_risk_copilot")
@@ -14,7 +24,7 @@ settings = get_settings()
 app = FastAPI(
     title="AI Portfolio Risk Copilot API",
     description="Deterministic portfolio stress-testing API. See docs/API_CONTRACT.md.",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 _allowed_origins = list(
@@ -35,7 +45,9 @@ app.include_router(portfolio.router)
 app.include_router(assets.router)
 app.include_router(stress_test.router)
 app.include_router(risk_radar.router)
+app.include_router(markets.router)
 app.include_router(ai.router)
+app.include_router(committee.router)
 
 
 @app.exception_handler(Exception)

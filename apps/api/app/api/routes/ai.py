@@ -1,17 +1,39 @@
+import math
+import re
+
 from fastapi import APIRouter
 
 from app.core.config import get_settings
 from app.integrations.ai import get_ai_provider
 from app.integrations.ai.base import AIProviderUnavailableError, UnrecognizedScenarioError
+from app.integrations.ai.openrouter import complete_json
 from app.schemas.ai import (
     AIStatusResponse,
     EstimateShocksRequest,
     EstimateShocksResponse,
+    ExplainRequest,
+    ExplainResponse,
     ParseScenarioRequest,
     ParseScenarioResponse,
 )
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
+
+_EXPLAIN_PROMPT = """Explain this portfolio stress-test result to someone with no \
+finance background. Use ONLY the numbers in the JSON. Write at most 120 words \
+in plain English: 1) one sentence with the headline impact; 2) which holding \
+drives most of it and why, using the scenario assumptions; 3) one sentence \
+that results use historical betas and the scenario assumptions and are not a \
+forecast. Do not tell the user to buy, sell or hold. Do not mention \
+probabilities unless the JSON has a probability.
+
+Respond with ONLY a JSON object: {"text": "your explanation"}
+
+Result JSON:
+{result_json}"""
+
+# "11,500", "-9.2", "78%", "0.078" — commas allowed in grouped digits.
+_NUMBER_RE = re.compile(r"-?\d{1,3}(?:,\d{3})+(?:\.\d+)?|-?\d+(?:\.\d+)?")
 
 
 @router.get("/status", response_model=AIStatusResponse)
@@ -52,3 +74,99 @@ def estimate_shocks(request: EstimateShocksRequest) -> EstimateShocksResponse:
         return EstimateShocksResponse(scenario=scenario, message=None)
     except AIProviderUnavailableError as exc:
         return EstimateShocksResponse(scenario=None, message=str(exc))
+
+
+@router.post("/explain", response_model=ExplainResponse)
+def explain(request: ExplainRequest) -> ExplainResponse:
+    """Plain-English explanation of an engine result (PRD FR7). The model
+    receives ONLY the engine's result JSON and must pass the number guard:
+    every figure in its text must exist in the result. Anything else —
+    provider down, unconfigured, invented numbers — falls back to the
+    deterministic template, labeled ai_status="template"."""
+    template = _template_explanation(request.result)
+
+    settings = get_settings()
+    if settings.ai_provider == "mock":
+        return ExplainResponse(text=template, ai_status="template")
+
+    try:
+        data = complete_json(
+            settings,
+            _EXPLAIN_PROMPT.format(result_json=request.result.model_dump_json()),
+            max_tokens=400,
+            temperature=0.2,
+        )
+    except AIProviderUnavailableError:
+        return ExplainResponse(text=template, ai_status="template")
+
+    text = str(data.get("text") or "").strip()
+    if not text or not _numbers_accounted_for(text, request.result):
+        return ExplainResponse(text=template, ai_status="template")
+    return ExplainResponse(text=text[:1200], ai_status="llm")
+
+
+def _template_explanation(result) -> str:
+    """Deterministic fallback built only from engine fields."""
+    share_sentence = ""
+    top = result.biggest_negative_contributor
+    if top is not None and result.estimated_impact_value < 0:
+        share = top.impact_value / result.estimated_impact_value
+        share_sentence = f" {top.symbol} accounts for about {share:.0%} of the estimated loss."
+    return (
+        f"In this scenario your portfolio would move by {result.estimated_impact_pct:.1%} "
+        f"(from {result.initial_value:,.0f} to {result.stressed_value:,.0f})."
+        f"{share_sentence} "
+        "These figures use the scenario assumptions shown and are not a forecast."
+    )
+
+
+def _numbers_accounted_for(text: str, result) -> bool:
+    """Number guard: every number the model wrote must appear in the result
+    JSON (rounding-tolerant, and fraction/percent forms both allowed)."""
+    allowed: set[float] = set()
+    for value in (
+        result.initial_value,
+        result.stressed_value,
+        result.estimated_impact_value,
+        abs(result.estimated_impact_value),
+        result.estimated_impact_pct,
+        result.estimated_impact_pct * 100,
+        abs(result.estimated_impact_pct * 100),
+    ):
+        allowed.add(float(value))
+    for asset in result.asset_impacts:
+        for value in (
+            asset.impact_value,
+            abs(asset.impact_value),
+            asset.impact_pct_of_portfolio,
+            asset.impact_pct_of_portfolio * 100,
+            asset.weight,
+            asset.weight * 100,
+            asset.shock_pct,
+            asset.shock_pct * 100,
+            asset.position_value,
+        ):
+            allowed.add(float(value))
+    if result.probability is not None:
+        for value in (result.probability, result.probability * 100):
+            allowed.add(float(value))
+    if result.weighted_exposure_pct is not None:
+        for value in (
+            result.weighted_exposure_pct,
+            result.weighted_exposure_pct * 100,
+            abs(result.weighted_exposure_pct),
+            abs(result.weighted_exposure_pct * 100),
+        ):
+            allowed.add(float(value))
+
+    for match in _NUMBER_RE.finditer(text):
+        try:
+            number = float(match.group(0).replace(",", ""))
+        except ValueError:
+            continue
+        if not any(
+            math.isclose(number, candidate, rel_tol=0.02, abs_tol=0.15)
+            for candidate in allowed
+        ):
+            return False
+    return True
