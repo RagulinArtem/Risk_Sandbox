@@ -309,6 +309,17 @@ false. Model ids come from `COMMITTEE_*_MODEL` env vars (see
 One analyst's independent view. The browser fans out one call per seat in
 parallel (cards render as each model answers) — the API stays stateless.
 
+Both committee requests accept an optional `market_id` (a tracked
+Polymarket id from `data/mapping.json`). When it resolves to a tracked
+market with a current probability, the analyst and the chair receive the
+live signal as extra prompt context — market-implied probability, 7d/30d
+changes, provenance — and the response carries it back as
+`market_context`. The signal is silently omitted (`null`) when no
+`market_id` is sent, the id isn't tracked, no probability exists, or
+Polymarket is unreachable — the committee still works fully offline.
+`market_context` is market data (`source_status: "live"` when freshly
+fetched, `"cached"` when served from a snapshot), never an LLM estimate.
+
 ### Request
 
 ```ts
@@ -316,6 +327,7 @@ parallel (cards render as each model answers) — the API stays stateless.
   scenario_title: string; scenario_description: string; horizon: string;
   transmission: string[]; portfolio: Portfolio;
   seat: "macro" | "sector" | "cross_asset";
+  market_id?: string | null;   // optional live Polymarket context
 }
 ```
 
@@ -330,6 +342,7 @@ parallel (cards render as each model answers) — the API stays stateless.
     thesis: string; key_risk: string;
     confidence: "low" | "medium" | "high";
     source_status: "illustrative";
+    market_context: MarketContextSignal | null;
   } | null;
   message: string | null;   // friendly provider error when view is null
 }
@@ -338,13 +351,31 @@ parallel (cards render as each model answers) — the API stays stateless.
 Always `200` — provider failures are graceful messages, never raw
 errors. `422` for an unknown seat.
 
+### `MarketContextSignal`
+
+```ts
+{
+  market_id: string; label: string; question: string;
+  probability: number | null;         // 0..1, market-implied
+  change_7d_pp: number | null;        // percentage points
+  change_30d_pp: number | null;
+  repriced: boolean;
+  source_status: "illustrative" | "verified" | "live" | "cached";
+  source_url: string | null;          // polymarket.com/event/<slug>
+  as_of: string | null;
+}
+```
+
 ## `POST /api/ai/committee/verdict`
 
 The chair reconciles the successful views; the **deterministic engine**
 then computes portfolio impact for the consensus and each analyst (never
 the LLM). Request = analyst request fields + `views: AnalystView[]`
 (min 1; the browser sends only the views that succeeded — zero successful
-views means no verdict call).
+views means no verdict call). `market_id` is honored the same way as the
+analyst route (one signal, passed to the chair), and the verdict echoes it
+as `market_context` — `null` whenever no tracked market probability is
+available.
 
 Server-side guard rails: `views` is capped at 3 and at most one view per
 analyst seat (`macro`/`sector`/`cross_asset`); shocks are filtered to the 6
@@ -366,6 +397,7 @@ whose views are all unusable returns `422`. Prompt inputs are capped too:
     view_impacts: ViewImpact[];
     shock_ranges: Record<string, { min: number; max: number }>;
     source_status: "illustrative";
+    market_context: MarketContextSignal | null;
   } | null;
   message: string | null;
 }

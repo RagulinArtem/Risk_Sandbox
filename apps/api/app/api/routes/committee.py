@@ -20,6 +20,7 @@ from app.schemas.committee import (
     VerdictResponse,
     ViewImpact,
 )
+from app.services.market_service import get_market_service
 
 router = APIRouter(prefix="/api/ai/committee", tags=["ai-committee"])
 
@@ -41,7 +42,10 @@ def committee_analyst(request: AnalystRequest) -> AnalystResponse:
     parallel (one per seat) so each card renders as its model answers —
     the API stays stateless."""
     try:
-        view = run_analyst(request.seat, request, get_settings())
+        market_signal = get_market_service().get_context_signal(request.market_id)
+        view = run_analyst(
+            request.seat, request, get_settings(), market_signal=market_signal
+        )
         return AnalystResponse(view=view, message=None)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -60,8 +64,9 @@ def committee_verdict(request: VerdictRequest) -> VerdictResponse:
         raise HTTPException(status_code=422, detail="No usable analyst views in the request.")
     request = request.model_copy(update={"views": views})
     settings = get_settings()
+    market_signal = get_market_service().get_context_signal(request.market_id)
     try:
-        chair_view, chair_raw = run_chair(request, settings)
+        chair_view, chair_raw = run_chair(request, settings, market_signal=market_signal)
     except AIProviderUnavailableError as exc:
         return VerdictResponse(verdict=None, message=str(exc))
 
@@ -95,6 +100,7 @@ def committee_verdict(request: VerdictRequest) -> VerdictResponse:
         consensus_impact=consensus_impact,
         view_impacts=view_impacts,
         shock_ranges=shock_ranges,
+        market_context=chair_view.market_context,
         **commentary,
     )
     return VerdictResponse(verdict=verdict, message=None)

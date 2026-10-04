@@ -2,6 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
 
+from app.schemas.market import MarketContextSignal
 from app.schemas.portfolio import Portfolio
 from app.schemas.scenario import SourceStatus
 
@@ -39,6 +40,7 @@ class CommitteeContext(BaseModel):
     horizon: str = Field(default="30d", max_length=40)
     transmission: list[TransmissionStep] = Field(default=[], max_length=10)
     portfolio: Portfolio
+    market_id: str | None = None
 
 
 class AnalystRequest(CommitteeContext):
@@ -59,6 +61,7 @@ class AnalystView(BaseModel):
     key_risk: str = ""
     confidence: Confidence = "medium"
     source_status: SourceStatus = "illustrative"
+    market_context: MarketContextSignal | None = None
 
 
 class AnalystResponse(BaseModel):
@@ -96,6 +99,7 @@ class CommitteeVerdict(BaseModel):
     # record for the spread the committee surfaces)
     shock_ranges: dict[str, dict[str, float]] = {}
     source_status: SourceStatus = "illustrative"
+    market_context: MarketContextSignal | None = None
 
 
 class VerdictResponse(BaseModel):

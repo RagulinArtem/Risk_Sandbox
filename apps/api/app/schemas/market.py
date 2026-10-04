@@ -53,6 +53,24 @@ class MarketSummary(BaseModel):
     as_of: str | None = None
 
 
+class MarketContextSignal(BaseModel):
+    """A live Polymarket signal attached to a committee run: the tracked
+    market's current implied probability and recent move, with provenance.
+    The LLM may reference it; this probability is market data, never an
+    LLM estimate."""
+
+    market_id: str
+    label: str
+    question: str
+    probability: float | None = None
+    change_7d_pp: float | None = None
+    change_30d_pp: float | None = None
+    repriced: bool = False
+    source_status: MarketDataStatus = "illustrative"
+    source_url: str | None = None
+    as_of: str | None = None
+
+
 class MarketHistoryResponse(BaseModel):
     market_id: str
     token_id: str

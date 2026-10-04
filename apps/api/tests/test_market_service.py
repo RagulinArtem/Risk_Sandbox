@@ -259,3 +259,36 @@ def _age_cache_file(path, hours: int) -> None:
     old = datetime.now(UTC) - timedelta(hours=hours)
     payload["saved_at"] = old.isoformat()
     path.write_text(json.dumps(payload))
+
+
+def test_context_signal_none_without_market_id():
+    assert MarketService(Settings()).get_context_signal(None) is None
+
+
+def test_context_signal_shapes_a_cached_snapshot(tmp_path):
+    (tmp_path / "markets_snapshot.json").write_text(
+        json.dumps(
+            {
+                "saved_at": datetime.now(UTC).isoformat(),
+                "markets": [
+                    {
+                        "market_id": "567621",
+                        "token_id": "t",
+                        "label": "China invades Taiwan (2026)",
+                        "question": "Will China invade Taiwan by end of 2026?",
+                        "slug": "will-china-invade-taiwan-before-2027",
+                        "probability": 0.0225,
+                        "change_7d_pp": -0.4,
+                        "change_30d_pp": -1.2,
+                        "repriced": False,
+                    }
+                ],
+            }
+        )
+    )
+    signal = MarketService(
+        Settings(enable_polymarket=False, cache_dir=tmp_path)
+    ).get_context_signal("567621")
+    assert signal.probability == 0.0225
+    assert signal.source_status == "cached"
+    assert signal.source_url.endswith("will-china-invade-taiwan-before-2027")

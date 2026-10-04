@@ -1,3 +1,4 @@
+import type { MarketContextSignal } from "./market";
 import type { SourceStatus } from "./scenario";
 
 export interface CommitteeSeatInfo {
@@ -25,6 +26,7 @@ export interface AnalystView {
   key_risk: string;
   confidence: "low" | "medium" | "high";
   source_status: SourceStatus;
+  market_context: MarketContextSignal | null;
 }
 
 export interface ViewImpact {
@@ -48,6 +50,7 @@ export interface CommitteeVerdict {
   view_impacts: ViewImpact[];
   shock_ranges: Record<string, { min: number; max: number }>;
   source_status: SourceStatus;
+  market_context: MarketContextSignal | null;
 }
 
 export interface CommitteeContextRequest {
@@ -56,6 +59,7 @@ export interface CommitteeContextRequest {
   horizon: string;
   transmission: string[];
   portfolio: import("./portfolio").Portfolio;
+  market_id?: string | null;
 }
 
 export interface AnalystRequest extends CommitteeContextRequest {

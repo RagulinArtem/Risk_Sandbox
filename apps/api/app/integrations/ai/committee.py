@@ -38,6 +38,7 @@ from app.schemas.committee import (
     CommitteeSeatInfo,
     VerdictRequest,
 )
+from app.schemas.market import MarketContextSignal
 
 logger = logging.getLogger(__name__)
 
@@ -134,13 +135,15 @@ def get_roster(settings: Settings) -> CommitteeRoster:
     )
 
 
-def _context_block(context: CommitteeContext) -> str:
+def _context_block(
+    context: CommitteeContext, market_signal: MarketContextSignal | None = None
+) -> str:
     holdings = "\n".join(
         f"- {p.symbol}: {p.weight:.0%} of the portfolio"
         for p in sorted(context.portfolio.positions, key=lambda p: -p.weight)
     )
     transmission = "\n".join(f"- {step}" for step in context.transmission) or "- (not provided)"
-    return (
+    block = (
         f"Scenario: {context.scenario_title}\n"
         f"Description: {context.scenario_description or '(not provided)'}\n"
         f"Horizon: {context.horizon}\n"
@@ -148,6 +151,25 @@ def _context_block(context: CommitteeContext) -> str:
         f"The user's portfolio:\n{holdings}\n"
         f"Total value: {context.portfolio.total_value:,.0f} {context.portfolio.currency}"
     )
+    if market_signal is not None:
+        change = (
+            f"{market_signal.change_7d_pp:+.1f} pp over 7d"
+            if market_signal.change_7d_pp is not None
+            else "no 7d history"
+        )
+        change_30d = (
+            f", {market_signal.change_30d_pp:+.1f} pp over 30d"
+            if market_signal.change_30d_pp is not None
+            else ""
+        )
+        block += (
+            f"\n\nLive prediction-market signal (Polymarket, {market_signal.source_status}): "
+            f'"{market_signal.question}" — market-implied probability '
+            f"{market_signal.probability:.1%} ({change}{change_30d}, as of "
+            f"{market_signal.as_of or 'unknown'}). This is a market-implied probability, "
+            "not a forecast; use it as context only."
+        )
+    return block
 
 
 _ANALYST_PROMPT = """You are the {label} on a portfolio risk committee. Your lens: {lens}.
@@ -175,7 +197,12 @@ per asset, 0 if genuinely unaffected. Describe risk only — never recommend \
 buying, selling or hedging. Never predict whether the scenario will happen."""
 
 
-def run_analyst(seat_key: str, context: CommitteeContext, settings: Settings) -> AnalystView:
+def run_analyst(
+    seat_key: str,
+    context: CommitteeContext,
+    settings: Settings,
+    market_signal: MarketContextSignal | None = None,
+) -> AnalystView:
     spec = next((s for s in _seat_specs(settings) if s["seat"] == seat_key), None)
     if spec is None:
         raise ValueError(f"Unknown committee seat: {seat_key}")
@@ -183,7 +210,7 @@ def run_analyst(seat_key: str, context: CommitteeContext, settings: Settings) ->
     prompt = _ANALYST_PROMPT.format(
         label=spec["label"],
         lens=spec["lens"],
-        context=_context_block(context),
+        context=_context_block(context, market_signal),
         assets=_ASSET_LINES,
     )
     data = _complete(settings, spec["model"], prompt)
@@ -202,6 +229,7 @@ def run_analyst(seat_key: str, context: CommitteeContext, settings: Settings) ->
         thesis=str(data.get("thesis") or "").strip()[:_MAX_TEXT_CHARS],
         key_risk=str(data.get("key_risk") or "").strip()[:_MAX_TEXT_CHARS],
         confidence=confidence,
+        market_context=market_signal,
     )
 
 
@@ -231,7 +259,11 @@ or timing. Never predict whether the scenario will happen. Use no numbers \
 in verdict/insights beyond those implied by the shocks you set."""
 
 
-def run_chair(request: VerdictRequest, settings: Settings) -> tuple[AnalystView, dict]:
+def run_chair(
+    request: VerdictRequest,
+    settings: Settings,
+    market_signal: MarketContextSignal | None = None,
+) -> tuple[AnalystView, dict]:
     """The chair reconciles only the views that succeeded — failed analysts
     are absent from request.views by construction (browser fan-out).
 
@@ -256,7 +288,7 @@ def run_chair(request: VerdictRequest, settings: Settings) -> tuple[AnalystView,
     )
     prompt = _CHAIR_PROMPT.format(
         label=spec["label"],
-        context=_context_block(request),
+        context=_context_block(request, market_signal),
         views=views_json,
     )
     data = _complete(settings, spec["model"], prompt)
@@ -275,6 +307,7 @@ def run_chair(request: VerdictRequest, settings: Settings) -> tuple[AnalystView,
         thesis=str(data.get("verdict") or "").strip()[:_MAX_TEXT_CHARS],
         confidence=confidence,
         key_risk="",
+        market_context=market_signal,
     )
     return chair_view, data
 

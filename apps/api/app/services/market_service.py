@@ -19,6 +19,7 @@ import httpx
 from app.core.config import get_settings
 from app.schemas.market import (
     MappedScenario,
+    MarketContextSignal,
     MarketDataStatus,
     MarketHistoryResponse,
     MarketSummary,
@@ -158,6 +159,35 @@ class MarketService:
             source_status="illustrative",
             as_of=None,
         )
+
+    def get_context_signal(self, market_id: str | None) -> MarketContextSignal | None:
+        """The live probability signal for one tracked market, shaped for the
+        committee prompts/responses. Returns None when no market_id was asked
+        for, the id isn't tracked, there is no probability yet, or upstream is
+        unreachable — never fabricates."""
+        if not market_id:
+            return None
+        try:
+            for summary in self.get_tracked_markets():
+                if str(summary.market_id) != str(market_id) or summary.probability is None:
+                    continue
+                return MarketContextSignal(
+                    market_id=summary.market_id,
+                    label=summary.label,
+                    question=summary.question,
+                    probability=summary.probability,
+                    change_7d_pp=summary.change_7d_pp,
+                    change_30d_pp=summary.change_30d_pp,
+                    repriced=summary.repriced,
+                    source_status=summary.source_status,
+                    source_url=(
+                        f"https://polymarket.com/event/{summary.slug}" if summary.slug else None
+                    ),
+                    as_of=summary.as_of,
+                )
+        except Exception as exc:
+            logger.warning("Committee market context unavailable: %s", exc)
+        return None
 
     # ------------------------------------------------------------------
     # Fetching

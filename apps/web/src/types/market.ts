@@ -39,6 +39,19 @@ export interface MarketSummary {
   as_of: string | null;
 }
 
+export interface MarketContextSignal {
+  market_id: string;
+  label: string;
+  question: string;
+  probability: number | null;
+  change_7d_pp: number | null;
+  change_30d_pp: number | null;
+  repriced: boolean;
+  source_status: MarketDataStatus;
+  source_url: string | null;
+  as_of: string | null;
+}
+
 export interface MarketHistoryResponse {
   market_id: string;
   token_id: string;

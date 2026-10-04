@@ -268,3 +268,37 @@ def test_verdict_context_rejects_oversized_prompt_inputs(client):
         "/api/ai/committee/verdict", json={**base, "transmission": ["s"] * 11}
     )
     assert response.status_code == 422
+
+
+def test_analyst_prompt_includes_live_market_signal():
+    from app.integrations.ai.committee import run_analyst
+    from app.schemas.market import MarketContextSignal
+
+    signal = MarketContextSignal(
+        market_id="567621",
+        label="China invades Taiwan (2026)",
+        question="Will China invade Taiwan by end of 2026?",
+        probability=0.0225,
+        change_7d_pp=-0.4,
+        change_30d_pp=-1.2,
+        source_status="live",
+        as_of="2026-10-04T00:00:00+00:00",
+    )
+    with patch(
+        "app.integrations.ai.committee.complete_json", return_value=json.loads(_analyst_body())
+    ) as mock_complete:
+        view = run_analyst("macro", _context(), _settings(), market_signal=signal)
+
+    prompt = mock_complete.call_args.args[1]
+    assert "Polymarket" in prompt and "2.2%" in prompt
+    assert view.market_context is signal
+
+
+def test_analyst_without_market_signal_has_no_context():
+    from app.integrations.ai.committee import run_analyst
+
+    with patch(
+        "app.integrations.ai.committee.complete_json", return_value=json.loads(_analyst_body())
+    ):
+        view = run_analyst("macro", _context(), _settings())
+    assert view.market_context is None
