@@ -18,7 +18,7 @@ from app.integrations.feeds.base import FeedConnector, FeedError
 from app.schemas.risk_feed import FeedItem, FeedKind
 
 _ATOM = "{http://www.w3.org/2005/Atom}"
-TIMEOUT_SECONDS = 10.0
+TIMEOUT_SECONDS = 20.0  # EIA is slow to respond
 MAX_ITEMS = 15
 
 
