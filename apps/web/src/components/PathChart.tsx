@@ -45,7 +45,7 @@ export function PathChart({
       : null;
 
   return (
-    <div className="border border-line">
+    <div className="overflow-hidden rounded-[1.75rem] border border-line bg-surface-raised shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
@@ -98,29 +98,34 @@ export function PathChart({
         {!loading && !error && data.length >= 2 && (
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={data} margin={{ top: 8, right: 12, bottom: 0, left: -18 }}>
-              <CartesianGrid stroke="var(--line)" strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid stroke="#E8EAF0" strokeDasharray="2 5" vertical={false} />
               <XAxis
                 dataKey="label"
                 tick={{ fontSize: 11 }}
-                stroke="var(--ink-tertiary)"
+                stroke="#7B828E"
                 minTickGap={40}
               />
               <YAxis
                 domain={[0, 100]}
                 tick={{ fontSize: 11 }}
-                stroke="var(--ink-tertiary)"
+                stroke="#7B828E"
                 tickFormatter={(v: number) => `${v}%`}
                 width={52}
               />
               <Tooltip
                 formatter={(value: number) => [`${value.toFixed(1)}%`, "Yes"]}
                 labelFormatter={(label: string) => label}
-                contentStyle={{ background: "var(--surface)", border: "1px solid var(--line)" }}
+                contentStyle={{
+                  background: "#FFFFFF",
+                  border: "1px solid #E3E6EB",
+                  borderRadius: 16,
+                  boxShadow: "0 12px 30px rgba(17, 24, 39, 0.12)",
+                }}
               />
               {weekAgoPoint && (
                 <ReferenceLine
                   x={weekAgoPoint.label}
-                  stroke="var(--ink-tertiary)"
+                  stroke="#7B828E"
                   strokeDasharray="4 4"
                   label={{ value: "7d ago", fontSize: 10, position: "insideTopRight" }}
                 />
@@ -128,13 +133,13 @@ export function PathChart({
               <Line
                 type="monotone"
                 dataKey="prob"
-                stroke="var(--accent)"
+                stroke="#635BFF"
                 strokeWidth={2}
                 dot={false}
                 isAnimationActive={false}
               />
               {last && (
-                <ReferenceDot x={last.label} y={last.prob} r={4} fill="var(--accent)" stroke="none" />
+                <ReferenceDot x={last.label} y={last.prob} r={4} fill="#635BFF" stroke="none" />
               )}
             </LineChart>
           </ResponsiveContainer>

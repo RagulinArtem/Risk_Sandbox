@@ -6,20 +6,16 @@ reality.
 
 ## WORKING
 
-- **Navigation (2026-10-04): three steps for first-time viewers.**
-  1. **① Overview:** hero card with 3 facts, then holdings, performance,
-     and everything else under "More analytics". The facts:
-     - effective independent bets on real returns;
-     - worst real crisis replayed;
-     - worst scenario a live market is tracking, with the market's own
-       probability shown as context and never multiplied in.
-  2. **② What could hurt it:** Live signals (Risk Feed) / Scenario
-     library / Risk radar.
-  3. **③ Stress test:** scenario and result → AI committee → risk brief →
-     "What if I change the allocation?" (mitigation).
-
-  **Report** is a header button. Old deep links (`#feed`, `#radar`,
-  `#scenarios`, `#mitigation`) still resolve.
+- **App shell and home risk center (2026-10-04):** a calm, consumer-finance
+  navigation model with Home, Stress analytics, Alerts & signals, Portfolio,
+  and Settings; Report remains a header action. The new Home screen prioritizes
+  the worst modeled scenario, three largest scenario threats, an auditable
+  diversification snapshot, a backend-calculated two-slider what-if, popular
+  stress tests and neutral next steps. It deliberately does not invent a
+  0–100 risk score, imply a trade recommendation or pretend that alerts exist.
+  Desktop uses a fixed sidebar; mobile uses a bottom navigation bar. Old deep
+  links (`#feed`, `#radar`, `#scenarios`, `#mitigation`) still resolve. Design
+  rationale and UI rules are documented in `docs/DESIGN_SYSTEM.md`.
 
 - **Demo portfolios** (`GET /api/portfolios`, `/api/portfolio/demo`). The
   primary is the **Global Multi-Asset Risk Portfolio**: 15 holdings across

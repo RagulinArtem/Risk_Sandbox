@@ -18,13 +18,14 @@ import { RANGES } from "./priceRanges";
 
 type Mode = "value" | "compare";
 
-const AXIS_TICK = { fill: "#A8A6A0", fontSize: 11, fontFamily: "IBM Plex Mono" };
+const AXIS_TICK = { fill: "#7B828E", fontSize: 11, fontFamily: "Inter, system-ui, sans-serif" };
 const TOOLTIP_STYLE = {
-  background: "#1D1D21",
-  border: "1px solid #2B2B30",
-  borderRadius: 0,
+  background: "#FFFFFF",
+  border: "1px solid #E3E6EB",
+  borderRadius: 16,
+  boxShadow: "0 12px 30px rgba(17, 24, 39, 0.12)",
   fontSize: 12,
-  fontFamily: "IBM Plex Mono",
+  fontFamily: "Inter, system-ui, sans-serif",
 };
 
 function formatAxisDate(iso: string, range: PriceRange): string {
@@ -57,16 +58,16 @@ function SegmentedControl<T extends string>({
   label: string;
 }) {
   return (
-    <div role="group" aria-label={label} className="inline-flex border border-line-strong">
+    <div role="group" aria-label={label} className="inline-flex rounded-xl bg-surface p-1">
       {options.map((o) => (
         <button
           key={o.id}
           type="button"
           aria-pressed={o.id === value}
           onClick={() => onChange(o.id)}
-          className={`px-2.5 py-1 font-mono text-xs transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent ${
+          className={`rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent ${
             o.id === value
-              ? "bg-accent/15 text-accent-strong"
+              ? "bg-white text-ink shadow-sm"
               : "text-ink-tertiary hover:text-ink-secondary"
           }`}
         >
@@ -123,18 +124,18 @@ export function PerformanceChart({
   const up = change >= 0;
   const first = history.dates[0];
   const last = history.dates[history.dates.length - 1];
-  const lineColor = up ? "#4A9B6E" : "#C4453F";
+  const lineColor = up ? "#168A62" : "#E5485D";
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-2xl tabular-nums text-ink">
+            <span className="text-2xl font-bold tracking-tight tabular-nums text-ink">
               {formatCurrency(history.portfolio_values[history.portfolio_values.length - 1])}
             </span>
             <span
-              className={`font-mono text-sm tabular-nums ${up ? "text-risk-positive" : "text-risk-negative-strong"}`}
+              className={`text-sm font-semibold tabular-nums ${up ? "text-risk-positive" : "text-risk-negative-strong"}`}
             >
               {formatSignedPercent(change)}
             </span>
@@ -168,12 +169,12 @@ export function PerformanceChart({
                   <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="#2B2B30" strokeDasharray="2 4" vertical={false} />
+              <CartesianGrid stroke="#E8EAF0" strokeDasharray="2 5" vertical={false} />
               <XAxis
                 dataKey="date"
                 tickFormatter={(d: string) => formatAxisDate(d, range)}
                 tick={AXIS_TICK}
-                axisLine={{ stroke: "#2B2B30" }}
+                axisLine={{ stroke: "#E3E6EB" }}
                 tickLine={false}
                 minTickGap={40}
               />
@@ -187,7 +188,7 @@ export function PerformanceChart({
               />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
-                labelStyle={{ color: "#EDEBE6" }}
+                labelStyle={{ color: "#121318", fontWeight: 600 }}
                 labelFormatter={(d: string) => formatLongDate(d)}
                 formatter={(v: number) => [formatCurrency(v), "Portfolio value"]}
               />
@@ -195,19 +196,19 @@ export function PerformanceChart({
                 type="monotone"
                 dataKey="value"
                 stroke={lineColor}
-                strokeWidth={1.75}
+                strokeWidth={2.5}
                 fill="url(#perf-fill)"
                 isAnimationActive={false}
               />
             </AreaChart>
           ) : (
             <LineChart data={compareData} margin={{ top: 8, right: 20, bottom: 0, left: 8 }}>
-              <CartesianGrid stroke="#2B2B30" strokeDasharray="2 4" vertical={false} />
+              <CartesianGrid stroke="#E8EAF0" strokeDasharray="2 5" vertical={false} />
               <XAxis
                 dataKey="date"
                 tickFormatter={(d: string) => formatAxisDate(d, range)}
                 tick={AXIS_TICK}
-                axisLine={{ stroke: "#2B2B30" }}
+                axisLine={{ stroke: "#E3E6EB" }}
                 tickLine={false}
                 minTickGap={40}
               />
@@ -221,7 +222,7 @@ export function PerformanceChart({
               />
               <Tooltip
                 contentStyle={TOOLTIP_STYLE}
-                labelStyle={{ color: "#EDEBE6" }}
+                labelStyle={{ color: "#121318", fontWeight: 600 }}
                 labelFormatter={(d: string) => formatLongDate(d)}
                 formatter={(v: number, name: string) => [formatSignedPercent(v / 100 - 1), name]}
                 itemSorter={(item) => -(item.value as number)}
@@ -240,7 +241,7 @@ export function PerformanceChart({
                 ))}
               <Line
                 dataKey="Portfolio"
-                stroke="#EDEBE6"
+                stroke="#121318"
                 strokeWidth={2.25}
                 dot={false}
                 isAnimationActive={false}
@@ -252,7 +253,7 @@ export function PerformanceChart({
 
       {mode === "compare" && (
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2 py-1 font-mono text-xs text-ink">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-ink">
             <span className="h-0.5 w-3 bg-ink" />
             Portfolio {formatSignedPercent(change)}
           </span>
@@ -271,7 +272,7 @@ export function PerformanceChart({
                     return next;
                   })
                 }
-                className={`inline-flex items-center gap-1.5 border px-2 py-1 font-mono text-xs transition-opacity ${
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-opacity ${
                   off ? "border-line opacity-40" : "border-line-strong"
                 }`}
               >

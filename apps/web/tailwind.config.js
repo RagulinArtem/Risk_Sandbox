@@ -5,35 +5,40 @@ export default {
     extend: {
       colors: {
         surface: {
-          DEFAULT: "#0F0F11",
-          raised: "#17171A",
-          higher: "#1D1D21",
+          DEFAULT: "#F5F6F8",
+          raised: "#FFFFFF",
+          higher: "#ECEEF2",
         },
         ink: {
-          DEFAULT: "#EDEBE6",
-          secondary: "#A8A6A0",
-          tertiary: "#8C8A85", // lighter for projector legibility
+          DEFAULT: "#121318",
+          secondary: "#555C68",
+          tertiary: "#7B828E",
         },
         line: {
-          DEFAULT: "#2B2B30",
-          strong: "#3A3A40",
+          DEFAULT: "#E3E6EB",
+          strong: "#CCD1D9",
         },
         accent: {
-          DEFAULT: "#5C8AC7",
-          strong: "#7BA3D6",
+          DEFAULT: "#635BFF",
+          strong: "#4A43DE",
         },
         risk: {
-          negative: "#C4453F",
-          "negative-strong": "#E8635C",
-          warning: "#C48A32",
-          positive: "#4A9B6E",
-          neutral: "#706E6A",
+          negative: "#E5485D",
+          "negative-strong": "#D6384E",
+          warning: "#D98B19",
+          positive: "#168A62",
+          neutral: "#7B828E",
         },
       },
       fontFamily: {
-        sans: ['"IBM Plex Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ['"Inter"', '"SF Pro Display"', "ui-sans-serif", "system-ui", "sans-serif"],
         serif: ['"IBM Plex Serif"', "ui-serif", "Georgia", "serif"],
-        mono: ['"IBM Plex Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
+        // Existing analytical components use `font-mono` heavily. Pointing it
+        // at the product font keeps tabular spacing without a terminal look.
+        mono: ['"Inter"', '"SF Pro Text"', "ui-sans-serif", "system-ui", "sans-serif"],
+      },
+      boxShadow: {
+        card: "0 8px 30px rgba(17, 24, 39, 0.06)",
       },
     },
   },
