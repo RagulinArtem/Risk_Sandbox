@@ -21,6 +21,7 @@ from app.integrations.ai.openrouter import (
     clean_shocks,
 )
 from app.schemas.committee import (
+    AnalogueRef,
     AnalystRole,
     AnalystView,
     CommitteeMember,
@@ -28,6 +29,7 @@ from app.schemas.committee import (
 )
 from app.schemas.portfolio import Portfolio
 from app.schemas.scenario import Scenario
+from app.services.analogue_service import analogue_prompt_block, historical_scenarios
 
 _ROLES: dict[AnalystRole, tuple[str, str, str]] = {
     # role: (label, focus shown in the UI, lens given to the model)
@@ -73,15 +75,25 @@ Horizon: {horizon}
 Transmission:
 {transmission}
 
+Verified historical episodes (REAL market data; the portfolio impacts were \
+computed by our deterministic engine, so treat them as facts):
+{history}
+
+Do not state an overall portfolio loss as a number; our engine computes it.
+
 Estimate how each asset's price would move over the horizon under this \
 scenario, from your lens. Be independent and specific; do not hedge \
-everything to the middle.
+everything to the middle. Anchor on the 1-2 most relevant episodes above and \
+say how this scenario differs (bigger, smaller, different mechanism). Never \
+cite an episode that is not listed.
 
 {response_format}
 Also include in the same JSON object:
 "thesis": your view in at most 2 sentences,
 "key_risk": one sentence on what would make this materially worse,
-"confidence": "low", "medium" or "high"."""
+"confidence": "low", "medium" or "high",
+"analogues": [{{"id": "<episode id>", "why": "one sentence", \
+"difference": "one sentence"}}] with 1-2 items."""
 
 _CHAIR_PROMPT = """You chair a portfolio risk committee. Three analysts from \
 different backgrounds independently assessed a scenario. Reconcile their views \
@@ -96,12 +108,17 @@ Scenario: {title}
 Description: {description}
 Horizon: {horizon}
 
+Verified historical episodes (REAL data; portfolio impacts computed by our engine):
+{history}
+
 Analyst views (JSON):
 {views}
 
 Rules: weigh the arguments, not just the average; where analysts disagree, \
 say why and which side you lean to. Describe risk only; never recommend \
-buying, selling or hedging specific securities.
+buying, selling or hedging specific securities. Do NOT state the consensus \
+portfolio loss as a number: our engine computes it from your shocks and shows \
+it next to your text. You may quote the historical replay figures above.
 
 {response_format}
 In the rationale, explain how you reconciled the analysts for that asset.
@@ -111,7 +128,10 @@ Also include in the same JSON object:
 exposure (name holdings and weights),
 "disagreements": up to 3 short items, each naming where analysts split and why,
 "watch": 2-3 concrete indicators that would confirm or refute the scenario,
-"confidence": "low", "medium" or "high"."""
+"confidence": "low", "medium" or "high",
+"analogues": up to 3 listed episodes most relevant to this scenario, as \
+[{{"id": "<episode id>", "why": "one sentence", "difference": "how today's \
+scenario differs"}}]."""
 
 
 def _holdings(portfolio: Portfolio) -> str:
@@ -126,6 +146,25 @@ def _str_list(raw: object, limit: int) -> list[str]:
     if not isinstance(raw, list):
         return []
     return [str(x).strip()[:300] for x in raw if str(x).strip()][:limit]
+
+
+def _clean_analogues(raw: object, limit: int) -> list[AnalogueRef]:
+    known = {s.id: s for s in historical_scenarios()}
+    out: list[AnalogueRef] = []
+    for item in raw if isinstance(raw, list) else []:
+        if not isinstance(item, dict) or item.get("id") not in known:
+            continue  # an episode we have no real data for is dropped
+        if any(a.id == item["id"] for a in out):
+            continue
+        out.append(
+            AnalogueRef(
+                id=item["id"],
+                title=known[item["id"]].title,
+                why=str(item.get("why") or "").strip()[:300],
+                difference=str(item.get("difference") or "").strip()[:300],
+            )
+        )
+    return out[:limit]
 
 
 def _require_openrouter(settings: Settings) -> None:
@@ -169,6 +208,7 @@ def run_analyst(
             description=scenario.description,
             horizon=scenario.horizon,
             transmission="\n".join(f"- {step}" for step in scenario.transmission),
+            history=analogue_prompt_block(portfolio),
             response_format=_RESPONSE_FORMAT,
         ),
     )
@@ -184,6 +224,7 @@ def run_analyst(
         confidence=_confidence(data.get("confidence")),
         asset_shocks=shocks,
         rationale=clean_rationale(data.get("rationale"), shocks),
+        analogues=_clean_analogues(data.get("analogues"), 2),
         latency_ms=int((time.monotonic() - started) * 1000),
     )
 
@@ -203,6 +244,7 @@ def run_chair(
                 "confidence": v.confidence,
                 "asset_shocks": v.asset_shocks,
                 "rationale": v.rationale,
+                "analogues": [a.model_dump() for a in v.analogues],
             }
             for v in views
         ],
@@ -218,6 +260,7 @@ def run_chair(
             description=scenario.description,
             horizon=scenario.horizon,
             views=views_json,
+            history=analogue_prompt_block(portfolio),
             response_format=_RESPONSE_FORMAT,
         ),
         max_tokens=3000,
@@ -233,4 +276,5 @@ def run_chair(
         "disagreements": _str_list(data.get("disagreements"), 3),
         "watch": _str_list(data.get("watch"), 3),
         "confidence": _confidence(data.get("confidence")),
+        "analogues": _clean_analogues(data.get("analogues"), 3),
     }

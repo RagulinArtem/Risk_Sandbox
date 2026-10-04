@@ -9,10 +9,12 @@ from app.domain.risk.engine import DirectAssetShockEngine
 from app.integrations.ai import committee
 from app.schemas.committee import (
     CommitteeVerdict,
+    HistoricalComparison,
     ShockRange,
     VerdictRequest,
     ViewImpact,
 )
+from app.services.analogue_service import replay_history
 
 
 def build_verdict(request: VerdictRequest) -> CommitteeVerdict:
@@ -62,6 +64,21 @@ def build_verdict(request: VerdictRequest) -> CommitteeVerdict:
         if values:
             shock_ranges[symbol] = ShockRange(min=min(values), max=max(values))
 
+    replays = replay_history(request.portfolio)
+    historical = [
+        HistoricalComparison(
+            id=a.id,
+            title=a.title,
+            window=replays[a.id].scenario.horizon,
+            impact_pct=replays[a.id].impact_pct,
+            impact_value=replays[a.id].impact_value,
+            why=a.why,
+            difference=a.difference,
+        )
+        for a in chair["analogues"]
+        if a.id in replays
+    ]
+
     return CommitteeVerdict(
         scenario=consensus_scenario,
         chair_model=settings.committee_chair_model,
@@ -71,6 +88,7 @@ def build_verdict(request: VerdictRequest) -> CommitteeVerdict:
         watch=chair["watch"],
         confidence=chair["confidence"],
         shock_ranges=shock_ranges,
+        historical=historical,
         view_impacts=view_impacts,
         consensus_result=consensus_result,
         latency_ms=int((time.monotonic() - started) * 1000),

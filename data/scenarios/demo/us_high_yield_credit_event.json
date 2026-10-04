@@ -1,0 +1,34 @@
+{
+  "id": "us-high-yield-credit-event",
+  "title": "US High-Yield Credit Event",
+  "category": "credit",
+  "description": "Illustrative wave of defaults among leveraged US companies; credit spreads blow out. Calibrated between the verified COVID 2020 (HYG −22%) and Q4 2018 (HYG −6%) windows.",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "90d",
+  "transmission": [
+    "Defaults rise among leveraged issuers",
+    "High-yield spreads widen sharply",
+    "Banks tighten lending; equities reprice for recession",
+    "Treasuries rally on flight to quality"
+  ],
+  "asset_shocks": {
+    "SPY": -0.15,
+    "QQQ": -0.16,
+    "NVDA": -0.22,
+    "TSM": -0.18,
+    "JPM": -0.22,
+    "XOM": -0.15,
+    "XLV": -0.08,
+    "LMT": -0.06,
+    "FXI": -0.14,
+    "VNQ": -0.2,
+    "TLT": 0.08,
+    "HYG": -0.15,
+    "BIL": 0.005,
+    "GLD": 0.04,
+    "BTC": -0.25
+  }
+}

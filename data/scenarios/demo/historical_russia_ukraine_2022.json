@@ -1,0 +1,43 @@
+{
+  "id": "historical-russia-ukraine-2022",
+  "title": "Russia–Ukraine Invasion Shock (Feb–Mar 2022)",
+  "category": "historical-geopolitical",
+  "description": "War in Europe drove an energy-price spike: energy and defence rallied, while chips, China and growth equities fell. Shocks are real total returns (Yahoo Finance adjusted close) from 2022-02-16 to 2022-03-08.",
+  "source_status": "verified",
+  "source_name": "Yahoo Finance (adjusted close); events cited in references",
+  "source_url": "https://en.wikipedia.org/wiki/Economic_impact_of_the_Russian_invasion_of_Ukraine",
+  "source_date": "2026-10-04",
+  "horizon": "2022-02-16 → 2022-03-08 (20 days)",
+  "transmission": [
+    "2022-02-24: Russia launches a full-scale invasion of Ukraine [1]",
+    "2022-03-07: Brent crude rises above $130 a barrel for the first time since 2008 [1]"
+  ],
+  "asset_shocks": {
+    "SPY": -0.068,
+    "QQQ": -0.092,
+    "NVDA": -0.188,
+    "TSM": -0.191,
+    "JPM": -0.172,
+    "XOM": 0.12,
+    "XLV": -0.023,
+    "LMT": 0.168,
+    "FXI": -0.179,
+    "VNQ": -0.01,
+    "TLT": 0.016,
+    "HYG": -0.016,
+    "BIL": 0.0,
+    "GLD": 0.095,
+    "BTC": -0.119
+  },
+  "unavailable_assets": [],
+  "references": [
+    {
+      "title": "Economic impact of the Russian invasion of Ukraine (Wikipedia)",
+      "url": "https://en.wikipedia.org/wiki/Economic_impact_of_the_Russian_invasion_of_Ukraine"
+    }
+  ],
+  "window": {
+    "start": "2022-02-16",
+    "end": "2022-03-08"
+  }
+}

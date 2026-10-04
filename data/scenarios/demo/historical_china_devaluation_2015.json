@@ -1,0 +1,43 @@
+{
+  "id": "historical-china-devaluation-2015",
+  "title": "China Yuan Devaluation Shock (Aug 2015)",
+  "category": "historical-geopolitical",
+  "description": "A surprise yuan devaluation raised fears about Chinese growth and triggered a global equity selloff. Shocks are real total returns (Yahoo Finance adjusted close) from 2015-08-10 to 2015-08-25.",
+  "source_status": "verified",
+  "source_name": "Yahoo Finance (adjusted close); events cited in references",
+  "source_url": "https://en.wikipedia.org/wiki/2015%E2%80%932016_Chinese_stock_market_turbulence",
+  "source_date": "2026-10-04",
+  "horizon": "2015-08-10 → 2015-08-25 (15 days)",
+  "transmission": [
+    "2015-08-11: People's Bank of China devalues the yuan by 1.86% to CN¥6.2298 per US dollar [1]",
+    "2015-08-24: 'Black Monday': Shanghai Composite falls 8.49%; global equities sell off [1]"
+  ],
+  "asset_shocks": {
+    "SPY": -0.111,
+    "QQQ": -0.121,
+    "NVDA": -0.144,
+    "TSM": -0.132,
+    "JPM": -0.13,
+    "XOM": -0.119,
+    "XLV": -0.105,
+    "LMT": -0.056,
+    "FXI": -0.155,
+    "VNQ": -0.077,
+    "TLT": 0.012,
+    "HYG": -0.023,
+    "BIL": -0.0,
+    "GLD": 0.033,
+    "BTC": -0.162
+  },
+  "unavailable_assets": [],
+  "references": [
+    {
+      "title": "2015–2016 Chinese stock market turbulence (Wikipedia)",
+      "url": "https://en.wikipedia.org/wiki/2015%E2%80%932016_Chinese_stock_market_turbulence"
+    }
+  ],
+  "window": {
+    "start": "2015-08-10",
+    "end": "2015-08-25"
+  }
+}

@@ -101,3 +101,48 @@ def test_analyst_endpoint_returns_503_on_mock(client, demo_portfolio_payload):
         json={"scenario": scenario, "portfolio": demo_portfolio_payload, "role": "macro"},
     )
     assert response.status_code == 503
+
+
+def test_analysts_get_real_history_and_unknown_analogues_are_dropped(scenario, portfolio):
+    reply = {
+        "thesis": "t",
+        "key_risk": "k",
+        "confidence": "high",
+        "asset_shocks": {"NVDA": -0.2},
+        "analogues": [
+            {"id": "historical-covid-crash-2020", "why": "w", "difference": "d"},
+            {"id": "made-up-1987-crash", "why": "w", "difference": "d"},
+        ],
+    }
+    with patch.object(committee, "chat_json", return_value=reply) as chat:
+        view = committee.run_analyst(_LIVE, "macro", scenario, portfolio)
+    prompt = chat.call_args.args[2]
+    assert "historical-svb-banking-stress-2023" in prompt
+    assert "THIS portfolio's real impact if replayed" in prompt
+    assert [a.id for a in view.analogues] == ["historical-covid-crash-2020"]
+
+
+def test_verdict_historical_impacts_come_from_the_engine(scenario, portfolio):
+    from app.services.analogue_service import replay_history
+
+    chair = {
+        "asset_shocks": {"NVDA": -0.2},
+        "rationale": {},
+        "verdict": "v",
+        "insights": [],
+        "disagreements": [],
+        "watch": [],
+        "confidence": "medium",
+        "analogues": [{"id": "historical-gfc-2008", "why": "credit", "difference": "smaller"}],
+    }
+    with (
+        patch.object(committee_service, "get_settings", return_value=_LIVE),
+        patch.object(committee, "chat_json", return_value=chair),
+    ):
+        verdict = committee_service.build_verdict(
+            VerdictRequest(scenario=scenario, portfolio=portfolio, views=[_view("A", -0.1, -0.2)])
+        )
+    [h] = verdict.historical
+    expected = replay_history(portfolio)["historical-gfc-2008"]
+    assert h.impact_pct == pytest.approx(expected.impact_pct)
+    assert h.why == "credit" and "2008" in h.window

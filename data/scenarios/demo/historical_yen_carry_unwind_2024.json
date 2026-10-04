@@ -1,0 +1,47 @@
+{
+  "id": "historical-yen-carry-unwind-2024",
+  "title": "Yen Carry-Trade Unwind (Jul–Aug 2024)",
+  "category": "historical-macro",
+  "description": "A Bank of Japan hike plus a weak US jobs report forced a rapid unwind of yen-funded positions; high-beta tech and crypto were hit hardest. Shocks are real total returns (Yahoo Finance adjusted close) from 2024-07-31 to 2024-08-05.",
+  "source_status": "verified",
+  "source_name": "Yahoo Finance (adjusted close); events cited in references",
+  "source_url": "https://www.boj.or.jp/en/mopo/mpmdeci/mpr_2024/k240731a.pdf",
+  "source_date": "2026-10-04",
+  "horizon": "2024-07-31 → 2024-08-05 (5 days)",
+  "transmission": [
+    "2024-07-31: Bank of Japan raises its policy rate to around 0.25% and plans to cut JGB purchases [1]",
+    "2024-08-02: US July payrolls +114,000; unemployment rate rises to 4.3% [2]"
+  ],
+  "asset_shocks": {
+    "SPY": -0.061,
+    "QQQ": -0.076,
+    "NVDA": -0.142,
+    "TSM": -0.108,
+    "JPM": -0.084,
+    "XOM": -0.032,
+    "XLV": -0.019,
+    "LMT": 0.006,
+    "FXI": -0.025,
+    "VNQ": -0.019,
+    "TLT": 0.046,
+    "HYG": -0.012,
+    "BIL": 0.001,
+    "GLD": -0.018,
+    "BTC": -0.164
+  },
+  "unavailable_assets": [],
+  "references": [
+    {
+      "title": "Bank of Japan statement, 31 Jul 2024 (PDF)",
+      "url": "https://www.boj.or.jp/en/mopo/mpmdeci/mpr_2024/k240731a.pdf"
+    },
+    {
+      "title": "BLS Employment Situation, July 2024",
+      "url": "https://www.bls.gov/news.release/archives/empsit_08022024.htm"
+    }
+  ],
+  "window": {
+    "start": "2024-07-31",
+    "end": "2024-08-05"
+  }
+}

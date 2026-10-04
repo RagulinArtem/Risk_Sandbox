@@ -1,0 +1,34 @@
+{
+  "id": "china-property-crisis",
+  "title": "China Property Crisis",
+  "category": "geopolitical",
+  "description": "Illustrative disorderly defaults among Chinese property developers spread to local-government finance. Spillovers are anchored on the verified China devaluation 2015 window (FXI −16%, SPY −11%), with a deeper China-specific hit.",
+  "source_status": "illustrative",
+  "source_name": null,
+  "source_url": null,
+  "source_date": null,
+  "horizon": "90d",
+  "transmission": [
+    "Major developers default; home sales collapse",
+    "Local-government financing vehicles come under stress",
+    "Chinese growth expectations fall; capital outflows",
+    "Commodities and China-exposed assets fall"
+  ],
+  "asset_shocks": {
+    "SPY": -0.05,
+    "QQQ": -0.06,
+    "NVDA": -0.08,
+    "TSM": -0.1,
+    "JPM": -0.04,
+    "XOM": -0.1,
+    "XLV": -0.02,
+    "LMT": 0.0,
+    "FXI": -0.3,
+    "VNQ": -0.03,
+    "TLT": 0.04,
+    "HYG": -0.03,
+    "BIL": 0.0,
+    "GLD": 0.04,
+    "BTC": -0.1
+  }
+}

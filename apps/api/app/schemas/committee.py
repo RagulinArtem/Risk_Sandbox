@@ -28,6 +28,26 @@ class AnalystRequest(BaseModel):
     role: AnalystRole
 
 
+class AnalogueRef(BaseModel):
+    """An LLM's pick of a verified historical episode, with its reasoning.
+    Any numbers shown next to it come from the engine, not the LLM."""
+
+    id: str
+    title: str
+    why: str
+    difference: str
+
+
+class HistoricalComparison(BaseModel):
+    id: str
+    title: str
+    window: str
+    impact_pct: float  # engine replay of the real episode on this portfolio
+    impact_value: float
+    why: str
+    difference: str
+
+
 class AnalystView(BaseModel):
     role: AnalystRole
     label: str
@@ -37,6 +57,7 @@ class AnalystView(BaseModel):
     confidence: Confidence
     asset_shocks: dict[str, float]
     rationale: dict[str, str] = Field(default_factory=dict)
+    analogues: list[AnalogueRef] = Field(default_factory=list)
     latency_ms: int
 
 
@@ -69,6 +90,7 @@ class CommitteeVerdict(BaseModel):
     confidence: Confidence
     # Computed deterministically, not by the LLM:
     shock_ranges: dict[str, ShockRange]
+    historical: list[HistoricalComparison] = Field(default_factory=list)
     view_impacts: list[ViewImpact]
     consensus_result: StressTestResult
     latency_ms: int

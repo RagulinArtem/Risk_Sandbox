@@ -1,0 +1,48 @@
+{
+  "id": "historical-tariff-shock-2025",
+  "title": "'Liberation Day' Tariff Shock (Apr 2025)",
+  "category": "historical-geopolitical",
+  "description": "Sweeping US tariffs and Chinese retaliation produced one of the sharpest two-day equity drops on record, before a 90-day pause on 9 April (after this window). Shocks are real total returns (Yahoo Finance adjusted close) from 2025-04-02 to 2025-04-08.",
+  "source_status": "verified",
+  "source_name": "Yahoo Finance (adjusted close); events cited in references",
+  "source_url": "https://en.wikipedia.org/wiki/2025_stock_market_crash",
+  "source_date": "2026-10-04",
+  "horizon": "2025-04-02 → 2025-04-08 (6 days)",
+  "transmission": [
+    "2025-04-02: US announces sweeping 'Liberation Day' tariffs [1]",
+    "2025-04-03: S&P 500 falls 4.84%, then 5.97% on 4 April [1]",
+    "2025-04-04: China announces a 34% retaliatory tariff [1]"
+  ],
+  "asset_shocks": {
+    "SPY": -0.121,
+    "QQQ": -0.126,
+    "NVDA": -0.128,
+    "TSM": -0.17,
+    "JPM": -0.112,
+    "XOM": -0.151,
+    "XLV": -0.078,
+    "LMT": -0.021,
+    "FXI": -0.167,
+    "VNQ": -0.124,
+    "TLT": -0.034,
+    "HYG": -0.039,
+    "BIL": 0.001,
+    "GLD": -0.045,
+    "BTC": -0.075
+  },
+  "unavailable_assets": [],
+  "references": [
+    {
+      "title": "2025 stock market crash (Wikipedia)",
+      "url": "https://en.wikipedia.org/wiki/2025_stock_market_crash"
+    },
+    {
+      "title": "Liberation Day tariffs (Wikipedia)",
+      "url": "https://en.wikipedia.org/wiki/Liberation_Day_tariffs"
+    }
+  ],
+  "window": {
+    "start": "2025-04-02",
+    "end": "2025-04-08"
+  }
+}
