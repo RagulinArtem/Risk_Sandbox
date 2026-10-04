@@ -83,6 +83,34 @@ see `docs/HACKATHON_RULES_CHECK.md`.
 | 19:00–20:00 | Presentation + rehearsal | Problem, demo, technology, business potential, future roadmap |
 | 20:00+ | Final validation | Fresh-environment test if practical; screenshots/video fallback ready |
 
+### Shipped on October 4 (hackathon day build)
+
+| Priority | Feature | Status | Acceptance |
+| --- | --- | --- | --- |
+| P1 | AI Risk Committee (3 analysts + chair, multi-lab orchestration) | DONE (offline-tested; live pending credits) | Roster hides under mock; engine computes all impacts; guard-railed JSON; fixture tests |
+| P1 | Probability paths + tracked markets (`/api/markets/*`) | DONE | Verified live against Gamma/CLOB; 7d/30d pp changes + repriced flag; committed offline snapshot |
+| P0 | Factor-betas engine (FR4) + probability-weighted exposure (FR9) | DONE | Golden test reproduces PRD numbers exactly; `beta_version` on results |
+| P0 | AI explanation with number guard (FR7) | DONE | Template fallback; numbers must exist in engine output |
+| P0 | Friendly provider errors | DONE | 401/402/403/429 mapped to actionable messages; no raw codes on screen |
+| P0 | Editable portfolio weights + reset (FR3) | DONE | Sum indicator mirrors backend tolerance; runs guarded while invalid; reset restores the demo portfolio |
+| — | Supabase run history (FR13/14) | CUT (per team plan cut order) | Demo never depended on it |
+
+## Post-hackathon — Community & Cloud
+
+The business model is a free, fully functional Community Edition plus a
+managed Cloud edition selling convenience, live data, monitoring and AI
+compute (never better math). Full mapping to the current architecture and
+the open decisions: `docs/BUSINESS_MODEL.md`. Build order:
+
+| Phase | Feature | Status | Acceptance |
+| --- | --- | --- | --- |
+| 1 | Community self-host polish | IN PROGRESS | `docker compose up` from a clean clone; no LICENSE by team decision (all rights reserved) |
+| 2 | Cloud persistence (accounts, saved runs, history, replay) | TODO | The Supabase design in the technical spec is implemented behind `ENABLE_SUPABASE`; demo never depends on it |
+| 3 | Continuous monitoring + alerts | TODO | Saved portfolios re-evaluated on a schedule; alerts on repricing/exposure changes |
+| 4 | Risk Packs format + first official pack | TODO | A pack is a validated JSON directory (scenario + mapping + sourcing) — no code change to ship one |
+| 5 | Premium data tiers | TODO | Verified/institutional sources flow through the existing `illustrative → verified → live` statuses |
+| 6 | Enterprise | TODO | Only after phases 2–3 have paying users |
+
 ## Priorities
 
 ### P0 — must work

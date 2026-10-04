@@ -73,6 +73,36 @@ Type into "What if…?": `What if oil rises 40% and Nasdaq falls 15%?` →
 > translate it into the same structured assumptions you just saw, which
 > you can still edit before running."
 
+## 10b. Optional: the live market path (30s, if Polymarket is enabled)
+
+Instead of picking a library scenario, open **Risk Radar** and point at
+**Tracked Markets** at the top.
+
+> "This is live: a real prediction market, ranked by how much its odds
+> have moved recently. The number is the crowd's probability — and we can
+> see the path it took to get there, not just today's snapshot."
+
+Click **Path & stress test →**. The probability chart renders with the
+7-days-ago reference line and a CACHED/LIVE badge with its timestamp.
+
+> "The market tells you how likely the event is. It does not tell you how
+> much NVDA would move — that's our mapped, editable assumption, and the
+> deterministic engine applies it through historical betas."
+
+Run it, then point at **Risk-Weighted Exposure**.
+
+> "Probability times the mapped impact — how much of this scenario is
+> worth worrying about today. It's a risk-weighted exposure, not an
+> expected return."
+
+If `AI_PROVIDER=openrouter` is configured, also show the **AI Risk
+Committee**: three models from different labs argue independently, a
+fourth reconciles them, and the engine scores every one of them.
+
+> "Three different labs, three arguments. The spread between them is the
+> honest answer. And notice: every dollar figure on this screen is the
+> same deterministic engine, not the models."
+
 ## 11. Future vision (15s)
 
 > "Today this runs entirely offline. The same architecture is built to

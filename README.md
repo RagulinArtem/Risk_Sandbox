@@ -71,6 +71,24 @@ http://localhost:8000/docs
 No API keys or external credentials required — see Principle 4 in
 `AGENTS.md`.
 
+### Self-host it (Community Edition)
+
+```bash
+# Local (make)
+git clone <this repo> && cd portfolio-risk-copilot
+make setup && make dev
+
+# Containers (Docker) — .env is created by make setup, or copy it yourself
+docker compose up -d --build
+```
+
+Docker runs the API + frontend as containers (see `docs/DEPLOYMENT.md` for
+server setup). The Community Edition is the full product, not a demo —
+bring your own AI/data keys (`AI_PROVIDER=openrouter`, `ENABLE_POLYMARKET=true`)
+or run it fully offline with `AI_PROVIDER=mock`. See
+`docs/BUSINESS_MODEL.md` for what's free versus what the hosted Cloud
+edition sells.
+
 ## Repository map
 
 ```
@@ -105,6 +123,16 @@ day schedule, with P0/P1/P2 priorities.
 
 Short-lived branches (`feature/*`, `fix/*`, `data/*`, `docs/*`), small PRs,
 no heavyweight review process. See `CONTRIBUTING.md`.
+
+## Business model
+
+This repo is the **Community Edition**: free, fully functional
+self-hosted (Docker), BYOK for AI and data. The commercial product is
+**Risk Sandbox Cloud** — managed hosting, live data and monitoring,
+managed AI compute, history and alerts. The engine is identical in both;
+the paid layers sell convenience and infrastructure, never better math
+or a crippled free tier. Full mapping, phasing and open decisions:
+`docs/BUSINESS_MODEL.md`.
 
 ## Data integrity disclaimer
 
