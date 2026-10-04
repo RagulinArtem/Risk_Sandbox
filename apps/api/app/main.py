@@ -4,7 +4,17 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api.routes import ai, assets, health, portfolio, risk_radar, scenarios, stress_test
+from app.api.routes import (
+    ai,
+    assets,
+    committee,
+    health,
+    portfolio,
+    price_history,
+    risk_radar,
+    scenarios,
+    stress_test,
+)
 from app.core.config import get_settings
 
 logger = logging.getLogger("portfolio_risk_copilot")
@@ -33,9 +43,11 @@ app.include_router(health.router)
 app.include_router(scenarios.router)
 app.include_router(portfolio.router)
 app.include_router(assets.router)
+app.include_router(price_history.router)
 app.include_router(stress_test.router)
 app.include_router(risk_radar.router)
 app.include_router(ai.router)
+app.include_router(committee.router)
 
 
 @app.exception_handler(Exception)

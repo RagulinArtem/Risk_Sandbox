@@ -66,6 +66,36 @@ table and asset-type breakdown.
 // asset_class: "equity" | "equity_etf" | "crypto" | "bond_etf" | "commodity_etf"
 ```
 
+## `POST /api/price-history`
+
+Real historical prices for a portfolio's holdings (Yahoo Finance,
+adjusted close), aligned to the stock trading calendar.
+
+### Request
+
+```ts
+{ portfolio: Portfolio; range?: "1mo" | "3mo" | "6mo" | "1y" | "2y" | "5y" }  // default "1y"
+```
+
+### Response (`PriceHistoryResponse`)
+
+```ts
+{
+  range: string;
+  interval: "1d" | "1wk";
+  dates: string[];                      // ISO dates
+  series: { symbol: string; ticker: string; prices: number[]; change_pct: number }[];
+  portfolio_values: number[];           // hypothetical buy-and-hold of today's weights
+  portfolio_change_pct: number;
+  source_name: string;                  // "Yahoo Finance"
+  source_url: string;
+  retrieved_at: string;                 // ISO datetime
+  price_field: string;                  // "adjusted close"
+}
+```
+
+`503` with `detail` when prices can't be fetched.
+
 ## `POST /api/stress-test`
 
 ### Request (`StressTestRequest`)
@@ -216,6 +246,21 @@ The stress engine still does all impact math.
 `Scenario` gained an optional `shock_rationale: Record<string, string>`
 (one sentence per symbol) that LLM-produced scenarios fill in; library
 scenarios leave it empty.
+
+## AI Risk Committee — `/api/ai/committee`
+
+Needs `AI_PROVIDER=openrouter`; otherwise analyst/verdict calls return 503.
+
+- `GET /api/ai/committee` → `CommitteeRoster`: `{ analysts: CommitteeMember[3]; chair: CommitteeMember }`,
+  where `CommitteeMember = { role: "macro" | "sector" | "cross_asset" | "chair"; label; focus; model }`.
+- `POST /api/ai/committee/analyst` `{ scenario, portfolio, role }` → `AnalystView`:
+  `{ role, label, model, thesis, key_risk, confidence: "low"|"medium"|"high", asset_shocks, rationale, latency_ms }`.
+  The browser calls the three roles in parallel so each card fills in as it lands.
+- `POST /api/ai/committee/verdict` `{ scenario, portfolio, views: AnalystView[] }` → `CommitteeVerdict`:
+  `{ scenario (consensus shocks + shock_rationale), chair_model, verdict, insights[3], disagreements[], watch[],
+  confidence, shock_ranges: Record<symbol, {min, max}>, view_impacts: {label, model, estimated_impact_pct,
+  estimated_impact_value}[], consensus_result: StressTestResult, latency_ms }`.
+  `shock_ranges`, `view_impacts` and `consensus_result` are computed by the deterministic engine, not the LLM.
 
 ## Error shape
 

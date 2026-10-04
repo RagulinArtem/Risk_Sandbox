@@ -1,14 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "./components/ErrorBanner";
+import { CommitteePanel } from "./features/committee/CommitteePanel";
 import { LoadingLine } from "./components/LoadingLine";
 import { type TabDef, Tabs } from "./components/Tabs";
 import { PortfolioOverview } from "./features/portfolio/PortfolioOverview";
 import { usePortfolio } from "./features/portfolio/usePortfolio";
 import { RiskRadar } from "./features/risk-radar/RiskRadar";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
+import { useAiStatus } from "./features/scenarios/useAiStatus";
 import { StressTestResult } from "./features/stress-test/StressTestResult";
 import { ApiError, api } from "./lib/apiClient";
-import type { Scenario, StressTestResult as StressTestResultType } from "./types";
+import type {
+  CommitteeVerdict,
+  Scenario,
+  StressTestResult as StressTestResultType,
+} from "./types";
 
 type View = "portfolio" | "radar" | "stress";
 
@@ -36,14 +42,18 @@ export default function App() {
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
 
+  const [estimating, setEstimating] = useState(false);
+  const [estimateError, setEstimateError] = useState<string | null>(null);
+  const isLiveAi = useAiStatus();
+
   const resultRef = useRef<HTMLDivElement>(null);
 
   const setView = useCallback((next: View) => {
     setViewState(next);
     if (window.location.hash !== `#${next}`) {
       window.history.replaceState(null, "", `#${next}`);
+      window.scrollTo({ top: 0 });
     }
-    window.scrollTo({ top: 0 });
   }, []);
 
   useEffect(() => {
@@ -57,6 +67,7 @@ export default function App() {
       setView("stress");
       setScenarioLoading(true);
       setScenarioError(null);
+      setEstimateError(null);
       setResult(null);
       try {
         setScenario(await api.getScenario(scenarioId));
@@ -73,6 +84,32 @@ export default function App() {
     setScenario(parsed);
     setScenarioError(null);
     setResult(null);
+  }, []);
+
+  const estimateWithAi = useCallback(async () => {
+    if (!scenario) return;
+    setEstimating(true);
+    setEstimateError(null);
+    try {
+      const response = await api.estimateShocks(scenario);
+      if (response.scenario) {
+        setScenario(response.scenario);
+        setResult(null);
+      } else {
+        setEstimateError(response.message ?? "The AI couldn't estimate this scenario.");
+      }
+    } catch {
+      setEstimateError("Couldn't reach the AI service. Try again in a moment.");
+    } finally {
+      setEstimating(false);
+    }
+  }, [scenario]);
+
+  const applyVerdict = useCallback((verdict: CommitteeVerdict) => {
+    setScenario(verdict.scenario);
+    setResult(verdict.consensus_result);
+    setRunError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const handleShockChange = useCallback((symbol: string, value: number) => {
@@ -141,6 +178,19 @@ export default function App() {
               onParsed={handleParsed}
               onShockChange={handleShockChange}
               onRun={runStressTest}
+              ai={
+                isLiveAi
+                  ? {
+                      estimating,
+                      error: estimateError,
+                      onEstimate: estimateWithAi,
+                      // Custom (free-text) scenarios have no library version to restore.
+                      onRestore: scenario?.category === "custom"
+                        ? undefined
+                        : () => scenario && selectScenario(scenario.id),
+                    }
+                  : undefined
+              }
             />
             <div ref={resultRef} className="min-w-0">
               {runError && <ErrorBanner message={runError} />}
@@ -154,6 +204,11 @@ export default function App() {
                 </div>
               )}
             </div>
+            {isLiveAi && scenario && portfolio && (
+              <div className="lg:col-span-2">
+                <CommitteePanel scenario={scenario} portfolio={portfolio} onApply={applyVerdict} />
+              </div>
+            )}
           </div>
         )}
       </main>

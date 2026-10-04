@@ -1,8 +1,16 @@
 import type {
   AIStatusResponse,
+  AnalystRequest,
+  AnalystView,
+  CommitteeRoster,
+  CommitteeVerdict,
+  VerdictRequest,
   Asset,
+  EstimateShocksResponse,
   ParseScenarioResponse,
   Portfolio,
+  PriceHistoryRequest,
+  PriceHistoryResponse,
   RiskRadarItem,
   Scenario,
   StressTestRequest,
@@ -17,6 +25,17 @@ export class ApiError extends Error {
     public body: string,
   ) {
     super(`API error ${status}: ${body}`);
+  }
+
+  /** The server's human-readable `detail`, when it sent one. */
+  get detail(): string {
+    try {
+      const parsed = JSON.parse(this.body) as { detail?: unknown };
+      if (typeof parsed.detail === "string") return parsed.detail;
+    } catch {
+      // not JSON
+    }
+    return this.message;
   }
 }
 
@@ -48,6 +67,27 @@ export const api = {
   getAiStatus: () => request<AIStatusResponse>("/api/ai/status"),
   runStressTest: (body: StressTestRequest) =>
     request<StressTestResult>("/api/stress-test", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  estimateShocks: (scenario: Scenario) =>
+    request<EstimateShocksResponse>("/api/ai/estimate-shocks", {
+      method: "POST",
+      body: JSON.stringify({ scenario }),
+    }),
+  getPriceHistory: (body: PriceHistoryRequest) =>
+    request<PriceHistoryResponse>("/api/price-history", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getCommittee: () => request<CommitteeRoster>("/api/ai/committee"),
+  runAnalyst: (body: AnalystRequest) =>
+    request<AnalystView>("/api/ai/committee/analyst", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getVerdict: (body: VerdictRequest) =>
+    request<CommitteeVerdict>("/api/ai/committee/verdict", {
       method: "POST",
       body: JSON.stringify(body),
     }),

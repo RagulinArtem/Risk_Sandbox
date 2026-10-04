@@ -39,8 +39,7 @@ don't let it drift from reality.
     assumptions on the left, result (headline impact, contribution chart,
     "why this matters") on the right.
   All wired to the live API, no mock data or impact math in the frontend.
-  No price-history charts: there is no price data source yet.
-- 48 backend tests passing; `ruff check` clean; frontend `typecheck` +
+- 62 backend tests passing; `ruff check` clean; frontend `typecheck` +
   `lint` + `build` clean. Full user flow verified in an actual browser
   (Risk Radar → scenario → stress test → custom "what if").
 - CORS, structured error responses (422 for validation, 404 for unknown
@@ -58,16 +57,37 @@ don't let it drift from reality.
   documented API shape. **Not yet verified against the live API** — built
   in a sandbox whose network policy denies `gamma-api.polymarket.com`;
   verify once outside it (see the module's docstring).
-- **OpenRouter scenario parsing** (`integrations/ai/openrouter.py`,
-  `AI_PROVIDER=openrouter`, off by default — `mock` remains the default)
-  — real LLM call via OpenRouter's OpenAI-compatible API, same
-  `ScenarioAIProvider` contract as the mock/Bedrock providers, handles
-  markdown-fenced JSON responses. `GET /api/ai/status` tells the frontend
-  whether a live provider is active so the UI never claims "not live AI"
-  incorrectly. 5 unit tests against a mocked HTTP response matching
-  OpenRouter's documented shape. **Not yet verified against the live
-  API** — same sandbox network restriction as Polymarket; verify once
-  outside it.
+- **OpenRouter scenario parsing + AI shock estimation**
+  (`integrations/ai/openrouter.py`, `AI_PROVIDER=openrouter`; `mock`
+  remains the default). The LLM proposes a shock **and a one-line
+  rationale for every supported asset**; for free text it also proposes a
+  title, horizon and transmission chain. `POST /api/ai/estimate-shocks`
+  re-estimates any existing scenario's shocks ("Estimate shocks with AI"
+  in the Stress Test editor, with "Restore original numbers"). Output is
+  validated (known symbols only, −95%…+200%) and always labelled
+  `illustrative`. HTTP 401/402/403/429 map to actionable messages.
+  Verified live on 2026-10-04.
+- **AI Risk Committee** (`integrations/ai/committee.py`,
+  `services/committee_service.py`, Stress Test tab) — three analysts on
+  models from different labs (macro & rates: `openai/gpt-6.1-sol`; sector
+  & earnings: `~google/gemini-pro-latest`; cross-asset & history:
+  `moonshotai/kimi-k3`) estimate shocks with a thesis, tail risk and
+  confidence; `anthropic/claude-opus-5.5` chairs, reconciles, and writes
+  the verdict, 3 portfolio insights, disagreements and signals to watch.
+  The engine computes each model's portfolio impact, the consensus impact
+  and per-asset ranges. "Use consensus in the stress test" applies it.
+  Models picked by benchmarking 8 OpenRouter models on the same scenarios
+  (2026-10-04); reasoning effort "low" keeps a full run at ~25-35s and
+  ~$0.04. Single-model default (What if / Estimate) is now
+  `anthropic/claude-sonnet-5.5`. Verified live end to end.
+- **Real price history** (`integrations/market_data/yahoo.py`,
+  `POST /api/price-history`) — dividend-adjusted closes from Yahoo
+  Finance's public chart endpoint, cached 1h, aligned to the stock
+  trading calendar (BTC as-of joined). Portfolio tab shows a
+  portfolio-value chart (hypothetical buy-and-hold of today's weights) and
+  a "compare holdings" chart, ranges 1M–5Y, plus a per-holding return
+  column. Fails with 503 and a UI message — never partial or invented
+  prices. Verified against the live endpoint on 2026-10-04.
 
 ## MOCKED
 

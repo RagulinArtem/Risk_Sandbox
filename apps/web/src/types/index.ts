@@ -4,3 +4,5 @@ export * from "./portfolio";
 export * from "./risk";
 export * from "./scenario";
 export * from "./stressTest";
+export * from "./priceHistory";
+export * from "./committee";

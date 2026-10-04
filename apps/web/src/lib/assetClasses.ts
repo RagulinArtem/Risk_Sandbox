@@ -14,3 +14,12 @@ export const HOLDING_COLORS = ["#5C8AC7", "#8C7BD6", "#4FA3A5", "#C48A32", "#7A9
 export function assetClassLabel(assetClass: string): string {
   return ASSET_CLASS_LABEL[assetClass] ?? assetClass;
 }
+
+/** Stable color per holding (largest weight first), shared by every chart. */
+export function holdingColors(positions: { symbol: string; weight: number }[]): Record<string, string> {
+  return Object.fromEntries(
+    [...positions]
+      .sort((a, b) => b.weight - a.weight)
+      .map((p, i) => [p.symbol, HOLDING_COLORS[i % HOLDING_COLORS.length]]),
+  );
+}
