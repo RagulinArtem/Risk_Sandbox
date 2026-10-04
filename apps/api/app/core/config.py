@@ -28,7 +28,15 @@ class Settings(BaseSettings):
     bedrock_model_id: str = ""
 
     openrouter_api_key: str = ""
-    openrouter_model: str = "anthropic/claude-haiku-4.5"
+    openrouter_model: str = "anthropic/claude-sonnet-5.5"
+
+    # AI Risk Committee (OpenRouter only): three analysts from different
+    # labs, each with its own lens, plus a chair that reconciles them.
+    # Chosen on 2026-10-04 by benchmarking 8 models on the same scenarios.
+    committee_macro_model: str = "openai/gpt-6.1-sol"
+    committee_sector_model: str = "~google/gemini-pro-latest"
+    committee_cross_asset_model: str = "moonshotai/kimi-k3"
+    committee_chair_model: str = "anthropic/claude-opus-5.5"
 
     enable_polymarket: bool = False
     enable_news: bool = False

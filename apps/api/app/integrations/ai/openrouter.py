@@ -13,7 +13,7 @@ The LLM only proposes *assumptions* (per-asset shocks plus a one-line
 rationale each). Portfolio impact is still computed by the deterministic
 engine — see Principle 2 in AGENTS.md.
 
-Verified against the live API on 2026-10-04 (anthropic/claude-haiku-4.5).
+Verified against the live API on 2026-10-04.
 """
 
 import json
@@ -39,7 +39,7 @@ _ASSETS = {
 }
 _SUPPORTED_SYMBOLS = tuple(_ASSETS)
 _API_URL = "https://openrouter.ai/api/v1/chat/completions"
-_REQUEST_TIMEOUT_SECONDS = 45.0
+_REQUEST_TIMEOUT_SECONDS = 60.0
 # Guard rails on what the model may return: a shock is a fractional price
 # move over the scenario horizon, so anything below -95% or above +200% is
 # treated as a parsing/model error rather than an assumption.
@@ -99,7 +99,7 @@ _FRIENDLY_ERRORS = {
 _CODE_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
 
-def _clean_shocks(raw: object) -> dict[str, float]:
+def clean_shocks(raw: object) -> dict[str, float]:
     if not isinstance(raw, dict):
         return {}
     shocks: dict[str, float] = {}
@@ -116,7 +116,7 @@ def _clean_shocks(raw: object) -> dict[str, float]:
     return shocks
 
 
-def _clean_rationale(raw: object, symbols: dict[str, float]) -> dict[str, str]:
+def clean_rationale(raw: object, symbols: dict[str, float]) -> dict[str, str]:
     if not isinstance(raw, dict):
         return {}
     return {
@@ -126,45 +126,62 @@ def _clean_rationale(raw: object, symbols: dict[str, float]) -> dict[str, str]:
     }
 
 
+def chat_json(
+    settings: Settings,
+    model: str,
+    prompt: str,
+    *,
+    max_tokens: int = 2500,
+    reasoning_effort: str = "low",
+) -> dict:
+    """One OpenRouter chat call that must return a JSON object.
+
+    `reasoning_effort="low"` keeps reasoning models (GPT, Grok, Gemini Pro)
+    at roughly 6-13s per call instead of 25-40s, with no visible quality
+    loss on this task (benchmarked 2026-10-04)."""
+    if not settings.openrouter_api_key:
+        raise AIProviderUnavailableError(
+            "OpenRouter is not configured. Set OPENROUTER_API_KEY (and optionally "
+            "OPENROUTER_MODEL) in .env. AI_PROVIDER=mock keeps the app fully "
+            "functional offline in the meantime."
+        )
+    try:
+        response = httpx.post(
+            _API_URL,
+            headers={
+                "Authorization": f"Bearer {settings.openrouter_api_key}",
+                "Content-Type": "application/json",
+                "X-Title": "AI Portfolio Risk Copilot",
+            },
+            json={
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": max_tokens,
+                "temperature": 0.2,
+                "reasoning": {"effort": reasoning_effort},
+            },
+            timeout=_REQUEST_TIMEOUT_SECONDS,
+        )
+        if response.status_code in _FRIENDLY_ERRORS:
+            raise AIProviderUnavailableError(_FRIENDLY_ERRORS[response.status_code])
+        response.raise_for_status()
+        raw_text = response.json()["choices"][0]["message"]["content"] or ""
+        data = json.loads(_CODE_FENCE_RE.sub("", raw_text.strip()).strip())
+    except AIProviderUnavailableError:
+        raise
+    except Exception as exc:
+        raise AIProviderUnavailableError(f"OpenRouter request to {model} failed: {exc}") from exc
+    if not isinstance(data, dict):
+        raise AIProviderUnavailableError(f"{model} did not return a JSON object.")
+    return data
+
+
 class OpenRouterScenarioProvider(ScenarioAIProvider):
     def __init__(self, settings: Settings):
         self._settings = settings
 
     def _complete_json(self, prompt: str) -> dict:
-        if not self._settings.openrouter_api_key:
-            raise AIProviderUnavailableError(
-                "OpenRouter is not configured. Set OPENROUTER_API_KEY (and optionally "
-                "OPENROUTER_MODEL) in .env. AI_PROVIDER=mock keeps the app fully "
-                "functional offline in the meantime."
-            )
-        try:
-            response = httpx.post(
-                _API_URL,
-                headers={
-                    "Authorization": f"Bearer {self._settings.openrouter_api_key}",
-                    "Content-Type": "application/json",
-                    "X-Title": "AI Portfolio Risk Copilot",
-                },
-                json={
-                    "model": self._settings.openrouter_model,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": 600,
-                    "temperature": 0.2,
-                },
-                timeout=_REQUEST_TIMEOUT_SECONDS,
-            )
-            if response.status_code in _FRIENDLY_ERRORS:
-                raise AIProviderUnavailableError(_FRIENDLY_ERRORS[response.status_code])
-            response.raise_for_status()
-            raw_text = response.json()["choices"][0]["message"]["content"]
-            data = json.loads(_CODE_FENCE_RE.sub("", raw_text.strip()).strip())
-        except AIProviderUnavailableError:
-            raise
-        except Exception as exc:
-            raise AIProviderUnavailableError(f"OpenRouter request failed: {exc}") from exc
-        if not isinstance(data, dict):
-            raise AIProviderUnavailableError("OpenRouter did not return a JSON object.")
-        return data
+        return chat_json(self._settings, self._settings.openrouter_model, prompt)
 
     @property
     def _source_name(self) -> str:
@@ -177,7 +194,7 @@ class OpenRouterScenarioProvider(ScenarioAIProvider):
             )
         )
         # Older/simpler model replies are a bare {symbol: shock} mapping.
-        shocks = _clean_shocks(data.get("asset_shocks", data))
+        shocks = clean_shocks(data.get("asset_shocks", data))
         if not shocks:
             raise UnrecognizedScenarioError(text)
 
@@ -203,7 +220,7 @@ class OpenRouterScenarioProvider(ScenarioAIProvider):
                 "Portfolio impact estimated by the deterministic stress engine",
             ],
             asset_shocks=shocks,
-            shock_rationale=_clean_rationale(data.get("rationale"), shocks),
+            shock_rationale=clean_rationale(data.get("rationale"), shocks),
         )
 
     def estimate_shocks(self, scenario: Scenario) -> Scenario:
@@ -217,13 +234,13 @@ class OpenRouterScenarioProvider(ScenarioAIProvider):
                 response_format=_RESPONSE_FORMAT,
             )
         )
-        shocks = _clean_shocks(data.get("asset_shocks"))
+        shocks = clean_shocks(data.get("asset_shocks"))
         if not shocks:
             raise AIProviderUnavailableError("The AI model didn't return usable shocks.")
         return scenario.model_copy(
             update={
                 "asset_shocks": shocks,
-                "shock_rationale": _clean_rationale(data.get("rationale"), shocks),
+                "shock_rationale": clean_rationale(data.get("rationale"), shocks),
                 # An LLM's numbers are assumptions, never verified data.
                 "source_status": "illustrative",
                 "source_name": self._source_name,
