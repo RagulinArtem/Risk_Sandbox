@@ -255,7 +255,7 @@ def run_analyst(
         context=_context_block(context, market_signal),
         assets=asset_lines([p.symbol for p in context.portfolio.positions]),
     )
-    data = _complete(settings, spec["model"], prompt)
+    data, used_model = _complete(settings, spec["model"], prompt)
 
     shocks = clean_shocks(data.get("asset_shocks"))
     if not shocks:
@@ -265,7 +265,8 @@ def run_analyst(
     return AnalystView(
         seat=spec["seat"],
         label=spec["label"],
-        model=spec["model"],
+        model=used_model,
+        fallback_from=spec["model"] if used_model != spec["model"] else None,
         asset_shocks=shocks,
         rationale=clean_rationale(data.get("rationale"), shocks),
         thesis=str(data.get("thesis") or "").strip()[:_MAX_TEXT_CHARS],
@@ -348,7 +349,7 @@ def run_debate(
             own_view=json.dumps(_payload(view), indent=2), peers=json.dumps(peers, indent=2),
         )
         try:
-            data = _complete(settings, spec["model"], prompt)
+            data, _ = _complete(settings, view.model, prompt)
         except AIProviderUnavailableError as exc:
             logger.warning("Rebuttal for %s failed: %s", view.seat, exc)
             return _fallback_revision(view)
@@ -444,7 +445,7 @@ def run_chair(
         context=_context_block(request, market_signal),
         views=views_json,
     )
-    data = _complete(settings, spec["model"], prompt)
+    data, used_model = _complete(settings, spec["model"], prompt)
 
     shocks = clean_shocks(data.get("consensus") or data.get("asset_shocks"))
     if not shocks:
@@ -454,7 +455,8 @@ def run_chair(
     chair_view = AnalystView(
         seat="chair",
         label=spec["label"],
-        model=spec["model"],
+        model=used_model,
+        fallback_from=spec["model"] if used_model != spec["model"] else None,
         asset_shocks=shocks,
         rationale=clean_rationale(data.get("consensus_rationale"), shocks),
         thesis=str(data.get("verdict") or "").strip()[:_MAX_TEXT_CHARS],
@@ -487,13 +489,35 @@ def extract_commentary(chair_data: dict) -> dict:
     }
 
 
-def _complete(settings: Settings, model: str, prompt: str) -> dict:
-    """complete_json with the committee's per-seat model id and reasoning
-    effort."""
-    return complete_json(
-        settings,
-        prompt,
-        model=model,
-        max_tokens=900,
-        reasoning_effort=_OPENROUTER_REASONING_EFFORT,
-    )
+# Errors a retry or another model can't fix: stop instead of burning calls.
+_FATAL_MARKERS = ("(401", "(402", "not configured")
+
+
+def _complete(settings: Settings, model: str, prompt: str) -> tuple[dict, str]:
+    """complete_json for one committee seat, resilient to a single model
+    misbehaving: the seat's model gets one retry (most failures are a
+    truncated or malformed JSON reply), then the fallback models are tried
+    in order. Returns (data, model that actually answered).
+
+    max_tokens was 900, which truncated 15-asset answers mid-string
+    ("Unterminated string ..."); 4000 leaves room for reasoning tokens."""
+    fallbacks = [m.strip() for m in settings.committee_fallback_models.split(",") if m.strip()]
+    chain = [model, model, *[m for m in fallbacks if m != model]]
+    last: AIProviderUnavailableError | None = None
+    for candidate in chain:
+        try:
+            data = complete_json(
+                settings,
+                prompt,
+                model=candidate,
+                max_tokens=4000,
+                reasoning_effort=_OPENROUTER_REASONING_EFFORT,
+            )
+            return data, candidate
+        except AIProviderUnavailableError as exc:
+            last = exc
+            logger.warning("Committee call to %s failed: %s", candidate, exc)
+            if any(marker in str(exc) for marker in _FATAL_MARKERS):
+                break
+    assert last is not None
+    raise last

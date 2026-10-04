@@ -29,7 +29,16 @@ export function useCountUp(from: number, to: number, runKey: unknown, durationMs
     };
     setValue(from);
     frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    // Safety net: if frames are throttled or frozen (some projector or
+    // screen-sharing setups do this), still land exactly on the result.
+    const settle = window.setTimeout(() => {
+      cancelAnimationFrame(frame);
+      setValue(to);
+    }, durationMs + 100);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(settle);
+    };
     // runKey (a new result object per Run) is what replays the animation
   }, [runKey, from, to, durationMs]);
   return value;

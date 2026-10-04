@@ -42,14 +42,10 @@ class Settings(BaseSettings):
     committee_sector_model: str = "~google/gemini-pro-latest"
     committee_cross_asset_model: str = "moonshotai/kimi-k3"
     committee_chair_model: str = "anthropic/claude-opus-5.5"
+    # Tried in order when a seat's model fails (bad/truncated JSON, timeout,
+    # provider error). Different labs again, fast and reliable at JSON.
+    committee_fallback_models: str = "anthropic/claude-sonnet-5.5,google/gemini-3.8-flash"
 
-    # AI Risk Committee roster — one seat per lens, different labs on
-    # purpose (shared-lab models tend to share blind spots). Override any
-    # seat via env if a model id changes or a provider is unavailable.
-    committee_macro_model: str = "openai/gpt-6.1-sol"
-    committee_sector_model: str = "~google/gemini-pro-latest"
-    committee_cross_asset_model: str = "moonshotai/kimi-k3"
-    committee_chair_model: str = "anthropic/claude-opus-5.5"
 
     enable_polymarket: bool = False
     enable_news: bool = False

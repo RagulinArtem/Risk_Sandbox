@@ -75,7 +75,8 @@ class AnalystView(BaseModel):
 
     seat: str
     label: str
-    model: str
+    model: str  # the model that actually answered
+    fallback_from: str | None = None  # set when the seat's own model failed
     asset_shocks: dict[str, float]
     rationale: dict[str, str] = {}
     thesis: str = ""

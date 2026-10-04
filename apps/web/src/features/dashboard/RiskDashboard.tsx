@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ScenarioBadge, ScenarioBanner } from "../../components/ScenarioArt";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
 import { api } from "../../lib/apiClient";
@@ -19,21 +20,6 @@ import { useAssets } from "../portfolio/useAssets";
 import { useScenarioExposure } from "../portfolio/useScenarioExposure";
 import { DashboardActions } from "./DashboardActions";
 import { QuickWhatIf } from "./QuickWhatIf";
-
-const SCENARIO_ART: Record<string, { icon: string; wash: string }> = {
-  macro: { icon: "↗", wash: "from-blue-100 to-indigo-50 text-blue-700" },
-  rates: { icon: "%", wash: "from-violet-100 to-purple-50 text-violet-700" },
-  market: { icon: "⌁", wash: "from-rose-100 to-orange-50 text-rose-700" },
-  credit: { icon: "◫", wash: "from-amber-100 to-yellow-50 text-amber-700" },
-  geopolitical: { icon: "◎", wash: "from-cyan-100 to-blue-50 text-cyan-700" },
-  "historical-crisis": { icon: "↘", wash: "from-rose-100 to-pink-50 text-rose-700" },
-  "historical-macro": { icon: "◷", wash: "from-slate-200 to-slate-50 text-slate-700" },
-  "historical-geopolitical": { icon: "◇", wash: "from-teal-100 to-cyan-50 text-teal-700" },
-};
-
-function scenarioArt(category: string) {
-  return SCENARIO_ART[category] ?? { icon: "✦", wash: "from-indigo-100 to-blue-50 text-indigo-700" };
-}
 
 function ArcGauge({
   value,
@@ -209,7 +195,6 @@ export function RiskDashboard({
           <div className="mt-6 space-y-3">
             {critical.map((item) => {
               const scenario = scenarioById.get(item.scenario_id);
-              const art = scenarioArt(scenario?.category ?? "market");
               return (
                 <button
                   key={item.scenario_id}
@@ -217,9 +202,7 @@ export function RiskDashboard({
                   onClick={() => onOpenScenario(item.scenario_id)}
                   className="group flex w-full items-center gap-3 rounded-2xl bg-surface px-3 py-3 text-left transition hover:bg-surface-higher"
                 >
-                  <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br text-base font-bold ${art.wash}`}>
-                    {art.icon}
-                  </span>
+                  <ScenarioBadge scenarioId={item.scenario_id} category={scenario?.category} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold group-hover:text-accent">{item.title}</span>
                     <span className="mt-0.5 block text-xs text-ink-tertiary">
@@ -291,7 +274,6 @@ export function RiskDashboard({
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {quickScenarios.map((item) => {
             const scenario = scenarioById.get(item.scenario_id);
-            const art = scenarioArt(scenario?.category ?? "market");
             return (
               <button
                 key={item.scenario_id}
@@ -299,12 +281,7 @@ export function RiskDashboard({
                 onClick={() => onOpenScenario(item.scenario_id)}
                 className="group overflow-hidden rounded-[1.75rem] border border-line bg-surface-raised text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:border-line-strong hover:shadow-card"
               >
-                <div className={`relative h-28 overflow-hidden bg-gradient-to-br ${art.wash}`}>
-                  <div className="absolute -right-4 -top-8 text-[8rem] font-black leading-none opacity-10">{art.icon}</div>
-                  <div className="absolute bottom-4 left-5 grid h-12 w-12 place-items-center rounded-2xl bg-white/80 text-xl font-bold shadow-sm backdrop-blur">
-                    {art.icon}
-                  </div>
-                </div>
+                <ScenarioBanner scenarioId={item.scenario_id} category={scenario?.category} />
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-3">
                     <span className="rounded-full bg-surface px-2.5 py-1 text-[11px] font-semibold capitalize text-ink-secondary">
