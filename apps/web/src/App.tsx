@@ -1,22 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell, type AppView } from "./components/AppShell";
 import { ErrorBanner } from "./components/ErrorBanner";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { AssetDrawer } from "./features/asset/AssetDrawer";
 import { LoadingLine } from "./components/LoadingLine";
 import { RiskDashboard } from "./features/dashboard/RiskDashboard";
-import { PortfolioOverview } from "./features/portfolio/PortfolioOverview";
 import { usePortfolio } from "./features/portfolio/usePortfolio";
 import { RiskFeed } from "./features/risk-feed/RiskFeed";
-import { RiskRadar } from "./features/risk-radar/RiskRadar";
 import { RiskBriefPanel } from "./features/risk-brief/RiskBriefPanel";
 import { ScenarioComparison } from "./features/scenario-comparison/ScenarioComparison";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
 import { SettingsPanel } from "./features/settings/SettingsPanel";
 import { useAiStatus } from "./features/scenarios/useAiStatus";
 import { CommitteePanel } from "./features/stress-test/CommitteePanel";
-import { MarketStressPanel } from "./features/stress-test/MarketStressPanel";
-import { StressTestResult } from "./features/stress-test/StressTestResult";
 import { MitigationSandbox } from "./features/mitigation/MitigationSandbox";
 import { RiskReport } from "./features/report/RiskReport";
 import { ApiError, api } from "./lib/apiClient";
@@ -27,6 +22,25 @@ import type {
   Scenario,
   StressTestResult as StressTestResultType,
 } from "./types";
+
+// Chart-heavy views are loaded only when the user opens them. Besides making
+// the home cockpit faster, this keeps an optional chart dependency from
+// blocking the whole application shell on constrained delivery paths.
+const AssetDrawer = lazy(() =>
+  import("./features/asset/AssetDrawer").then((module) => ({ default: module.AssetDrawer })),
+);
+const PortfolioOverview = lazy(() =>
+  import("./features/portfolio/PortfolioOverview").then((module) => ({ default: module.PortfolioOverview })),
+);
+const RiskRadar = lazy(() =>
+  import("./features/risk-radar/RiskRadar").then((module) => ({ default: module.RiskRadar })),
+);
+const MarketStressPanel = lazy(() =>
+  import("./features/stress-test/MarketStressPanel").then((module) => ({ default: module.MarketStressPanel })),
+);
+const StressTestResult = lazy(() =>
+  import("./features/stress-test/StressTestResult").then((module) => ({ default: module.StressTestResult })),
+);
 
 type View = AppView;
 type RisksView = "feed" | "library" | "radar";
@@ -401,21 +415,22 @@ export default function App() {
           />
         )}
 
-        {view === "portfolio" && activePortfolio && (
-          <PortfolioOverview
-            key={portfolio?.id}
-            portfolio={activePortfolio}
-            showHero={false}
-            onOpenScenario={selectScenario}
-            onSelectAsset={setAssetSymbol}
-            onSeeRisks={() => {
-              setRisksView("feed");
-              setView("risks");
-            }}
-            onWeightChange={handleWeightChange}
-            onResetPortfolio={handleResetPortfolio}
-          />
-        )}
+        <Suspense fallback={<LoadingLine label="Loading view…" />}>
+          {view === "portfolio" && activePortfolio && (
+            <PortfolioOverview
+              key={portfolio?.id}
+              portfolio={activePortfolio}
+              showHero={false}
+              onOpenScenario={selectScenario}
+              onSelectAsset={setAssetSymbol}
+              onSeeRisks={() => {
+                setRisksView("feed");
+                setView("risks");
+              }}
+              onWeightChange={handleWeightChange}
+              onResetPortfolio={handleResetPortfolio}
+            />
+          )}
 
         {view === "risks" && (
           <div className="space-y-6">
@@ -555,17 +570,20 @@ export default function App() {
           <RiskReport portfolio={portfolio} selectedScenario={scenario} />
         )}
 
-        {view === "settings" && <SettingsPanel />}
+          {view === "settings" && <SettingsPanel />}
+        </Suspense>
       </AppShell>
 
       {assetSymbol && portfolio && (
         <ErrorBoundary resetKey={assetSymbol} fallback={null}>
-          <AssetDrawer
-            symbol={assetSymbol}
-            portfolio={portfolio}
-            isLiveAi={isLiveAi}
-            onClose={closeAsset}
-          />
+          <Suspense fallback={null}>
+            <AssetDrawer
+              symbol={assetSymbol}
+              portfolio={portfolio}
+              isLiveAi={isLiveAi}
+              onClose={closeAsset}
+            />
+          </Suspense>
         </ErrorBoundary>
       )}
     </>

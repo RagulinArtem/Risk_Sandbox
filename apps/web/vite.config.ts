@@ -11,17 +11,20 @@ export default defineConfig({
     // and do not need to be downloaded as part of the application shell.
     rollupOptions: {
       output: {
-        // `r2` intentionally invalidates asset URLs from the earlier
-        // uncompressed deployment; those responses were cacheable for a year.
-        entryFileNames: "assets/[name]-r2-[hash].js",
-        chunkFileNames: "assets/[name]-r2-[hash].js",
-        assetFileNames: "assets/[name]-r2-[hash][extname]",
+        // The release token intentionally invalidates asset URLs from earlier
+        // deployments; those immutable responses are cacheable for a year.
+        entryFileNames: "assets/[name]-r3-[hash].js",
+        chunkFileNames: "assets/[name]-r3-[hash].js",
+        assetFileNames: "assets/[name]-r3-[hash][extname]",
         manualChunks(id) {
           if (id.indexOf("node_modules") === -1) return undefined;
           if (id.indexOf("/react/") !== -1 || id.indexOf("/react-dom/") !== -1 || id.indexOf("/scheduler/") !== -1) {
             return "react-vendor";
           }
-          if (id.indexOf("/recharts/") !== -1) return "recharts";
+          // Let Rollup place Recharts alongside the lazy chart views. Its
+          // modules are tightly connected, so folder-based manual splitting
+          // creates circular chunks and can break initialization order.
+          if (id.indexOf("/recharts/") !== -1) return undefined;
           if (id.indexOf("/d3-") !== -1 || id.indexOf("/victory-vendor/") !== -1) return "chart-math";
           return "vendor";
         },
