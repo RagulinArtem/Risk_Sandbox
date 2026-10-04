@@ -20,7 +20,7 @@ export function HoldingsTable({
     <div className="overflow-x-auto">
       <table className="w-full min-w-[680px] text-sm">
         <thead>
-          <tr className="border-b border-line font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+          <tr className="border-b border-line font-mono text-xs uppercase tracking-wider text-ink-tertiary">
             <th className="py-2 pr-4 text-left font-normal">Holding</th>
             <th className="py-2 pr-4 text-left font-normal">Category</th>
             <th className="py-2 pr-4 text-left font-normal">Weight</th>

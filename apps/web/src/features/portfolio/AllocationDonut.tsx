@@ -53,7 +53,7 @@ export function AllocationDonut({
           </PieChart>
         </ResponsiveContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
             Total
           </div>
           <div className="font-mono text-lg text-ink">
