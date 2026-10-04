@@ -9,6 +9,7 @@ export interface RiskRadarItem {
   summary: string;
   portfolio_relevance: PortfolioRelevance;
   probability_signal: string | null;
+  probability_value: number | null;
   source_status: SourceStatus;
   source_name: string | null;
   source_url: string | null;

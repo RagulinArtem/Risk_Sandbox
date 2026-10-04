@@ -32,7 +32,7 @@ export function Tabs<T extends string>({
           >
             {tab.label}
             {tab.hint && (
-              <span className="ml-2 font-mono text-[11px] text-ink-tertiary">{tab.hint}</span>
+              <span className="ml-2 font-mono text-xs text-ink-tertiary">{tab.hint}</span>
             )}
           </button>
         );

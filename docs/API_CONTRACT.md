@@ -36,6 +36,17 @@ Returns one `Scenario`, or `404` if unknown.
   horizon: string;
   transmission: string[];
   asset_shocks: Record<string, number>;  // symbol -> signed decimal shock
+  shock_rationale: Record<string, string>;
+  unavailable_assets: string[];
+  references: { title: string; url: string }[];
+  window: { start: string; end: string } | null;
+  risk_drivers: {
+    driver: string;
+    label: string;
+    direction: "negative" | "positive" | "mixed";
+    importance: "low" | "medium" | "high";
+  }[];  // explanatory metadata, never calibrated betas
+  assumption_source: "scenario" | "historical" | "ai_estimate" | "user_edited";
 }
 ```
 
@@ -225,7 +236,8 @@ is skipped for that request rather than failing the whole endpoint.
   category: string;
   summary: string;
   portfolio_relevance: "low" | "medium" | "high";
-  probability_signal: string | null;   // real number from a live source, or null
+  probability_signal: string | null;   // display label from a live source, or null
+  probability_value: number | null;    // numeric 0..1 value from that source, or null
   source_status: "illustrative" | "verified" | "live";
   source_name: string | null;          // e.g. "Polymarket" — null for local demo data
   source_url: string | null;
@@ -243,6 +255,111 @@ with `category: "live-market"`, `source_status: "live"`, a real
 illustrative scenario whose `asset_shocks` a stress test against that
 signal will use — the probability is real, the impact magnitude stays an
 explicit, editable, illustrative assumption.
+
+## Event-driven risk cockpit
+
+All impact values below are computed by the existing deterministic stress
+engine. Decimal percentages use the same convention as `StressTestResult`
+(`-0.184` means `-18.4%`).
+
+### `POST /api/scenario-comparison`
+
+Request: `{ portfolio: Portfolio; scenario_ids?: string[] | null }`. Omit
+`scenario_ids` for every library scenario; an explicit empty list returns an
+empty comparison. Unknown ids return 404.
+
+Response:
+
+```ts
+{
+  portfolio_value: number;
+  scenarios: {
+    scenario_id: string; title: string; source_status: SourceStatus; horizon: string;
+    risk_drivers: Scenario["risk_drivers"];
+    impact_value: number; impact_pct: number; stressed_value: number;
+    largest_negative_contributor: AssetImpact | null;
+    asset_contributions: AssetImpact[];
+  }[];
+  asset_symbols: string[];
+  worst_scenario: { scenario_id; title; impact_pct; impact_value } | null;
+  most_vulnerable_asset: { symbol; total_downside_value; downside_scenario_count } | null;
+  severe_scenario_count: number;
+  most_recurring_downside_contributor: { symbol; scenario_count } | null;
+  severe_threshold_pct: number;
+}
+```
+
+### `POST /api/risk-drivers`
+
+Request: `{ portfolio: Portfolio }`.
+
+Response: `{ drivers: ModeledRiskDriver[]; methodology: string }`, where each
+driver contains `driver`, `label`, categorical `level`, scenario/downside
+counts, `worst_impact_pct`, `average_downside_pct`, `affected_symbols` and the
+contributing scenarios. The taxonomy is explainable scenario metadata, not a
+statistical factor model.
+
+### `POST /api/risk-attention`
+
+Request: `{ portfolio: Portfolio }`.
+
+Response:
+
+```ts
+{
+  points: {
+    signal_id; event_title; scenario_id; scenario_title;
+    probability_value: number; probability_label: string;
+    impact_pct: number; absolute_impact_pct: number; impact_value: number;
+    source_name: string; source_url: string | null; retrieved_at: string | null;
+    source_status: SourceStatus; scenario_source_status: SourceStatus;
+  }[];
+  without_probability: { scenario_id; title; impact_pct; source_status: SourceStatus }[];
+  methodology: string;
+}
+```
+
+Only a real numeric `probability_value` becomes a point. The service does not
+multiply probability by impact or invent a value for local scenarios.
+
+### `POST /api/mitigation/compare`
+
+Request: `{ original_portfolio: Portfolio; hypothetical_portfolio: Portfolio;
+scenario_ids?: string[] | null }`. Currency and total value must match and each
+portfolio independently passes normal weight validation.
+
+Response contains scenario rows with before/after impact, percentage-point
+change and dollar values; worst before/after scenarios; largest downside
+reduction; reduced/increased/unchanged counts; before/after largest and
+top-three concentration; and a neutral deterministic summary.
+
+### `POST /api/performance-attribution`
+
+Request: `{ portfolio: Portfolio; range?: "1mo" | "3mo" | "6mo" | "1y" |
+"2y" | "5y" }`.
+
+Response contains the period, start/end dates, each holding's current weight,
+real price return, approximate return/dollar contribution, aggregate return and
+Yahoo provenance. This is current-weight buy-and-hold contribution, not
+transaction-level attribution. Missing data returns 503; no partial or invented
+series is returned.
+
+### `POST /api/risk-brief`
+
+Request: `{ portfolio; scenario; committee?: CommitteeVerdict | null;
+probability_signal?: RiskRadarItem | null; use_ai?: boolean }`.
+
+The backend always recomputes `result: StressTestResult`. The response adds
+`generated_by`, optional model, prose fields, signals to watch and
+component-level `evidence`. OpenRouter may write prose only; with mock/offline AI
+the endpoint returns a complete deterministic fallback.
+
+### `POST /api/risk-summary`
+
+Request: `{ portfolio: Portfolio }`. Response exposes the worst scenario,
+largest concentration, most vulnerable holding, dominant modeled driver,
+high-impact threshold/count, live event count and methodology. It intentionally
+does not return a composite risk score.
 
 ## `GET /api/ai/status`
 

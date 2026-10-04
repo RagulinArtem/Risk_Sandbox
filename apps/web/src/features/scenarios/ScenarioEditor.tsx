@@ -36,6 +36,14 @@ export function ScenarioEditor({
   const symbols = Object.keys(scenario.asset_shocks);
   const rationale = scenario.shock_rationale ?? {};
   const hasRationale = Object.keys(rationale).length > 0;
+  const assumptionCaption =
+    scenario.assumption_source === "user_edited"
+      ? "user-edited assumptions"
+      : scenario.assumption_source === "ai_estimate"
+        ? "AI-estimated, not a forecast"
+        : scenario.assumption_source === "historical"
+          ? "historical market window"
+          : ASSUMPTIONS_CAPTION[scenario.source_status];
 
   return (
     <div className="border border-line">
@@ -47,7 +55,7 @@ export function ScenarioEditor({
           </div>
           <p className="mt-1 max-w-2xl text-sm text-ink-secondary">{scenario.description}</p>
           {scenario.source_name && (
-            <p className="mt-2 font-mono text-[11px] text-ink-tertiary">
+            <p className="mt-2 font-mono text-xs text-ink-tertiary">
               Source:{" "}
               {scenario.source_url ? (
                 <a
@@ -65,13 +73,13 @@ export function ScenarioEditor({
             </p>
           )}
         </div>
-        <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           Horizon {scenario.horizon}
         </div>
       </div>
 
       {(scenario.references?.length || scenario.unavailable_assets?.length) ? (
-        <div className="space-y-2 border-b border-line px-5 py-3 text-[11px] text-ink-tertiary">
+        <div className="space-y-2 border-b border-line px-5 py-3 text-xs text-ink-tertiary">
           {scenario.unavailable_assets && scenario.unavailable_assets.length > 0 && (
             <p>
               No market price in this window for {scenario.unavailable_assets.join(", ")}: shown as
@@ -93,7 +101,7 @@ export function ScenarioEditor({
       ) : null}
 
       <div className="border-b border-line px-5 py-4">
-        <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <div className="mb-2 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           Transmission
         </div>
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-ink-secondary">
@@ -104,15 +112,28 @@ export function ScenarioEditor({
             </li>
           ))}
         </ol>
+        {scenario.risk_drivers.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {scenario.risk_drivers.map((driver) => (
+              <span
+                key={driver.driver}
+                className="border border-accent/30 px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-accent-strong"
+                title={`${driver.direction} direction · ${driver.importance} scenario importance`}
+              >
+                {driver.label} · {driver.importance}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="px-5 py-4">
         <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+          <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
             Scenario Assumptions (editable)
           </div>
-          <div className="font-mono text-[11px] text-ink-tertiary">
-            {hasRationale ? "AI-estimated, not a forecast" : ASSUMPTIONS_CAPTION[scenario.source_status]}
+          <div className="font-mono text-xs text-ink-tertiary">
+            {assumptionCaption}
           </div>
         </div>
 

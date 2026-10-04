@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.schemas.scenario import SourceStatus
 
@@ -23,6 +23,7 @@ class RiskSignal(BaseModel):
     retrieved_at: str | None = None
     scenario_id: str
     probability_signal: str | None = None
+    probability_value: float | None = Field(default=None, ge=0.0, le=1.0)
 
 
 class RiskRadarItem(BaseModel):
@@ -38,6 +39,7 @@ class RiskRadarItem(BaseModel):
     summary: str
     portfolio_relevance: PortfolioRelevance
     probability_signal: str | None = None
+    probability_value: float | None = Field(default=None, ge=0.0, le=1.0)
     source_status: SourceStatus
     source_name: str | None = None
     source_url: str | None = None

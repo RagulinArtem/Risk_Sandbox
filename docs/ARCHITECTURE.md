@@ -4,13 +4,15 @@
 
 ```mermaid
 flowchart LR
-    A[Risk Sources] --> B[Risk Discovery]
-    B --> C[Scenario Service]
-    D[Portfolio] --> E[Stress Engine]
-    C --> E
-    E --> F[Impact Decomposition]
-    F --> G[AI Explanation]
-    G --> H[Dashboard]
+    A[Event / Market Signals] --> B[Risk Radar]
+    D[Portfolio] --> C[Modeled Risk Drivers]
+    B --> C
+    C --> E[Scenario Engine]
+    D --> E
+    E --> F[Impact + Comparison]
+    F --> G[Risk Brief + Evidence]
+    G --> H[Mitigation What-if]
+    H --> I[User Decision]
 ```
 
 The platform stops at the dashboard. No step automatically acts on the
@@ -47,7 +49,7 @@ flowchart TB
 | `apps/api/app/domain/risk/engine.py` | Deterministic stress math (`StressEngine` / `DirectAssetShockEngine`) | Call an LLM, do I/O |
 | `apps/api/app/domain/portfolio/` | Portfolio-shape helpers (concentration) | Duplicate engine math |
 | `apps/api/app/domain/scenarios/loader.py` | Load scenario JSON files into `Scenario` models | Know about HTTP |
-| `apps/api/app/services/` | Orchestrate domain + integrations for a use case (`stress_test_service`, `scenario_service`, `risk_radar_service`, `portfolio_service`) | Contain the actual math |
+| `apps/api/app/services/` | Orchestrate domain + integrations for a use case (`stress_test_service`, `scenario_comparison_service`, `risk_driver_service`, `risk_attention_service`, `mitigation_service`, `performance_attribution_service`, `risk_brief_service`) | Reimplement stress math or hide provenance |
 | `apps/api/app/integrations/ai/` | `ScenarioAIProvider`: text → structured `Scenario` assumptions | Compute portfolio impact |
 | `apps/api/app/integrations/risk_sources/` | `RiskSource`: produce `RiskSignal`s with provenance | Fabricate data |
 | `apps/api/app/api/routes/` | HTTP layer: request/response, status codes | Contain business logic |
@@ -97,6 +99,29 @@ MVP; don't build it before P0 is demo-stable (`ROADMAP.md`).
    no I/O.
 4. The `StressTestResult` is returned as-is; the frontend only formats and
    charts it.
+
+## Risk cockpit aggregation
+
+- Scenario comparison is batch orchestration over `StressTestService`; it does
+  not contain an alternative impact formula.
+- Modeled risk drivers join scenario metadata from `data/risk_factors.json`
+  with deterministic scenario results. Driver levels are explicit categorical
+  heuristics, not a statistical factor model.
+- Risk attention joins `RiskRadarService` signals to scenario results. A point
+  exists only when the source supplied a numeric probability; probability and
+  absolute impact remain separate dimensions.
+- Mitigation runs the original and hypothetical portfolios through the same
+  comparison service, then describes the difference without optimizing weights.
+- Performance attribution delegates price retrieval/alignment to the existing
+  Yahoo-backed price-history path. It is current-weight buy-and-hold analysis,
+  not transaction-level manager attribution.
+- Risk briefs always recompute the supplied scenario through
+  `DirectAssetShockEngine`. OpenRouter may write prose from those results, but a
+  deterministic fallback is complete on its own.
+
+The cockpit endpoints live together in `api/routes/cockpit.py`; their typed
+wire models live in `schemas/cockpit.py`. React feature folders mirror product
+areas and never aggregate financial values themselves.
 
 ## Offline-first
 

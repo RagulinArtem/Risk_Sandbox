@@ -16,7 +16,7 @@ const STYLE: Record<SourceStatus, string> = {
 export function StatusBadge({ status }: { status: SourceStatus }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 border px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wider ${STYLE[status]}`}
+      className={`inline-flex items-center gap-1.5 border px-1.5 py-0.5 font-mono text-xs uppercase tracking-wider ${STYLE[status]}`}
     >
       <span className="h-1.5 w-1.5 rounded-full bg-current" />
       {LABEL[status]}

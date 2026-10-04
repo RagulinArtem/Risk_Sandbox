@@ -4,6 +4,7 @@ from pathlib import Path
 from app.core.config import get_settings
 from app.domain.scenarios.loader import load_scenarios_from_dir
 from app.schemas.scenario import Scenario
+from app.services.risk_factor_catalog import driver_refs_for_scenario
 
 
 class ScenarioNotFoundError(LookupError):
@@ -26,7 +27,22 @@ class ScenarioService:
 
     def _ensure_loaded(self) -> dict[str, Scenario]:
         if self._scenarios is None:
-            self._scenarios = load_scenarios_from_dir(self._scenarios_dir)
+            loaded = load_scenarios_from_dir(self._scenarios_dir)
+            self._scenarios = {
+                scenario_id: scenario.model_copy(
+                    update={
+                        "risk_drivers": (
+                            scenario.risk_drivers or driver_refs_for_scenario(scenario)
+                        ),
+                        "assumption_source": (
+                            "historical"
+                            if scenario.source_status == "verified" and scenario.window
+                            else "scenario"
+                        ),
+                    }
+                )
+                for scenario_id, scenario in loaded.items()
+            }
         return self._scenarios
 
     def list_scenarios(self) -> list[Scenario]:

@@ -21,8 +21,9 @@ why — in under a minute.
 ## Core product loop
 
 ```
-Risk Sources → Risk Discovery → Portfolio Relevance → Scenario Builder
-  → Stress Engine → Impact Decomposition → AI Explanation → User Decision
+Portfolio → Modeled Risk Drivers
+Event / Market Signal → Risk Radar → Scenario Engine → Portfolio Stress
+  → Impact / Comparison → Risk Brief → Mitigation What-if → User Decision
 ```
 
 The loop stops at "User Decision." Nothing downstream acts automatically.
@@ -48,19 +49,24 @@ optimized to generate buy/sell signals, and the MVP has no concept of
    model, and pretending otherwise would undercut Principle 3 (no fake
    precision).
 
-## Current MVP
+## Current product
 
-Offline, deterministic, single demo portfolio, five illustrative
-scenarios, rule-based free-text scenario parsing. See
-`docs/CURRENT_STATE.md` for the exact list.
+An offline-first event-driven portfolio risk cockpit: multiple selectable
+demo portfolios, 23 illustrative/verified scenarios, a batch scenario surface,
+explainable modeled risk drivers, source-aware Risk Attention Map, deterministic
+stress/attribution, an evidence-backed Risk Brief and a manual Mitigation
+Sandbox. Live Polymarket, Yahoo and OpenRouter integrations add data or prose
+when available without becoming prerequisites. See `docs/CURRENT_STATE.md` for
+the exact list.
 
 ## Future vision
 
-Live risk discovery from prediction markets (Polymarket), institutional
-research (Fed/IMF), and financial news, feeding the same scenario builder
-and stress engine — provenance-tracked throughout (`docs/DATA_SOURCES.md`).
-A factor-based stress engine (`FactorStressEngine`, not yet built) for
-more realistic cross-asset propagation.
+More complete live risk discovery from prediction markets, institutional
+research (Fed/IMF), and financial news, feeding the same scenario builder and
+stress engine — provenance-tracked throughout (`docs/DATA_SOURCES.md`). A
+properly researched factor-based stress engine (`FactorStressEngine`, not yet
+built) could later add cross-asset propagation without changing the current
+categorical risk-driver contract.
 
 ## Possible directions beyond the hackathon
 

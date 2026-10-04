@@ -1,10 +1,25 @@
 # Current State
 
-Source of truth for what's actually built, as of the initial bootstrap
-(2026-09-30). Update this when you complete or start a meaningful feature —
-don't let it drift from reality.
+Source of truth for what's actually built, updated 2026-10-04. Update this
+when you complete or start a meaningful feature — don't let it drift from
+reality.
 
 ## WORKING
+
+- **Navigation (2026-10-04): three steps for first-time viewers.**
+  1. **① Overview:** hero card with 3 facts, then holdings, performance,
+     and everything else under "More analytics". The facts:
+     - effective independent bets on real returns;
+     - worst real crisis replayed;
+     - worst scenario a live market is tracking, with the market's own
+       probability shown as context and never multiplied in.
+  2. **② What could hurt it:** Live signals (Risk Feed) / Scenario
+     library / Risk radar.
+  3. **③ Stress test:** scenario and result → AI committee → risk brief →
+     "What if I change the allocation?" (mitigation).
+
+  **Report** is a header button. Old deep links (`#feed`, `#radar`,
+  `#scenarios`, `#mitigation`) still resolve.
 
 - **Demo portfolios** (`GET /api/portfolios`, `/api/portfolio/demo`). The
   primary is the **Global Multi-Asset Risk Portfolio**: 15 holdings across
@@ -19,13 +34,10 @@ don't let it drift from reality.
   for the 9 new assets in illustrative scenarios are illustrative. In the
   verified 2022 scenario they are real 2022 total returns (see
   `docs/research/2022-rate-hike-selloff.md`).
-- 6 demo scenarios (`GET /api/scenarios`, `GET /api/scenarios/{id}`) —
-  semiconductor supply shock, interest rate shock, oil supply disruption,
-  technology correction, global recession (all `source_status:
-  "illustrative"`), plus one **verified** historical scenario benchmarked
-  against real full-year-2022 asset returns during the Fed's rate-hiking
-  cycle, with a real citation and full per-asset sourcing in
-  `docs/research/2022-rate-hike-selloff.md`.
+- 23 scenarios (`GET /api/scenarios`, `GET /api/scenarios/{id}`): 14
+  forward-looking illustrative scenarios and 9 verified historical episodes.
+  Historical scenarios preserve their event window, references and unavailable
+  assets; the underlying research lives in `docs/research/`.
 - Deterministic stress engine (`DirectAssetShockEngine`) — flat per-asset
   shock applied to position value, no cross-asset correlation.
 - `POST /api/stress-test` — accepts a known `scenario_id` or arbitrary
@@ -40,19 +52,53 @@ don't let it drift from reality.
   Bitcoin / broad-market clauses with a stated percentage, combines
   multiple clauses, and returns a full illustrative `Scenario`. Gracefully
   reports "not recognized" otherwise.
-- Frontend, split into three tabs (`#portfolio`, `#radar`, `#stress`):
-  - **Portfolio** — KPIs (incl. worst modelled scenario), allocation donut
-    by holding, allocation by asset type, holdings table (names/types from
-    `GET /api/assets`), and a "scenario exposure" ranking that runs every
-    library scenario through `POST /api/stress-test` — click one to open it.
-  - **Risk Radar** — compact list; "Stress Test →" opens the Stress Test tab.
-  - **Stress Test** — scenario dropdown + "What if…?" input + editable
-    assumptions on the left, result (headline impact, contribution chart,
-    "why this matters") on the right.
-  All wired to the live API, no mock data or impact math in the frontend.
-- 99 backend tests passing; `ruff check` clean; frontend `typecheck` +
-  `lint` + `build` clean. Full user flow verified in an actual browser
-  (Risk Radar → scenario → stress test → custom "what if").
+- Frontend, split into seven coherent tabs:
+  - **Portfolio** — existing allocation/performance views plus transparent risk
+    summary, current-weight buy-and-hold contribution, modeled risk drivers and
+    batch scenario exposure.
+  - **Risk Feed** — portfolio-filtered, source-health-aware live feed from the
+    free sources documented below, with scenario/history links.
+  - **Risk Radar** — source-aware event list and Risk Attention Map. Only live
+    signals with a real numeric probability enter the plot; every other
+    scenario remains visible under "No live probability signal".
+  - **Scenarios** — comparison matrix/heatmap across every scenario and every
+    holding, with worst scenario, vulnerable holding, severe count and recurring
+    downside contributor. A row opens the existing Stress Test workflow.
+  - **Stress Test** — existing editable scenario and deterministic attribution,
+    now followed by a Risk Brief and component-level evidence/provenance panel.
+  - **Mitigation** — manual hypothetical weights, normalization/reset and the
+    same-engine before/after comparison across scenarios, with neutral wording.
+  - **Report** — print/share-friendly portfolio risk brief with top risks,
+    comparison, drivers, selected scenario and evidence.
+  All financial calculations remain in the backend; the frontend only renders
+  typed API responses.
+- **Scenario comparison** (`POST /api/scenario-comparison`) batches the existing
+  `DirectAssetShockEngine` path and returns exact portfolio/holding impacts plus
+  transparent headline summaries. An explicit empty scenario list stays empty.
+- **Explainable risk drivers** (`POST /api/risk-drivers`) use the hand-maintained
+  taxonomy in `data/risk_factors.json`. Direction and importance are categorical
+  scenario metadata, not factor betas, probabilities or calibrated confidence.
+- **Risk Attention Map** (`POST /api/risk-attention`) keeps external probability
+  and deterministic absolute scenario impact on separate axes. It never
+  multiplies them or fabricates a missing probability, and preserves signal and
+  scenario provenance.
+- **Mitigation comparison** (`POST /api/mitigation/compare`) validates like-for-
+  like portfolios and computes both sides through the same stress engine. It
+  reports downside changes and concentration; it does not optimize or recommend
+  trades.
+- **Risk Brief and evidence** (`POST /api/risk-brief`) recomputes the result
+  deterministically and can use OpenRouter only for prose. Offline mode returns
+  a complete deterministic brief. Evidence uses named categories rather than a
+  made-up confidence score.
+- **Lightweight performance attribution** (`POST /api/performance-attribution`)
+  uses real Yahoo adjusted closes and current weights. If any holding lacks a
+  complete series, the whole request fails explicitly instead of filling data.
+- **Portfolio risk summary** (`POST /api/risk-summary`) exposes individual,
+  auditable metrics instead of an arbitrary composite score.
+- 111 backend tests passing; `ruff check` clean; frontend `typecheck` + `lint` +
+  production `build` clean. The complete offline flow has been exercised in the
+  browser, including comparison drill-down, provenance and a manual mitigation
+  change. Yahoo-backed attribution was also verified while available.
 - CORS, structured error responses (422 for validation, 404 for unknown
   scenario, generic safe 500 for anything unexpected — never a raw
   stack trace).

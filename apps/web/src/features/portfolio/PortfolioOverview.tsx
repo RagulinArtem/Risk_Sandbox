@@ -1,14 +1,19 @@
 import { type ReactNode, useState } from "react";
 import { ErrorBanner } from "../../components/ErrorBanner";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 import { LoadingLine } from "../../components/LoadingLine";
-import { formatShortDate, formatSignedPercent } from "../../lib/format";
+import { formatShortDate } from "../../lib/format";
 import type { Portfolio, PriceRange } from "../../types";
 import { AllocationDonut } from "./AllocationDonut";
 import { AssetClassBreakdown } from "./AssetClassBreakdown";
+import { HeroSummary } from "./HeroSummary";
 import { HoldingsTable } from "./HoldingsTable";
 import { PerformanceChart } from "./PerformanceChart";
 import { PortfolioSummary } from "./PortfolioSummary";
+import { PerformanceAttribution } from "./PerformanceAttribution";
+import { RiskSummaryPanel } from "./RiskSummaryPanel";
 import { ScenarioExposureChart } from "./ScenarioExposureChart";
+import { ModeledRiskExposure } from "../risk-drivers/ModeledRiskExposure";
 import { useAssets } from "./useAssets";
 import { usePriceHistory } from "./usePriceHistory";
 import { useScenarioExposure } from "./useScenarioExposure";
@@ -17,7 +22,7 @@ function Panel({ title, note, children }: { title: string; note?: string; childr
   return (
     <section className="min-w-0 border border-line bg-surface-raised/40 p-5">
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">{title}</h2>
+        <h2 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">{title}</h2>
         {note && <span className="text-xs text-ink-tertiary">{note}</span>}
       </div>
       {children}
@@ -29,32 +34,30 @@ export function PortfolioOverview({
   portfolio,
   onOpenScenario,
   onSelectAsset,
+  onSeeRisks,
 }: {
   portfolio: Portfolio;
   onOpenScenario: (scenarioId: string) => void;
   onSelectAsset: (symbol: string) => void;
+  onSeeRisks: () => void;
 }) {
   const assets = useAssets();
   const { exposures, error, loading } = useScenarioExposure(portfolio);
-  const worst = exposures[0];
   const [range, setRange] = useState<PriceRange>("1y");
   const prices = usePriceHistory(portfolio, range);
 
   return (
     <div className="space-y-6">
-      <PortfolioSummary
-        portfolio={portfolio}
-        extraStat={
-          worst
-            ? {
-                label: "Worst Modelled Scenario",
-                value: formatSignedPercent(worst.result.estimated_impact_pct),
-                tone: "negative",
-                caption: worst.scenario.title,
-              }
-            : undefined
-        }
-      />
+      <ErrorBoundary resetKey={portfolio.id} fallback={null}>
+        <HeroSummary
+          portfolio={portfolio}
+          exposures={exposures}
+          onOpenScenario={onOpenScenario}
+          onSeeRisks={onSeeRisks}
+        />
+      </ErrorBoundary>
+
+      <PortfolioSummary portfolio={portfolio} />
 
       <Panel title="Holdings" note="Click a holding for asset intelligence">
         <HoldingsTable
@@ -91,6 +94,28 @@ export function PortfolioOverview({
         )}
       </Panel>
 
+      <details className="group border border-line bg-surface-raised/20">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm text-ink-secondary hover:text-ink">
+          <span>
+            <span className="font-medium text-ink">More analytics</span>
+            <span className="ml-2 text-ink-tertiary">
+              risk summary, every scenario ranked, allocation, attribution, risk drivers
+            </span>
+          </span>
+          <span className="font-mono text-ink-tertiary transition-transform group-open:rotate-90">›</span>
+        </summary>
+        <div className="space-y-6 border-t border-line p-5">
+      <Panel title="Portfolio Risk Summary" note="Transparent metrics · no composite risk score">
+        <RiskSummaryPanel portfolio={portfolio} />
+      </Panel>
+
+      <Panel
+        title="Buy-and-hold Performance Attribution"
+        note="Current weights · not transaction-level attribution"
+      >
+        <PerformanceAttribution portfolio={portfolio} />
+      </Panel>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Allocation by Holding">
           <AllocationDonut portfolio={portfolio} onSelect={onSelectAsset} />
@@ -108,6 +133,12 @@ export function PortfolioOverview({
         )}
       </Panel>
 
+      <Panel title="Modeled Risk Exposure" note="Explainable drivers · not statistical factors">
+        <ModeledRiskExposure portfolio={portfolio} />
+      </Panel>
+
+        </div>
+      </details>
     </div>
   );
 }

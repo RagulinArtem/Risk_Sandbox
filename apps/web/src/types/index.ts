@@ -7,3 +7,5 @@ export * from "./stressTest";
 export * from "./priceHistory";
 export * from "./committee";
 export * from "./riskFeed";
+export * from "./cockpit";
+export * from "./insights";
