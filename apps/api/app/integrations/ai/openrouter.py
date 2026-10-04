@@ -115,6 +115,25 @@ Give a value for every asset (0 if genuinely unaffected). Ground magnitudes \
 in comparable historical episodes and each asset's typical sensitivity; \
 don't exaggerate."""
 
+# Every user-facing sentence any model writes follows this. Our users are
+# everyday people checking their own savings, not finance professionals.
+PLAIN_LANGUAGE = """WRITING STYLE for every text field you return:
+- Your readers are everyday people checking their own savings, not finance \
+professionals. Write in plain English that a 12-year-old could follow.
+- Short sentences (under 20 words). One idea per sentence.
+- No jargon. Do NOT use words like: stagflation, stagflationary, drawdown, \
+hedge, duration, beta, risk-off, multiple compression, credit spreads, basis \
+points, tail risk, liquidity, consensus. Say it simply instead, e.g. "prices \
+rise while the economy slows", "a fall in value", "protection", "what most \
+analysts agree on".
+- Name holdings plainly first, then the ticker: "Nvidia (NVDA)", "long-term US \
+government bonds (TLT)", "gold (GLD)", "Bitcoin (BTC)", "cash-like T-bills (BIL)".
+- Say what it means for the reader's money. Never tell them to buy or sell.
+- Never state the whole portfolio's gain or loss as a number (no "about 8%", \
+no "$8,400"): the app calculates that exactly and shows it next to your text. \
+Per-holding moves and the historical figures you were given are fine."""
+
+
 _PARSE_PROMPT = """You are a portfolio risk analyst. Turn a plain-English market \
 scenario into illustrative percentage price shocks for these assets:
 {assets}
@@ -128,6 +147,7 @@ Infer the rest from how the scenario would transmit through markets.
 Also include "title" (max 8 words), "horizon" (one of "30d", "90d", "1y") and \
 "transmission" (3-5 short steps describing how the shock spreads to markets) \
 in the same JSON object."""
+_PARSE_PROMPT += "\n\n" + PLAIN_LANGUAGE
 
 _ESTIMATE_PROMPT = """You are a portfolio risk analyst. Estimate illustrative \
 price shocks for these assets under the scenario below:
@@ -140,6 +160,7 @@ Transmission:
 {transmission}
 
 {response_format}"""
+_ESTIMATE_PROMPT += "\n\n" + PLAIN_LANGUAGE
 
 # Real LLMs frequently wrap JSON in a markdown code fence even when told
 # not to — strip ```json ... ``` / ``` ... ``` before parsing rather than
@@ -208,7 +229,7 @@ def complete_json(
     prompt: str,
     *,
     model: str | None = None,
-    max_tokens: int = 600,
+    max_tokens: int = 3000,  # 15 assets x shock + rationale needs >1k tokens
     temperature: float = 0.2,
     reasoning_effort: str | None = None,
 ) -> dict:

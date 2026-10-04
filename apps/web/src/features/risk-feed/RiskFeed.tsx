@@ -7,9 +7,9 @@ import { useRiskFeed } from "./useRiskFeed";
 
 const TIER_LABEL: Record<number, string> = {
   1: "Official",
-  2: "Newswire",
-  3: "Aggregator",
-  4: "Market signal",
+  2: "News wire",
+  3: "News site",
+  4: "Prediction market",
 };
 
 const TIER_STYLE: Record<number, string> = {
@@ -113,7 +113,7 @@ function FeedCard({
             onClick={() => onStressTest(a.suggested_scenario!.id)}
             className="block w-full border border-accent/60 px-2.5 py-1.5 text-left text-xs text-accent-strong hover:bg-accent/10"
           >
-            Stress test: {a.suggested_scenario.title}
+            What would it do to me? {a.suggested_scenario.title}
             <span className="ml-1 font-mono text-risk-negative-strong">
               {formatSignedPercent(a.suggested_scenario.impact_pct)}
             </span>
@@ -122,7 +122,7 @@ function FeedCard({
         {a.history.length > 0 && (
           <div>
             <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-              Same risk in history (real data)
+              When this happened before
             </div>
             <ul className="space-y-0.5">
               {a.history.map((h) => (
@@ -148,7 +148,7 @@ function FeedCard({
             onClick={() => onDraft(item.title)}
             className="text-xs text-ink-tertiary underline decoration-line-strong underline-offset-2 hover:text-ink-secondary"
           >
-            Draft a scenario from this with AI
+            Turn this headline into a scenario with AI
           </button>
         )}
       </div>

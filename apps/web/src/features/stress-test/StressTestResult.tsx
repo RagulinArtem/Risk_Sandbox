@@ -17,7 +17,7 @@ export function StressTestResult({
     <div className="space-y-8">
       <div>
         <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-          {scenarioTitle ?? result.scenario_title} · Estimated Stress Impact
+          {scenarioTitle ?? result.scenario_title} · what it could do to your money
         </div>
         <div
           className={`mt-2 font-mono text-5xl font-semibold tabular-nums ${
@@ -33,7 +33,7 @@ export function StressTestResult({
         <div className="mt-5 flex flex-wrap gap-x-10 gap-y-3 border-t border-line pt-4">
           <div>
             <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-              Initial Value
+              Your portfolio today
             </div>
             <div className="mt-1 font-mono text-lg text-ink">
               {formatCurrency(result.initial_value)}
@@ -41,7 +41,7 @@ export function StressTestResult({
           </div>
           <div>
             <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-              Stressed Portfolio Value
+              It would be worth
             </div>
             <div className="mt-1 font-mono text-lg text-ink">
               {formatCurrency(result.stressed_value)}
@@ -50,7 +50,7 @@ export function StressTestResult({
           {result.biggest_negative_contributor && (
             <div>
               <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-                Largest Downside Contributor
+                Biggest drag
               </div>
               <div className="mt-1 font-mono text-lg text-risk-negative-strong">
                 {result.biggest_negative_contributor.symbol}{" "}
@@ -87,7 +87,7 @@ export function StressTestResult({
 
       <div>
         <div className="mb-3 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-          Contribution by Holding
+          Gain or loss by holding
         </div>
         <ContributionChart assetImpacts={result.asset_impacts} />
       </div>

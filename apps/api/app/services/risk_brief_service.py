@@ -4,12 +4,12 @@ import logging
 from app.core.config import get_settings
 from app.domain.risk.engine import DirectAssetShockEngine
 from app.integrations.ai.base import AIProviderUnavailableError
-from app.integrations.ai.openrouter import chat_json
+from app.integrations.ai.openrouter import PLAIN_LANGUAGE, chat_json
 from app.schemas.cockpit import EvidenceItem, RiskBriefRequest, RiskBriefResponse
 
 logger = logging.getLogger(__name__)
 
-_BRIEF_PROMPT = """You are writing a concise institutional portfolio risk brief.
+_BRIEF_PROMPT = """You are writing a short, plain-English risk note for an everyday investor.
 Use ONLY the supplied deterministic metrics and scenario metadata. Do not calculate,
 alter or introduce portfolio numbers. Do not recommend trades.
 
@@ -26,6 +26,7 @@ Return ONLY JSON with these prose fields:
   "signals_to_watch": ["0-3 concise items from supplied committee watch items only"]
 }}
 """
+_BRIEF_PROMPT += "\n\n" + PLAIN_LANGUAGE
 
 
 def _pct(value: float) -> str:

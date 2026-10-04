@@ -74,8 +74,22 @@ export function ScenarioEditor({
           )}
         </div>
         <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-          Horizon {scenario.horizon}
+          Time frame: {scenario.horizon}
         </div>
+      </div>
+
+      <div className="border-b border-line px-5 py-4">
+        <button
+          type="button"
+          onClick={onRun}
+          disabled={running}
+          className="w-full bg-accent px-5 py-3 text-base font-semibold text-surface transition-colors hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {running ? "Analyzing…" : "Analyze this scenario"}
+        </button>
+        <p className="mt-2 text-center text-xs text-ink-tertiary">
+          Calculates what it would mean for your money, then asks a team of AI analysts to explain it.
+        </p>
       </div>
 
       {(scenario.references?.length || scenario.unavailable_assets?.length) ? (
@@ -102,7 +116,7 @@ export function ScenarioEditor({
 
       <div className="border-b border-line px-5 py-4">
         <div className="mb-2 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-          Transmission
+          How it could play out
         </div>
         <ol className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-ink-secondary">
           {scenario.transmission.map((step, i) => (
@@ -127,10 +141,14 @@ export function ScenarioEditor({
         )}
       </div>
 
-      <div className="px-5 py-4">
-        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <details className="group px-5 py-4">
+        <summary className="flex cursor-pointer list-none items-center justify-between text-sm text-ink-secondary hover:text-ink">
+          <span>Adjust the assumptions (optional): how much each holding moves</span>
+          <span className="font-mono text-ink-tertiary transition-transform group-open:rotate-90">›</span>
+        </summary>
+        <div className="mb-2 mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
-            Scenario Assumptions (editable)
+            Assumed price move per holding (editable)
           </div>
           <div className="font-mono text-xs text-ink-tertiary">
             {assumptionCaption}
@@ -195,15 +213,7 @@ export function ScenarioEditor({
           </tbody>
         </table>
 
-        <button
-          type="button"
-          onClick={onRun}
-          disabled={running}
-          className="mt-4 w-full border border-accent bg-accent/10 px-4 py-2.5 text-sm font-medium text-accent-strong transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-        >
-          {running ? "Running Stress Test…" : "Run Stress Test"}
-        </button>
-      </div>
+      </details>
     </div>
   );
 }

@@ -151,8 +151,8 @@ class PriceMoveConnector(FeedConnector):
                     source="Yahoo Finance prices",
                     tier=4,
                     kind="price",
-                    title=f"{symbol} {verb} {abs(last):.1%} on {day:%b %d} "
-                    f"({abs(last) / sigma:.1f}σ vs. its 1-year daily volatility)",
+                    title=f"{symbol} {verb} {abs(last):.1%} on {day:%b %d}, "
+                    f"about {abs(last) / sigma:.1f}x its usual daily move",
                     url=f"https://finance.yahoo.com/quote/{yahoo.yahoo_ticker(symbol)}",
                     published_at=datetime(day.year, day.month, day.day, 21, tzinfo=UTC).isoformat(),
                     tickers=[symbol],
@@ -285,13 +285,13 @@ def assess(item: FeedItem, portfolio: Portfolio) -> AssessedItem:
             * (0.35 + 0.65 * (0.5 if item.kind == "market" else _recency(item.published_at)))
         )
 
-    reasons = [f"Tier {item.tier} source"]
+    reasons = [{1: "Official source", 2: "News wire", 3: "News site", 4: "Market signal"}[item.tier]]
     if held:
         reasons.append(
-            f"touches {', '.join(h.symbol for h in held[:5])} ({exposure_weight:.0%} of portfolio)"
+            f"affects {', '.join(h.symbol for h in held[:5])} ({exposure_weight:.0%} of your money)"
         )
     if factors:
-        reasons.append("factor: " + ", ".join(f.label for f in factors[:2]))
+        reasons.append("topic: " + ", ".join(f.label for f in factors[:2]))
 
     suggested, history = _links(factors, portfolio)
     return AssessedItem(

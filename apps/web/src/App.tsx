@@ -257,11 +257,11 @@ export default function App() {
     return `Portfolio weights must sum to 100% (currently ${(total * 100).toFixed(1)}%). Adjust them in the Portfolio tab or reset to the demo portfolio.`;
   }, [activePortfolio, portfolioWeightsValid]);
 
-  const runStressTest = useCallback(async () => {
-    if (!scenario || !activePortfolio) return;
+  const runStressTest = useCallback(async (): Promise<boolean> => {
+    if (!scenario || !activePortfolio) return false;
     if (weightSumMessage) {
       setRunError(weightSumMessage);
-      return;
+      return false;
     }
     setRunning(true);
     setRunError(null);
@@ -277,12 +277,29 @@ export default function App() {
       requestAnimationFrame(() => {
         resultRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       });
+      return true;
     } catch (err) {
       setRunError(err instanceof ApiError ? err.message : "Failed to run stress test.");
+      return false;
     } finally {
       setRunning(false);
     }
   }, [scenario, activePortfolio, weightSumMessage]);
+
+  // The one button: impact first (instant, deterministic), then the AI
+  // committee explains it. Progress is shown step by step in the panel.
+  const [committeeToken, setCommitteeToken] = useState(0);
+  const [engineState, setEngineState] = useState<"idle" | "running" | "done" | "error">("idle");
+  useEffect(() => {
+    setEngineState("idle");
+  }, [scenario?.id, scenario?.title]);
+
+  const analyze = useCallback(async () => {
+    setEngineState("running");
+    const ok = await runStressTest();
+    setEngineState(ok ? "done" : "error");
+    if (ok && isLiveAi) setCommitteeToken((t) => t + 1);
+  }, [runStressTest, isLiveAi]);
 
   const runMarketStress = useCallback(
     async (
@@ -451,7 +468,7 @@ export default function App() {
                 onSelect={selectScenario}
                 onParsed={handleParsed}
                 onShockChange={handleShockChange}
-                onRun={runStressTest}
+                onRun={analyze}
                 ai={
                   isLiveAi
                     ? {
@@ -489,6 +506,8 @@ export default function App() {
                   portfolio={activePortfolio}
                   onUseConsensus={handleUseConsensus}
                   onVerdict={handleCommitteeVerdict}
+                  autoRunToken={committeeToken}
+                  engine={engineState}
                 />
               )}
             </div>

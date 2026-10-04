@@ -21,17 +21,42 @@ const CONFIDENCE_STYLE: Record<string, string> = {
   high: "text-risk-positive border-risk-positive/40",
 };
 
+// What each seat is doing, in words a jury understands.
+const ACTIVITY: Record<string, string> = {
+  macro: "Studying interest rates, inflation and the dollar",
+  sector: "Studying company earnings and supply chains",
+  cross_asset: "Comparing with past crises: 2008, 2020, 2022…",
+};
+
+type StepStatus = "waiting" | "running" | "done" | "error";
+
+function StepIcon({ status }: { status: StepStatus }) {
+  if (status === "done") return <span className="text-risk-positive">✓</span>;
+  if (status === "error") return <span className="text-risk-negative-strong">✕</span>;
+  if (status === "running")
+    return (
+      <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-accent border-t-transparent motion-reduce:animate-none" />
+    );
+  return <span className="inline-block h-2 w-2 rounded-full bg-line-strong" />;
+}
+
 export function CommitteePanel({
   scenario,
   portfolio,
   onUseConsensus,
   onVerdict,
+  autoRunToken = 0,
+  engine = "idle",
 }: {
   scenario: Scenario | null;
   portfolio: Portfolio | null;
   onUseConsensus: (shocks: Record<string, number>, rationale: Record<string, string>) => void;
   /** Optional: lets the parent keep the verdict (e.g. to feed the risk brief). */
   onVerdict?: (verdict: CommitteeVerdict) => void;
+  /** Bump to start the committee from outside (the one-click "Analyze" button). */
+  autoRunToken?: number;
+  /** Status of the deterministic stress test, shown as the first step. */
+  engine?: "idle" | "running" | "done" | "error";
 }) {
   const [roster, setRoster] = useState<CommitteeRoster | null>(null);
   const [seatStates, setSeatStates] = useState<Record<string, SeatState>>({});
@@ -56,10 +81,8 @@ export function CommitteePanel({
     };
   }, []);
 
-  if (!roster?.enabled) return null;
-
   const convene = async () => {
-    if (!scenario || !portfolio) return;
+    if (!scenario || !portfolio || !roster?.enabled) return;
     const runId = ++runIdRef.current;
     setConvening(true);
     setVerdict(null);
@@ -127,6 +150,62 @@ export function CommitteePanel({
     }
   };
 
+  // One-click analysis: the parent bumps autoRunToken after the stress test.
+  const lastToken = useRef(0);
+  useEffect(() => {
+    if (autoRunToken > lastToken.current && roster?.enabled) {
+      lastToken.current = autoRunToken;
+      void convene();
+    }
+    // convene reads the latest scenario/portfolio from this render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRunToken, roster?.enabled]);
+
+  if (!roster?.enabled) return null;
+
+  const seatStatus = (seat: string): StepStatus => {
+    const st = seatStates[seat]?.status;
+    return st === "pending" ? "running" : st === "done" ? "done" : st === "error" ? "error" : "waiting";
+  };
+  const allSeatsSettled =
+    roster.seats.length > 0 && roster.seats.every((s) => ["done", "error"].includes(seatStates[s.seat]?.status ?? ""));
+  const chairStatus: StepStatus = verdict
+    ? "done"
+    : verdictMessage
+      ? "error"
+      : convening && allSeatsSettled
+        ? "running"
+        : "waiting";
+  const showProgress = engine !== "idle" || convening || verdict !== null || verdictMessage !== null;
+  const steps: { key: string; title: string; detail: string; status: StepStatus; model?: string; note?: string }[] = [
+    {
+      key: "engine",
+      title: "Portfolio impact",
+      detail: "Deterministic engine applies the scenario to every holding",
+      status: engine === "running" ? "running" : engine === "done" ? "done" : engine === "error" ? "error" : "waiting",
+    },
+    ...roster.seats.map((seat) => {
+      const view = seatStates[seat.seat]?.view;
+      return {
+        key: seat.seat,
+        title: seat.label,
+        detail: ACTIVITY[seat.seat] ?? seat.lens,
+        status: seatStatus(seat.seat),
+        model: view?.model ?? seat.model,
+        note: view?.fallback_from
+          ? `${view.fallback_from.replace(/^~/, "")} failed; answered by backup model`
+          : undefined,
+      };
+    }),
+    {
+      key: "chair",
+      title: roster.chair.label || "Committee chair",
+      detail: "Reconciling the three views and checking them against history",
+      status: chairStatus,
+      model: verdict ? undefined : roster.chair.model,
+    },
+  ];
+
   const maxAbsImpact = Math.max(
     0.0001,
     ...(verdict?.view_impacts ?? []).map((v) => Math.abs(v.impact_pct)),
@@ -135,22 +214,47 @@ export function CommitteePanel({
 
   return (
     <div className="mt-10 border-t border-line pt-8">
+      {showProgress && (
+        <ol className="mb-6 space-y-2 border border-accent/30 bg-accent/5 p-4" aria-label="Analysis progress">
+          {steps.map((step) => (
+            <li key={step.key} className="flex items-start gap-3">
+              <span className="mt-1 flex w-4 justify-center"><StepIcon status={step.status} /></span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className={`text-sm font-medium ${step.status === "waiting" ? "text-ink-tertiary" : "text-ink"}`}>
+                    {step.title}
+                  </span>
+                  {step.model && (
+                    <span className="font-mono text-xs text-ink-tertiary">{step.model.replace(/^~/, "")}</span>
+                  )}
+                </div>
+                <div className="text-xs text-ink-secondary">
+                  {step.status === "running" ? `${step.detail}…` : step.detail}
+                </div>
+                {step.note && <div className="text-xs text-risk-warning">{step.note}</div>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
       <div className="mb-3 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-base font-semibold text-ink">AI Risk Committee</h2>
           <p className="mt-1 max-w-2xl text-sm text-ink-secondary">
-            Three models from three labs argue independently; a chair from a fourth reconciles
-            them. The engine computes every portfolio number.
+            Three AI analysts from different companies look at this independently. A fourth
+            sums up what it means for you. The money figures come from our calculator, not the AI.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={convene}
-          disabled={!scenario || !portfolio || convening}
-          className="border border-accent bg-accent/10 px-4 py-2 text-sm font-medium text-accent-strong transition-colors hover:bg-accent/20 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {convening ? "Committee deliberating…" : "Convene the committee"}
-        </button>
+        {(verdict || verdictMessage) && !convening && (
+          <button
+            type="button"
+            onClick={convene}
+            disabled={!scenario || !portfolio}
+            className="text-xs text-ink-tertiary underline decoration-line-strong underline-offset-2 hover:text-ink-secondary"
+          >
+            Ask the committee again
+          </button>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -168,7 +272,7 @@ export function CommitteePanel({
                   <span
                     className={`border px-1.5 py-0.5 font-mono text-[10px] uppercase ${CONFIDENCE_STYLE[view.confidence] ?? CONFIDENCE_STYLE.medium}`}
                   >
-                    {view.confidence}
+                    {view.confidence} confidence
                   </span>
                 )}
               </div>
@@ -182,7 +286,7 @@ export function CommitteePanel({
                 )}
                 {state.status === "pending" && (
                   <p className="animate-pulse font-mono text-xs text-ink-tertiary">
-                    Deliberating…
+                    Thinking…
                   </p>
                 )}
                 {state.status === "error" && (
@@ -193,7 +297,7 @@ export function CommitteePanel({
                     <p className="text-sm text-ink-secondary">{view.thesis}</p>
                     {view.key_risk && (
                       <p className="text-xs text-ink-tertiary">
-                        <span className="text-risk-negative-strong">Key risk:</span> {view.key_risk}
+                        <span className="text-risk-negative-strong">What could make it worse:</span> {view.key_risk}
                       </p>
                     )}
                     <ul className="space-y-1">
@@ -211,7 +315,7 @@ export function CommitteePanel({
                     {view.rationale && Object.keys(view.rationale).length > 0 && (
                       <details className="text-xs text-ink-tertiary">
                         <summary className="cursor-pointer font-mono text-[10px] uppercase tracking-wider">
-                          Rationale
+                          Why, holding by holding
                         </summary>
                         <ul className="mt-1 space-y-1">
                           {Object.entries(view.rationale).map(([symbol, why]) => (
@@ -225,7 +329,7 @@ export function CommitteePanel({
                     {view.analogues.length > 0 && (
                       <div className="space-y-1">
                         <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
-                          Anchored on (real episodes)
+                          Compared with
                         </div>
                         {view.analogues.map((a) => (
                           <p key={a.id} className="text-xs text-ink-secondary">
@@ -253,14 +357,14 @@ export function CommitteePanel({
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4">
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <h3 className="text-base font-semibold text-ink">Chair's Verdict</h3>
+                <h3 className="text-base font-semibold text-ink">The bottom line</h3>
                 <span className="font-mono text-[10px] text-ink-tertiary">
                   {roster.chair.model}
                 </span>
                 <span
                   className={`border px-1.5 py-0.5 font-mono text-[10px] uppercase ${CONFIDENCE_STYLE[verdict.confidence] ?? CONFIDENCE_STYLE.medium}`}
                 >
-                  {verdict.confidence}
+                  {verdict.confidence} confidence
                 </span>
               </div>
               <p className="mt-2 max-w-3xl text-sm text-ink-secondary">{verdict.verdict}</p>
@@ -270,13 +374,13 @@ export function CommitteePanel({
               onClick={() => onUseConsensus(verdict.consensus, verdict.consensus_rationale)}
               className="border border-accent bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent-strong transition-colors hover:bg-accent/20"
             >
-              Use consensus in the stress test
+              Use this view in the calculator above
             </button>
           </div>
 
           <div className="border-b border-line px-5 py-4">
             <div className="mb-3 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
-              Portfolio impact by model · computed by the engine
+              What each AI's view would mean for your money
             </div>
             <div className="space-y-2">
               {[...verdict.view_impacts, verdict.consensus_impact].map((impact) => {
@@ -288,7 +392,7 @@ export function CommitteePanel({
                       className={`truncate text-xs ${isConsensus ? "font-semibold text-ink" : "text-ink-secondary"}`}
                       title={`${impact.label} · ${impact.model}`}
                     >
-                      {isConsensus ? "Consensus" : impact.label.split(" ")[0]}
+                      {isConsensus ? "Combined view" : impact.label.split(" ")[0]}
                     </div>
                     <div className="h-3 bg-surface-raised">
                       <div
@@ -310,7 +414,7 @@ export function CommitteePanel({
           <div className="grid gap-6 px-5 py-4 md:grid-cols-3">
             <div>
               <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
-                Insights for this portfolio
+                What this means for you
               </div>
               <ul className="space-y-1.5 text-sm text-ink-secondary">
                 {verdict.insights.map((insight, i) => (
@@ -320,7 +424,7 @@ export function CommitteePanel({
             </div>
             <div>
               <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
-                Where they disagreed
+                Where the AIs disagreed
               </div>
               <ul className="space-y-1.5 text-sm text-ink-secondary">
                 {verdict.disagreements.length > 0 ? (
@@ -347,7 +451,7 @@ export function CommitteePanel({
           {Object.keys(verdict.shock_ranges).length > 0 && (
             <div className="border-t border-line px-5 py-4">
               <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
-                Analyst spread per asset · min/max across views
+                Range of guesses per holding (lowest to highest)
               </div>
               <div className="flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs text-ink-secondary">
                 {Object.entries(verdict.shock_ranges).map(([asset, range]) => (
@@ -362,7 +466,7 @@ export function CommitteePanel({
           {verdict.historical.length > 0 && (
             <div className="border-t border-line px-5 py-4">
               <div className="mb-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
-                How this portfolio fared in similar real episodes
+                How your portfolio did in similar real events
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[560px] text-sm">
@@ -371,7 +475,7 @@ export function CommitteePanel({
                       <th className="py-1.5 pr-4 text-left font-normal">Episode</th>
                       <th className="py-1.5 pr-4 text-right font-normal">This portfolio</th>
                       <th className="py-1.5 text-left font-normal">
-                        Why it&apos;s similar / how today differs
+                        Why it&apos;s similar / what&apos;s different now
                       </th>
                     </tr>
                   </thead>
@@ -397,7 +501,7 @@ export function CommitteePanel({
                           </div>
                         </td>
                         <td className="py-2 text-xs leading-relaxed text-ink-secondary">
-                          {h.why} <span className="text-ink-tertiary">Today: {h.difference}</span>
+                          {h.why} <span className="text-ink-tertiary">What&apos;s different now: {h.difference}</span>
                         </td>
                       </tr>
                     ))}
@@ -405,15 +509,15 @@ export function CommitteePanel({
                 </table>
               </div>
               <p className="mt-2 text-xs text-ink-tertiary">
-                Impacts replay each episode&apos;s real asset returns on today&apos;s weights
-                through the same engine. The comparison text is the chair&apos;s interpretation.
+                Each figure replays what really happened to these assets then, on your
+                holdings today. The comparison text is the AI&apos;s interpretation.
               </p>
             </div>
           )}
 
           <div className="border-t border-line px-5 py-3 font-mono text-[11px] text-ink-tertiary">
-            AI-estimated assumptions, not a forecast — every impact figure above is deterministic
-            engine output. Not investment advice.
+            The AI&apos;s guesses are not a forecast. Every money figure comes from our calculator.
+            This is not investment advice.
           </div>
         </div>
       )}

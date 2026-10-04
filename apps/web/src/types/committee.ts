@@ -39,7 +39,10 @@ export interface HistoricalComparison {
 export interface AnalystView {
   seat: string;
   label: string;
+  /** The model that actually answered. */
   model: string;
+  /** Set when the seat's own model failed and a backup answered. */
+  fallback_from?: string | null;
   asset_shocks: Record<string, number>;
   rationale: Record<string, string>;
   thesis: string;

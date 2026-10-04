@@ -9,7 +9,7 @@ rest on the SPY comparison alone.
 
 from app.core.config import Settings
 from app.integrations.ai.base import AIProviderUnavailableError
-from app.integrations.ai.openrouter import chat_json
+from app.integrations.ai.openrouter import PLAIN_LANGUAGE, chat_json
 from app.schemas.asset import Asset
 from app.schemas.move_drivers import Driver, ObservedMove
 from app.schemas.news import NewsItem
@@ -47,6 +47,7 @@ Respond with ONLY a JSON object:
   "insufficient": false
 }}
 At most 3 drivers."""
+_PROMPT += "\n\n" + PLAIN_LANGUAGE
 
 
 def explain_move(
