@@ -247,6 +247,21 @@ The stress engine still does all impact math.
 (one sentence per symbol) that LLM-produced scenarios fill in; library
 scenarios leave it empty.
 
+## AI Risk Committee — `/api/ai/committee`
+
+Needs `AI_PROVIDER=openrouter`; otherwise analyst/verdict calls return 503.
+
+- `GET /api/ai/committee` → `CommitteeRoster`: `{ analysts: CommitteeMember[3]; chair: CommitteeMember }`,
+  where `CommitteeMember = { role: "macro" | "sector" | "cross_asset" | "chair"; label; focus; model }`.
+- `POST /api/ai/committee/analyst` `{ scenario, portfolio, role }` → `AnalystView`:
+  `{ role, label, model, thesis, key_risk, confidence: "low"|"medium"|"high", asset_shocks, rationale, latency_ms }`.
+  The browser calls the three roles in parallel so each card fills in as it lands.
+- `POST /api/ai/committee/verdict` `{ scenario, portfolio, views: AnalystView[] }` → `CommitteeVerdict`:
+  `{ scenario (consensus shocks + shock_rationale), chair_model, verdict, insights[3], disagreements[], watch[],
+  confidence, shock_ranges: Record<symbol, {min, max}>, view_impacts: {label, model, estimated_impact_pct,
+  estimated_impact_value}[], consensus_result: StressTestResult, latency_ms }`.
+  `shock_ranges`, `view_impacts` and `consensus_result` are computed by the deterministic engine, not the LLM.
+
 ## Error shape
 
 Unhandled server errors: `500 { "detail": "Internal server error." }` —

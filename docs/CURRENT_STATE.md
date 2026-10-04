@@ -39,7 +39,7 @@ don't let it drift from reality.
     assumptions on the left, result (headline impact, contribution chart,
     "why this matters") on the right.
   All wired to the live API, no mock data or impact math in the frontend.
-- 57 backend tests passing; `ruff check` clean; frontend `typecheck` +
+- 62 backend tests passing; `ruff check` clean; frontend `typecheck` +
   `lint` + `build` clean. Full user flow verified in an actual browser
   (Risk Radar → scenario → stress test → custom "what if").
 - CORS, structured error responses (422 for validation, 404 for unknown
@@ -66,9 +66,20 @@ don't let it drift from reality.
   in the Stress Test editor, with "Restore original numbers"). Output is
   validated (known symbols only, −95%…+200%) and always labelled
   `illustrative`. HTTP 401/402/403/429 map to actionable messages.
-  Plain parsing was verified live on 2026-10-04 (claude-haiku-4.5 via the
-  Hostkey proxy); the richer prompt and estimate endpoint are unit-tested
-  only — the OpenRouter account ran out of credits before a live check.
+  Verified live on 2026-10-04.
+- **AI Risk Committee** (`integrations/ai/committee.py`,
+  `services/committee_service.py`, Stress Test tab) — three analysts on
+  models from different labs (macro & rates: `openai/gpt-6.1-sol`; sector
+  & earnings: `~google/gemini-pro-latest`; cross-asset & history:
+  `moonshotai/kimi-k3`) estimate shocks with a thesis, tail risk and
+  confidence; `anthropic/claude-opus-5.5` chairs, reconciles, and writes
+  the verdict, 3 portfolio insights, disagreements and signals to watch.
+  The engine computes each model's portfolio impact, the consensus impact
+  and per-asset ranges. "Use consensus in the stress test" applies it.
+  Models picked by benchmarking 8 OpenRouter models on the same scenarios
+  (2026-10-04); reasoning effort "low" keeps a full run at ~25-35s and
+  ~$0.04. Single-model default (What if / Estimate) is now
+  `anthropic/claude-sonnet-5.5`. Verified live end to end.
 - **Real price history** (`integrations/market_data/yahoo.py`,
   `POST /api/price-history`) — dividend-adjusted closes from Yahoo
   Finance's public chart endpoint, cached 1h, aligned to the stock

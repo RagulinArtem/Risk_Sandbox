@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "./components/ErrorBanner";
+import { CommitteePanel } from "./features/committee/CommitteePanel";
 import { LoadingLine } from "./components/LoadingLine";
 import { type TabDef, Tabs } from "./components/Tabs";
 import { PortfolioOverview } from "./features/portfolio/PortfolioOverview";
@@ -9,7 +10,11 @@ import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
 import { useAiStatus } from "./features/scenarios/useAiStatus";
 import { StressTestResult } from "./features/stress-test/StressTestResult";
 import { ApiError, api } from "./lib/apiClient";
-import type { Scenario, StressTestResult as StressTestResultType } from "./types";
+import type {
+  CommitteeVerdict,
+  Scenario,
+  StressTestResult as StressTestResultType,
+} from "./types";
 
 type View = "portfolio" | "radar" | "stress";
 
@@ -99,6 +104,13 @@ export default function App() {
       setEstimating(false);
     }
   }, [scenario]);
+
+  const applyVerdict = useCallback((verdict: CommitteeVerdict) => {
+    setScenario(verdict.scenario);
+    setResult(verdict.consensus_result);
+    setRunError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const handleShockChange = useCallback((symbol: string, value: number) => {
     setScenario((prev) =>
@@ -192,6 +204,11 @@ export default function App() {
                 </div>
               )}
             </div>
+            {isLiveAi && scenario && portfolio && (
+              <div className="lg:col-span-2">
+                <CommitteePanel scenario={scenario} portfolio={portfolio} onApply={applyVerdict} />
+              </div>
+            )}
           </div>
         )}
       </main>

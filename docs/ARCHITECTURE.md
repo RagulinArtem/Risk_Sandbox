@@ -55,6 +55,22 @@ flowchart TB
 | `apps/web/src/features/*` | One folder per product area, own components + hooks | Reach into another feature's internals |
 | `apps/web/src/types/*` | Mirrors `apps/api/app/schemas/*` exactly | Diverge from the backend contract |
 
+## AI Risk Committee
+
+```
+browser ──┬─ POST /api/ai/committee/analyst (macro: GPT)        ─┐
+          ├─ POST /api/ai/committee/analyst (sector: Gemini)     ─┼─ AnalystView[] ─► POST /api/ai/committee/verdict
+          └─ POST /api/ai/committee/analyst (cross-asset: Kimi)  ─┘                    │ chair LLM (Claude Opus): consensus
+                                                                                       │ shocks + verdict + insights
+                                                                                       ▼
+                                                              DirectAssetShockEngine: consensus impact,
+                                                              impact per analyst, shock ranges
+```
+
+LLMs only produce assumptions and commentary; every portfolio number comes
+from the engine. Models are configurable via `COMMITTEE_*_MODEL` settings
+in `app/core/config.py`.
+
 ## Why deterministic math, not an LLM
 
 An LLM is good at turning "oil rises 40%" into structured numbers. It is
