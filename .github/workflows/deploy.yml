@@ -105,7 +105,9 @@ jobs:
           ENABLE_NEWS=${ENABLE_NEWS}
           NEWS_API_KEY=
           HTTPS_PROXY=${HTTPS_PROXY}
-          NO_PROXY=localhost,127.0.0.1
+          # Hosts reachable from the VM directly skip the proxy (faster, and
+          # one less hop to fail). OpenRouter, ECB, Kalshi etc. still use it.
+          NO_PROXY=localhost,127.0.0.1,.federalreserve.gov,.eia.gov,.sec.gov,query1.finance.yahoo.com,gamma-api.polymarket.com
           ENVEOF
           chmod 600 .env
 
