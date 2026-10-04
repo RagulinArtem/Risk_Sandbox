@@ -134,7 +134,7 @@ export function AppShell({
             <Icon name="shield" className="h-5 w-5" />
           </span>
           <span>
-            <span className="block text-sm font-bold tracking-tight">Risk Copilot</span>
+            <span className="block text-sm font-bold tracking-tight">Shock Lens</span>
             <span className="block text-xs text-ink-tertiary">Portfolio intelligence</span>
           </span>
         </button>
@@ -239,7 +239,7 @@ export function AppShell({
         </main>
 
         <footer className="border-t border-line px-4 py-5 text-xs leading-relaxed text-ink-tertiary sm:px-8 lg:px-10 print:hidden">
-          Estimates are scenario-based, not forecasts. Risk Copilot does not provide investment
+          Estimates are scenario-based, not forecasts. Shock Lens does not provide investment
           advice and does not execute trades.
         </footer>
       </div>

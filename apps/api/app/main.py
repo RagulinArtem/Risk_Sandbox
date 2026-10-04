@@ -26,7 +26,7 @@ logger = logging.getLogger("portfolio_risk_copilot")
 settings = get_settings()
 
 app = FastAPI(
-    title="AI Portfolio Risk Copilot API",
+    title="Shock Lens API",
     description="Deterministic portfolio stress-testing API. See docs/API_CONTRACT.md.",
     version="0.2.0",
 )
