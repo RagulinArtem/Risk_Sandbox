@@ -14,12 +14,15 @@ Impact Decomposition → AI Explanation → User Decision. It stops before
 
 ## Architectural boundaries (do not blur these)
 
-1. **AI interprets, code calculates.** `ScenarioAIProvider` implementations
-   (`apps/api/app/integrations/ai/`) turn free text into structured
-   `asset_shocks`. They never touch dollar amounts or portfolio math. All
-   stress-test math is deterministic Python in
-   `apps/api/app/domain/risk/engine.py`, exercised via
-   `apps/api/app/services/stress_test_service.py`.
+1. **AI interprets, code calculates.** LLMs (`apps/api/app/integrations/ai/`)
+   only ever produce *assumptions and commentary*: per-asset
+   `asset_shocks`, a one-line `shock_rationale` per asset, and prose such
+   as theses, verdicts and insights. They never produce a portfolio number
+   that we display as fact. Every impact (single stress test, each AI
+   Risk Committee member's view, the committee consensus, shock ranges)
+   is computed by deterministic Python in
+   `apps/api/app/domain/risk/engine.py`, via
+   `services/stress_test_service.py` or `services/committee_service.py`.
 2. **The offline MVP must always work.** No AWS/Polymarket/news credentials
    are required to run `make dev` and complete a full demo. `AI_PROVIDER`
    defaults to `mock`; live integrations are additive, never a hard
@@ -34,11 +37,57 @@ Impact Decomposition → AI Explanation → User Decision. It stops before
    `apps/web/src/types/*` in sync with `apps/api/app/schemas/*` by hand —
    see `docs/API_CONTRACT.md`.
 
+## AI layer and multi-agent committee
+
+Full write-up: `docs/MULTI_AGENT_ORCHESTRATION.md`.
+
+| Feature | Endpoint | Model(s), via OpenRouter |
+| --- | --- | --- |
+| "What if…?" parsing | `POST /api/ai/parse-scenario` | `OPENROUTER_MODEL` (default `anthropic/claude-sonnet-5.5`); rule-based `MockScenarioProvider` offline |
+| Estimate shocks for any scenario | `POST /api/ai/estimate-shocks` | `OPENROUTER_MODEL` |
+| AI Risk Committee | `GET/POST /api/ai/committee[/analyst|/verdict]` | 3 analysts with different lenses on models from different labs: macro `openai/gpt-6.1-sol`, sector `~google/gemini-pro-latest`, cross-asset `moonshotai/kimi-k3`. Chair: `anthropic/claude-opus-5.5` |
+
+Rules for anyone touching AI code:
+
+- **All LLM calls go through `chat_json()`** in
+  `integrations/ai/openrouter.py`. It handles auth, the `reasoning:
+  {effort: "low"}` latency setting, code-fence stripping and friendly
+  401/402/403/429 errors. Don't call httpx directly from new AI code.
+- **Clean every model output** with `clean_shocks()` / `clean_rationale()`
+  (known symbols only, shocks within −95%…+200%). Treat model output as
+  untrusted input.
+- **AI output is always `source_status: "illustrative"`**, labelled as
+  AI-estimated in the UI, and never marked `verified` or `live`.
+- **No investment advice.** Prompts describe risk only. They must not
+  recommend buying, selling or hedging specific securities.
+- **Model ids are config, not code**: `OPENROUTER_MODEL` and
+  `COMMITTEE_{MACRO,SECTOR,CROSS_ASSET,CHAIR}_MODEL` in
+  `app/core/config.py`. To swap a seat, change the env var. Benchmark
+  latency first (section 7 of the orchestration doc): a slow seat stalls
+  the whole committee.
+- **Tests never hit a live model.** Patch `chat_json` or `httpx.post`; see
+  `tests/test_ai_providers.py` and `tests/test_committee.py`.
+- **Degrade gracefully.** With `AI_PROVIDER=mock`, `/api/ai/status`
+  reports `is_live: false` and the UI hides AI-only controls. Committee
+  endpoints return 503 with a readable `detail`.
+
+## Market data
+
+Real price history comes from Yahoo Finance's public chart endpoint
+(`integrations/market_data/yahoo.py`, `POST /api/price-history`), cached
+for 1h. It feeds the Portfolio tab's Performance chart and return column
+only. **The stress engine never reads prices.** If any holding's prices
+can't be fetched, the endpoint returns 503: never partial series, never
+filled gaps. New market-data sources go in `integrations/market_data/`.
+
 ## Repository map
 
 ```
 apps/web/        React + TypeScript + Vite + Tailwind + Recharts dashboard
 apps/api/        FastAPI backend — schemas, domain logic, services, integrations
+                 (integrations/ai: LLM providers + committee;
+                  integrations/market_data: Yahoo prices;
+                  integrations/risk_sources: Polymarket, stubs)
 data/            Demo portfolio + scenario JSON (edit without touching Python)
 docs/            Architecture, product, data-source, and process docs
 scripts/         bootstrap.sh / dev.sh / smoke_test.sh
@@ -58,6 +107,24 @@ make typecheck
 make check   # lint + typecheck + test
 make smoke   # boots the API alone and hits every endpoint
 ```
+
+## Git workflow and deployment
+
+- **Never commit or push directly to `main`.** Each person (and each
+  agent session) works on its own branch (`feature/*`, `fix/*`, `data/*`,
+  `docs/*`). Changes reach `main` only through a PR with green CI. Two
+  people pushing and deploying `main` in parallel already overwrote each
+  other once.
+- Before opening a PR, merge or rebase the latest `main` into your branch
+  so conflicts surface on your side.
+- **Deploys** go through GitHub Actions → *Deploy* → *Run workflow* (`ref`
+  defaults to `main`). The live server
+  (https://risk.5-129-243-18.sslip.io) is shared with the team, so deploy
+  a non-`main` branch only with a heads-up, and redeploy `main` after.
+- The production VM also hosts other projects. The app binds to loopback
+  (`API_PUBLISH`, `WEB_PORT` repo variables) behind the host's nginx. Don't
+  change those to public ports. OpenRouter blocks the server's region, so
+  outbound AI calls use `HTTPS_PROXY`. See `docs/DEPLOYMENT.md`.
 
 ## Testing expectations
 
@@ -95,6 +162,9 @@ config value, add it to both `.env.example` and `Settings`.
 - Never present a mocked/demo value as `"verified"` or `"live"`.
 - Never guess a Polymarket probability, a historical price, or a news
   event. If it isn't sourced, it's `"illustrative"` or it doesn't ship.
+- LLM-proposed shocks are assumptions, not data: always `"illustrative"`,
+  with the model named in `source_name`. Prices shown in charts must come
+  from a real source, with the source and retrieval time shown in the UI.
 
 ## How to add functionality safely
 
@@ -109,4 +179,7 @@ config value, add it to both `.env.example` and `Settings`.
    `docs/API_CONTRACT.md` in the same change.
 5. Run `make check` before calling a change done.
 6. Update `docs/CURRENT_STATE.md` when you finish a meaningful feature, and
-   flip the relevant `ROADMAP.md` row to `DONE`.
+   flip the relevant `ROADMAP.md` row to `DONE`. If you change the AI
+   layer (models, prompts, roles, orchestration), update
+   `docs/MULTI_AGENT_ORCHESTRATION.md` too.
+7. Work on a branch and merge via PR (see *Git workflow* above).
