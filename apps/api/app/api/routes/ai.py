@@ -3,7 +3,13 @@ from fastapi import APIRouter
 from app.core.config import get_settings
 from app.integrations.ai import get_ai_provider
 from app.integrations.ai.base import AIProviderUnavailableError, UnrecognizedScenarioError
-from app.schemas.ai import AIStatusResponse, ParseScenarioRequest, ParseScenarioResponse
+from app.schemas.ai import (
+    AIStatusResponse,
+    EstimateShocksRequest,
+    EstimateShocksResponse,
+    ParseScenarioRequest,
+    ParseScenarioResponse,
+)
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
@@ -35,3 +41,14 @@ def parse_scenario(request: ParseScenarioRequest) -> ParseScenarioResponse:
         )
     except AIProviderUnavailableError as exc:
         return ParseScenarioResponse(recognized=False, scenario=None, message=str(exc))
+
+
+@router.post("/estimate-shocks", response_model=EstimateShocksResponse)
+def estimate_shocks(request: EstimateShocksRequest) -> EstimateShocksResponse:
+    """Ask the live LLM to propose per-asset shocks (with a rationale each)
+    for an existing scenario. The stress engine still does all the math."""
+    try:
+        scenario = get_ai_provider().estimate_shocks(request.scenario)
+        return EstimateShocksResponse(scenario=scenario, message=None)
+    except AIProviderUnavailableError as exc:
+        return EstimateShocksResponse(scenario=None, message=str(exc))

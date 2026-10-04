@@ -191,6 +191,32 @@ Always `200` — an unrecognized or unconfigured-provider case is a normal,
 graceful response, not an error. See `apps/api/app/integrations/ai/mock.py`
 for exactly which phrasing is recognized.
 
+## `POST /api/ai/estimate-shocks`
+
+Asks the live LLM (`AI_PROVIDER=openrouter`) to re-estimate an existing
+scenario's per-asset shocks from its title, description and transmission.
+The stress engine still does all impact math.
+
+### Request
+
+```ts
+{ scenario: Scenario }
+```
+
+### Response (`EstimateShocksResponse`)
+
+```ts
+{
+  scenario: Scenario | null;  // same id/transmission, new asset_shocks + shock_rationale,
+                              // source_status always "illustrative"
+  message: string | null;     // set when no live provider or the call failed
+}
+```
+
+`Scenario` gained an optional `shock_rationale: Record<string, string>`
+(one sentence per symbol) that LLM-produced scenarios fill in; library
+scenarios leave it empty.
+
 ## Error shape
 
 Unhandled server errors: `500 { "detail": "Internal server error." }` —

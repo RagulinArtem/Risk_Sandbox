@@ -16,3 +16,12 @@ class ParseScenarioResponse(BaseModel):
 class AIStatusResponse(BaseModel):
     provider: str  # "mock" | "bedrock" | "openrouter"
     is_live: bool  # false for "mock" — lets the UI avoid claiming "not live AI" when it is
+
+
+class EstimateShocksRequest(BaseModel):
+    scenario: Scenario
+
+
+class EstimateShocksResponse(BaseModel):
+    scenario: Scenario | None
+    message: str | None

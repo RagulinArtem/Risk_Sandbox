@@ -12,4 +12,6 @@ export interface Scenario {
   horizon: string;
   transmission: string[];
   asset_shocks: Record<string, number>;
+  /** Per-symbol one-line reasoning, present when an LLM proposed the shocks. */
+  shock_rationale?: Record<string, string>;
 }

@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 SourceStatus = Literal["illustrative", "verified", "live"]
 
@@ -22,6 +22,8 @@ class Scenario(BaseModel):
     horizon: str
     transmission: list[str]
     asset_shocks: dict[str, float]
+    # Per-symbol one-line reasoning, filled when an LLM proposed the shocks.
+    shock_rationale: dict[str, str] = Field(default_factory=dict)
 
     def shocks(self) -> list[ScenarioShock]:
         return [

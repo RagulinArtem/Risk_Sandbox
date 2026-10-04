@@ -77,6 +77,63 @@ def test_openrouter_provider_network_failure_raises_unavailable():
             provider.parse_scenario("What if oil rises 40%?")
 
 
+def test_openrouter_parse_reads_full_response_with_rationale():
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    body = json.dumps(
+        {
+            "title": "Taiwan blockade",
+            "horizon": "90d",
+            "transmission": ["Blockade halts chip exports", "Tech reprices"],
+            "asset_shocks": {"NVDA": -0.35, "GLD": 0.08, "XYZ": -0.5, "BTC": -5},
+            "rationale": {"NVDA": "Supply cut.", "GLD": "Safe haven.", "XYZ": "ignored"},
+        }
+    )
+    with patch("httpx.post", return_value=_openrouter_response(body)):
+        scenario = provider.parse_scenario("What if Taiwan is blockaded?")
+
+    # unknown symbols and out-of-range shocks (-500%) are dropped
+    assert scenario.asset_shocks == {"NVDA": -0.35, "GLD": 0.08}
+    assert scenario.shock_rationale == {"NVDA": "Supply cut.", "GLD": "Safe haven."}
+    assert scenario.title == "Taiwan blockade"
+    assert scenario.horizon == "90d"
+    assert scenario.transmission == ["Blockade halts chip exports", "Tech reprices"]
+
+
+def test_openrouter_estimate_shocks_replaces_assumptions_only(client):
+    provider = OpenRouterScenarioProvider(Settings(openrouter_api_key="test-key"))
+    original = client.get("/api/scenarios/historical-2022-rate-hike-selloff").json()
+    from app.schemas.scenario import Scenario
+
+    body = json.dumps(
+        {"asset_shocks": {"NVDA": -0.4, "TLT": -0.2}, "rationale": {"NVDA": "High beta."}}
+    )
+    with patch("httpx.post", return_value=_openrouter_response(body)):
+        estimated = provider.estimate_shocks(Scenario.model_validate(original))
+
+    assert estimated.id == original["id"]
+    assert estimated.transmission == original["transmission"]
+    assert estimated.asset_shocks == {"NVDA": -0.4, "TLT": -0.2}
+    assert estimated.shock_rationale == {"NVDA": "High beta."}
+    # an LLM estimate is never presented as verified data
+    assert estimated.source_status == "illustrative"
+    assert estimated.source_url is None
+
+
+def test_mock_provider_cannot_estimate_shocks():
+    scenario = MockScenarioProvider().parse_scenario("What if oil rises 40%?")
+    with pytest.raises(AIProviderUnavailableError):
+        MockScenarioProvider().estimate_shocks(scenario)
+
+
+def test_estimate_shocks_endpoint_degrades_gracefully_on_mock(client):
+    scenario = client.get("/api/scenarios/oil-supply-disruption").json()
+    response = client.post("/api/ai/estimate-shocks", json={"scenario": scenario})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["scenario"] is None
+    assert "live AI provider" in body["message"]
+
+
 def test_mock_provider_unrecognized_text_raises():
     with pytest.raises(UnrecognizedScenarioError):
         MockScenarioProvider().parse_scenario("no numbers or keywords here")

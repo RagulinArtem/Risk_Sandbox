@@ -27,3 +27,16 @@ class ScenarioAIProvider(ABC):
             AIProviderUnavailableError: provider is unconfigured or failed.
         """
         ...
+
+    def estimate_shocks(self, scenario: Scenario) -> Scenario:
+        """Re-estimate a scenario's per-asset shocks from its narrative
+        (title, description, transmission). Returns a copy with new
+        `asset_shocks` and `shock_rationale`. Only live LLM providers
+        implement this.
+
+        Raises:
+            AIProviderUnavailableError: provider can't do this (default) or failed.
+        """
+        raise AIProviderUnavailableError(
+            "AI shock estimation needs a live AI provider (AI_PROVIDER=openrouter)."
+        )
