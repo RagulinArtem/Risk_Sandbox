@@ -23,6 +23,8 @@ TRIGGER_RULES: tuple[TriggerRule, ...] = (
         betas={
             "NVDA": -0.15, "QQQ": -0.12, "SPY": -0.10,
             "BTC": -0.08, "GLD": 0.10, "TLT": -0.08,
+            "XOM": 0.45, "TSM": -0.12, "JPM": -0.06, "XLV": -0.04, "LMT": 0.03,
+            "FXI": -0.10, "VNQ": -0.08, "HYG": -0.04, "BIL": 0.0,
         },
     ),
     TriggerRule(
@@ -31,6 +33,8 @@ TRIGGER_RULES: tuple[TriggerRule, ...] = (
         betas={
             "NVDA": 1.3, "QQQ": 1.0, "SPY": 0.5,
             "BTC": 0.7, "GLD": -0.1, "TLT": 0.15,
+            "TSM": 1.2, "JPM": 0.4, "XOM": 0.2, "XLV": 0.3, "LMT": 0.15,
+            "FXI": 0.5, "VNQ": 0.35, "HYG": 0.15, "BIL": 0.0,
         },
     ),
     TriggerRule(
@@ -39,6 +43,8 @@ TRIGGER_RULES: tuple[TriggerRule, ...] = (
         betas={
             "NVDA": -0.6, "QQQ": -0.5, "SPY": -0.3,
             "BTC": -0.5, "GLD": -0.15, "TLT": -1.0,
+            "TSM": -0.55, "JPM": 0.05, "XOM": -0.1, "XLV": -0.2, "LMT": -0.15,
+            "FXI": -0.3, "VNQ": -0.8, "HYG": -0.3, "BIL": 0.0,
         },
     ),
     TriggerRule(
@@ -47,6 +53,8 @@ TRIGGER_RULES: tuple[TriggerRule, ...] = (
         betas={
             "NVDA": 0.15, "QQQ": 0.1, "SPY": 0.05,
             "BTC": 1.0, "GLD": 0.0, "TLT": 0.0,
+            "TSM": 0.1, "JPM": 0.03, "XOM": 0.0, "XLV": 0.0, "LMT": 0.0,
+            "FXI": 0.05, "VNQ": 0.02, "HYG": 0.02, "BIL": 0.0,
         },
     ),
     TriggerRule(
@@ -55,6 +63,8 @@ TRIGGER_RULES: tuple[TriggerRule, ...] = (
         betas={
             "NVDA": 1.2, "QQQ": 1.1, "SPY": 1.0,
             "BTC": 0.8, "GLD": -0.1, "TLT": 0.2,
+            "TSM": 1.3, "JPM": 1.1, "XOM": 0.8, "XLV": 0.6, "LMT": 0.5,
+            "FXI": 0.9, "VNQ": 0.9, "HYG": 0.3, "BIL": 0.0,
         },
     ),
 )

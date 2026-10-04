@@ -28,16 +28,8 @@ from app.integrations.ai.base import (
     UnrecognizedScenarioError,
 )
 from app.schemas.scenario import Scenario
+from app.services.asset_service import get_supported_assets
 
-_ASSETS = {
-    "NVDA": "NVIDIA (single semiconductor stock, high beta)",
-    "QQQ": "Nasdaq-100 ETF (large-cap tech)",
-    "SPY": "S&P 500 ETF (broad US equities)",
-    "BTC": "Bitcoin",
-    "GLD": "Gold ETF",
-    "TLT": "20+ year US Treasury bond ETF",
-}
-_SUPPORTED_SYMBOLS = tuple(_ASSETS)
 _API_URL = "https://openrouter.ai/api/v1/chat/completions"
 _REQUEST_TIMEOUT_SECONDS = 60.0
 # Guard rails on what the model may return: a shock is a fractional price
@@ -45,7 +37,21 @@ _REQUEST_TIMEOUT_SECONDS = 60.0
 # treated as a parsing/model error rather than an assumption.
 _MIN_SHOCK, _MAX_SHOCK = -0.95, 2.0
 
-_ASSET_LINES = "\n".join(f"- {s}: {name}" for s, name in _ASSETS.items())
+
+
+def asset_lines(symbols: list[str] | None = None) -> str:
+    """Prompt lines describing the assets the model must give shocks for,
+    from the static metadata in data/assets/supported_assets.json.
+    `symbols=None` means every supported asset."""
+    assets = get_supported_assets()
+    if symbols is not None:
+        wanted = set(symbols)
+        assets = [a for a in assets if a.symbol in wanted]
+    return "\n".join(f"- {a.symbol}: {a.name} ({a.instrument}, {a.category})" for a in assets)
+
+
+def _supported_symbols() -> set[str]:
+    return {a.symbol for a in get_supported_assets()}
 
 _RESPONSE_FORMAT = """Respond with ONLY a JSON object, no markdown:
 {
@@ -102,10 +108,11 @@ _CODE_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 def clean_shocks(raw: object) -> dict[str, float]:
     if not isinstance(raw, dict):
         return {}
+    supported = _supported_symbols()
     shocks: dict[str, float] = {}
     for symbol, value in raw.items():
         symbol = str(symbol).upper()
-        if symbol not in _ASSETS:
+        if symbol not in supported:
             continue
         try:
             shock = float(value)
@@ -190,7 +197,7 @@ class OpenRouterScenarioProvider(ScenarioAIProvider):
     def parse_scenario(self, text: str) -> Scenario:
         data = self._complete_json(
             _PARSE_PROMPT.format(
-                assets=_ASSET_LINES, text=text, response_format=_RESPONSE_FORMAT
+                assets=asset_lines(), text=text, response_format=_RESPONSE_FORMAT
             )
         )
         # Older/simpler model replies are a bare {symbol: shock} mapping.
@@ -226,7 +233,7 @@ class OpenRouterScenarioProvider(ScenarioAIProvider):
     def estimate_shocks(self, scenario: Scenario) -> Scenario:
         data = self._complete_json(
             _ESTIMATE_PROMPT.format(
-                assets=_ASSET_LINES,
+                assets=asset_lines(),
                 title=scenario.title,
                 description=scenario.description,
                 horizon=scenario.horizon,

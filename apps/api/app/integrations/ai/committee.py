@@ -14,8 +14,8 @@ import time
 from app.core.config import Settings
 from app.integrations.ai.base import AIProviderUnavailableError
 from app.integrations.ai.openrouter import (
-    _ASSET_LINES,
     _RESPONSE_FORMAT,
+    asset_lines,
     chat_json,
     clean_rationale,
     clean_shocks,
@@ -163,7 +163,7 @@ def run_analyst(
         _ANALYST_PROMPT.format(
             label=label,
             lens=lens,
-            assets=_ASSET_LINES,
+            assets=asset_lines([p.symbol for p in portfolio.positions]),
             holdings=_holdings(portfolio),
             title=scenario.title,
             description=scenario.description,
@@ -212,7 +212,7 @@ def run_chair(
         settings,
         settings.committee_chair_model,
         _CHAIR_PROMPT.format(
-            assets=_ASSET_LINES,
+            assets=asset_lines([p.symbol for p in portfolio.positions]),
             holdings=_holdings(portfolio),
             title=scenario.title,
             description=scenario.description,

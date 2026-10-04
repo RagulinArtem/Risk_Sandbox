@@ -1,10 +1,258 @@
 {
   "assets": [
-    { "symbol": "NVDA", "name": "NVIDIA Corporation", "asset_class": "equity" },
-    { "symbol": "QQQ", "name": "Invesco QQQ Trust (Nasdaq-100)", "asset_class": "equity_etf" },
-    { "symbol": "SPY", "name": "SPDR S&P 500 ETF Trust", "asset_class": "equity_etf" },
-    { "symbol": "BTC", "name": "Bitcoin", "asset_class": "crypto" },
-    { "symbol": "GLD", "name": "SPDR Gold Shares", "asset_class": "commodity_etf" },
-    { "symbol": "TLT", "name": "iShares 20+ Year Treasury Bond ETF", "asset_class": "bond_etf" }
+    {
+      "symbol": "SPY",
+      "name": "SPDR S&P 500 ETF Trust",
+      "asset_class": "equity_etf",
+      "instrument": "ETF",
+      "category": "US large-cap equities",
+      "region": "United States",
+      "description": "ETF tracking the S&P 500, representing large-cap US equities across major sectors. Technology is its largest sector, so it overlaps with QQQ, NVDA and TSM.",
+      "portfolio_role": "Core exposure to the US equity market.",
+      "risk_factors": [
+        "US economic growth",
+        "Corporate earnings",
+        "Interest rates",
+        "Equity valuations",
+        "Broad risk sentiment"
+      ]
+    },
+    {
+      "symbol": "QQQ",
+      "name": "Invesco QQQ Trust",
+      "asset_class": "equity_etf",
+      "instrument": "ETF",
+      "category": "US large-cap growth / technology",
+      "region": "United States",
+      "description": "ETF tracking the Nasdaq-100, with significant exposure to large technology and growth companies, including NVIDIA.",
+      "portfolio_role": "Growth and technology exposure.",
+      "risk_factors": [
+        "Interest rates",
+        "Technology valuations",
+        "AI investment cycle",
+        "Large-cap tech earnings",
+        "Risk appetite"
+      ]
+    },
+    {
+      "symbol": "NVDA",
+      "name": "NVIDIA Corporation",
+      "asset_class": "equity",
+      "instrument": "Stock",
+      "category": "Semiconductors / AI infrastructure",
+      "region": "United States",
+      "description": "Semiconductor company and major supplier of GPUs and computing infrastructure used for AI, data centres, gaming and accelerated computing.",
+      "portfolio_role": "Direct exposure to the AI infrastructure investment cycle.",
+      "risk_factors": [
+        "AI capital expenditure",
+        "Semiconductor demand",
+        "Data-centre spending",
+        "US-China export restrictions",
+        "Technology valuations",
+        "Competition"
+      ]
+    },
+    {
+      "symbol": "TSM",
+      "name": "Taiwan Semiconductor Manufacturing Company",
+      "asset_class": "equity",
+      "instrument": "ADR",
+      "category": "Semiconductor foundry",
+      "region": "Taiwan",
+      "description": "One of the world's largest semiconductor foundries and a critical manufacturer of advanced chips for global technology companies. Held here through its US-listed ADR.",
+      "portfolio_role": "Exposure to global semiconductor manufacturing and advanced-node capacity.",
+      "risk_factors": [
+        "Semiconductor cycle",
+        "Taiwan geopolitical risk",
+        "Global electronics demand",
+        "Advanced manufacturing capacity",
+        "US-China relations"
+      ]
+    },
+    {
+      "symbol": "JPM",
+      "name": "JPMorgan Chase & Co.",
+      "asset_class": "equity",
+      "instrument": "Stock",
+      "category": "Banks / financials",
+      "region": "United States",
+      "description": "Large diversified US bank operating across consumer banking, commercial banking, investment banking and asset management.",
+      "portfolio_role": "Exposure to the financial sector and the credit cycle.",
+      "risk_factors": [
+        "Interest rates",
+        "Yield curve",
+        "Credit losses",
+        "Economic growth",
+        "Financial regulation",
+        "Market activity"
+      ]
+    },
+    {
+      "symbol": "XOM",
+      "name": "Exxon Mobil Corporation",
+      "asset_class": "equity",
+      "instrument": "Stock",
+      "category": "Integrated oil & gas",
+      "region": "United States",
+      "description": "Major integrated global energy company involved in oil and natural gas production, refining and related businesses.",
+      "portfolio_role": "Energy exposure; a potential beneficiary of higher oil and gas prices.",
+      "risk_factors": [
+        "Oil prices",
+        "Natural gas prices",
+        "Geopolitical disruptions",
+        "Global economic growth",
+        "Energy policy"
+      ]
+    },
+    {
+      "symbol": "XLV",
+      "name": "Health Care Select Sector SPDR Fund",
+      "asset_class": "equity_etf",
+      "instrument": "ETF",
+      "category": "US healthcare sector",
+      "region": "United States",
+      "description": "ETF providing diversified exposure to large US healthcare companies, including pharmaceuticals, biotechnology, healthcare equipment and services.",
+      "portfolio_role": "Relatively defensive equity exposure.",
+      "risk_factors": [
+        "Healthcare regulation",
+        "Drug pricing",
+        "Pharmaceutical pipelines",
+        "US equity valuations",
+        "Defensive sector rotation"
+      ]
+    },
+    {
+      "symbol": "LMT",
+      "name": "Lockheed Martin Corporation",
+      "asset_class": "equity",
+      "instrument": "Stock",
+      "category": "Aerospace & defence",
+      "region": "United States",
+      "description": "Large US aerospace and defence company producing military aircraft, missiles, defence systems and space technology.",
+      "portfolio_role": "Exposure to global defence spending and geopolitical security demand.",
+      "risk_factors": [
+        "Government defence budgets",
+        "Geopolitical tensions",
+        "Procurement programmes",
+        "Government contracts",
+        "Supply chains"
+      ]
+    },
+    {
+      "symbol": "FXI",
+      "name": "iShares China Large-Cap ETF",
+      "asset_class": "equity_etf",
+      "instrument": "ETF",
+      "category": "China large-cap equities",
+      "region": "China",
+      "description": "ETF providing exposure to large Chinese companies, primarily through major listed Chinese equities.",
+      "portfolio_role": "China equity and emerging-market exposure.",
+      "risk_factors": [
+        "Chinese economic growth",
+        "Chinese regulation",
+        "Property and credit conditions",
+        "US-China relations",
+        "RMB and investor sentiment"
+      ]
+    },
+    {
+      "symbol": "VNQ",
+      "name": "Vanguard Real Estate ETF",
+      "asset_class": "real_estate_etf",
+      "instrument": "ETF",
+      "category": "US real estate (REITs)",
+      "region": "United States",
+      "description": "ETF providing broad exposure to US publicly listed real estate investment trusts and real-estate-related companies.",
+      "portfolio_role": "Real estate exposure.",
+      "risk_factors": [
+        "Interest rates",
+        "Refinancing costs",
+        "Commercial property conditions",
+        "Occupancy",
+        "Economic growth"
+      ]
+    },
+    {
+      "symbol": "TLT",
+      "name": "iShares 20+ Year Treasury Bond ETF",
+      "asset_class": "bond_etf",
+      "instrument": "ETF",
+      "category": "Long-duration US Treasuries",
+      "region": "United States",
+      "description": "ETF holding long-duration US Treasury bonds. Provides exposure to long-term US government bonds, which are highly sensitive to interest-rate changes.",
+      "portfolio_role": "Long-duration government bond exposure; a potential recession and flight-to-quality asset.",
+      "risk_factors": [
+        "Long-term interest rates",
+        "Inflation expectations",
+        "Federal Reserve policy",
+        "US Treasury yields",
+        "Duration risk"
+      ]
+    },
+    {
+      "symbol": "HYG",
+      "name": "iShares iBoxx $ High Yield Corporate Bond ETF",
+      "asset_class": "bond_etf",
+      "instrument": "ETF",
+      "category": "US high-yield corporate credit",
+      "region": "United States",
+      "description": "ETF providing diversified exposure to below-investment-grade US corporate bonds.",
+      "portfolio_role": "Credit-risk exposure and income-oriented fixed income.",
+      "risk_factors": [
+        "Credit spreads",
+        "Defaults",
+        "Economic growth",
+        "Liquidity",
+        "Interest rates"
+      ]
+    },
+    {
+      "symbol": "BIL",
+      "name": "SPDR Bloomberg 1-3 Month T-Bill ETF",
+      "asset_class": "cash_etf",
+      "instrument": "ETF",
+      "category": "US Treasury bills (cash-like)",
+      "region": "United States",
+      "description": "ETF holding very short-term US Treasury bills. Its price is far less sensitive to interest-rate moves than long-duration bonds.",
+      "portfolio_role": "Cash-like defensive allocation with very low duration.",
+      "risk_factors": [
+        "Short-term US interest rates",
+        "Federal Reserve policy"
+      ]
+    },
+    {
+      "symbol": "GLD",
+      "name": "SPDR Gold Shares",
+      "asset_class": "commodity_etf",
+      "instrument": "ETF",
+      "category": "Gold",
+      "region": "Global",
+      "description": "ETF designed to track the price of physical gold.",
+      "portfolio_role": "Gold exposure; a potential diversifier during inflation, currency or geopolitical stress.",
+      "risk_factors": [
+        "Real interest rates",
+        "US dollar",
+        "Inflation expectations",
+        "Geopolitical risk",
+        "Safe-haven demand"
+      ]
+    },
+    {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "asset_class": "crypto",
+      "instrument": "Cryptocurrency",
+      "category": "Cryptocurrency",
+      "region": "Global",
+      "description": "Decentralised digital asset operating on the Bitcoin blockchain. Historically highly volatile; not a defensive asset.",
+      "portfolio_role": "High-volatility alternative asset and crypto exposure.",
+      "risk_factors": [
+        "Global liquidity",
+        "Investor risk appetite",
+        "Crypto regulation",
+        "Institutional adoption",
+        "Leverage and market structure"
+      ]
+    }
   ]
 }

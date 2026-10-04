@@ -15,11 +15,20 @@
     "Broad technology selloff, with high-beta names hit hardest"
   ],
   "asset_shocks": {
-    "NVDA": -0.20,
+    "NVDA": -0.2,
     "QQQ": -0.15,
     "SPY": -0.08,
     "BTC": -0.15,
     "GLD": 0.02,
-    "TLT": 0.03
+    "TLT": 0.03,
+    "TSM": -0.18,
+    "JPM": -0.03,
+    "XOM": -0.01,
+    "XLV": -0.01,
+    "LMT": 0.0,
+    "FXI": -0.05,
+    "VNQ": -0.03,
+    "HYG": -0.02,
+    "BIL": 0.0
   }
 }
