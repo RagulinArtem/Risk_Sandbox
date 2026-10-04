@@ -377,6 +377,28 @@ analyst route (one signal, passed to the chair), and the verdict echoes it
 as `market_context` — `null` whenever no tracked market probability is
 available.
 
+Optional `debate: true` runs one rebuttal round before the chair: each
+analyst reconsiders its first-round view next to the other seats' views,
+anonymized (no identities, no model ids). Rebuttals run in parallel; a
+seat whose rebuttal call fails keeps its first-round view unchanged
+(`revised: false`), so the round degrades rather than failing the
+request. `view_impacts` and `shock_ranges` always describe the final
+(post-debate) positions; `revision_impacts` gives the engine-computed
+impact of each second-round view. With `debate` off (the default),
+`revisions` and `revision_impacts` are empty.
+
+### Request
+
+```ts
+{
+  scenario_title: string; scenario_description: string; horizon: string;
+  transmission: string[]; portfolio: Portfolio;
+  views: AnalystView[];        // 1..3, at most one per seat
+  market_id?: string | null;   // optional live Polymarket context
+  debate?: boolean;            // default false
+}
+```
+
 Server-side guard rails: `views` is capped at 3 and at most one view per
 analyst seat (`macro`/`sector`/`cross_asset`); shocks are filtered to the 6
 supported symbols and kept only within −95%…+200% (outside-range values are
@@ -394,8 +416,10 @@ whose views are all unusable returns `422`. Prompt inputs are capped too:
     verdict: string; insights: string[]; disagreements: string[]; watch: string[];
     confidence: string;
     consensus_impact: ViewImpact;
-    view_impacts: ViewImpact[];
-    shock_ranges: Record<string, { min: number; max: number }>;
+    view_impacts: ViewImpact[];   // final (post-debate) positions
+    revisions: RevisionView[];    // second-round views; [] without debate
+    revision_impacts: ViewImpact[];
+    shock_ranges: Record<string, { min: number; max: number }>;  // final positions
     source_status: "illustrative";
     market_context: MarketContextSignal | null;
   } | null;
@@ -409,6 +433,16 @@ whose views are all unusable returns `422`. Prompt inputs are capped too:
 { seat: string; label: string; model: string;
   impact_pct: number;      // fraction, engine-computed, e.g. -0.121 = -12.1%
   impact_value: number; stressed_value: number; }
+```
+
+### `RevisionView`
+
+```ts
+{ seat: string; label: string; model: string;
+  asset_shocks: Record<string, number>; rationale: Record<string, string>;
+  change: string;      // what the analyst changed and why, or "unchanged"
+  confidence: "low" | "medium" | "high";
+  revised: boolean; }  // false = rebuttal failed; first-round view stands
 ```
 
 ## `POST /api/ai/explain`

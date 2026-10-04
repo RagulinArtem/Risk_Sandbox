@@ -38,6 +38,17 @@ export interface ViewImpact {
   stressed_value: number;
 }
 
+export interface RevisionView {
+  seat: string;
+  label: string;
+  model: string;
+  asset_shocks: Record<string, number>;
+  rationale: Record<string, string>;
+  change: string;
+  confidence: "low" | "medium" | "high";
+  revised: boolean;
+}
+
 export interface CommitteeVerdict {
   consensus: Record<string, number>;
   consensus_rationale: Record<string, string>;
@@ -48,6 +59,8 @@ export interface CommitteeVerdict {
   confidence: string;
   consensus_impact: ViewImpact;
   view_impacts: ViewImpact[];
+  revisions: RevisionView[];
+  revision_impacts: ViewImpact[];
   shock_ranges: Record<string, { min: number; max: number }>;
   source_status: SourceStatus;
   market_context: MarketContextSignal | null;
@@ -73,6 +86,7 @@ export interface AnalystResponse {
 
 export interface VerdictRequest extends CommitteeContextRequest {
   views: AnalystView[];
+  debate?: boolean;
 }
 
 export interface VerdictResponse {

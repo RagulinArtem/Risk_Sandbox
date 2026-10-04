@@ -302,3 +302,85 @@ def test_analyst_without_market_signal_has_no_context():
     ):
         view = run_analyst("macro", _context(), _settings())
     assert view.market_context is None
+
+
+def _prompt_aware_complete(settings, prompt, **kwargs):
+    if "first-round view" in prompt:  # rebuttal prompt
+        return {
+            "asset_shocks": {"NVDA": -0.28, "QQQ": -0.11},
+            "rationale": {"NVDA": "Peer argument on supply."},
+            "change": "Lowered NVDA after the peer case.",
+            "confidence": "high",
+        }
+    return json.loads(_chair_body())  # chair
+
+
+def test_verdict_debate_returns_revisions_and_impacts(client):
+    request = {
+        "scenario_title": "Semiconductor supply shock",
+        "portfolio": _portfolio().model_dump(),
+        "views": [
+            {
+                "seat": "macro",
+                "label": "Macro",
+                "model": "m1",
+                "asset_shocks": {"NVDA": -0.15, "QQQ": -0.08},
+            },
+            {
+                "seat": "sector",
+                "label": "Sector",
+                "model": "m2",
+                "asset_shocks": {"NVDA": -0.35, "QQQ": -0.12},
+            },
+        ],
+        "debate": True,
+    }
+    with patch(
+        "app.integrations.ai.committee.complete_json", side_effect=_prompt_aware_complete
+    ):
+        body = client.post("/api/ai/committee/verdict", json=request).json()
+
+    verdict = body["verdict"]
+    assert verdict is not None
+    assert len(verdict["revisions"]) == 2
+    assert all(r["revised"] for r in verdict["revisions"])
+    assert len(verdict["revision_impacts"]) == 2
+    assert len(verdict["view_impacts"]) == 2
+    assert verdict["revisions"][0]["asset_shocks"] == {"NVDA": -0.28, "QQQ": -0.11}
+    assert verdict["shock_ranges"]["NVDA"] == {"min": -0.28, "max": -0.28}  # final positions
+
+
+def test_debate_falls_back_when_rebuttal_fails(client):
+    def flaky(settings, prompt, **kwargs):
+        if "first-round view" in prompt:
+            raise AIProviderUnavailableError("provider down")
+        return json.loads(_chair_body())
+
+    request = {  # same context as above
+        "scenario_title": "X",
+        "portfolio": _portfolio().model_dump(),
+        "views": [
+            {"seat": "macro", "label": "M", "model": "m1", "asset_shocks": {"NVDA": -0.15}},
+            {"seat": "sector", "label": "S", "model": "m2", "asset_shocks": {"NVDA": -0.35}},
+        ],
+        "debate": True,
+    }
+    with patch("app.integrations.ai.committee.complete_json", side_effect=flaky):
+        verdict = client.post("/api/ai/committee/verdict", json=request).json()["verdict"]
+    assert [r["revised"] for r in verdict["revisions"]] == [False, False]
+    assert verdict["view_impacts"]  # original views still drive the numbers
+
+
+def test_verdict_without_debate_has_no_revisions(client):
+    request = {
+        "scenario_title": "X",
+        "portfolio": _portfolio().model_dump(),
+        "views": [
+            {"seat": "macro", "label": "M", "model": "m1", "asset_shocks": {"NVDA": -0.15}}
+        ],
+    }
+    with patch(
+        "app.integrations.ai.committee.complete_json", return_value=json.loads(_chair_body())
+    ):
+        verdict = client.post("/api/ai/committee/verdict", json=request).json()["verdict"]
+    assert verdict["revisions"] == [] and verdict["revision_impacts"] == []

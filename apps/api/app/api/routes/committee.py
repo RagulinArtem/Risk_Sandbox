@@ -8,6 +8,7 @@ from app.integrations.ai.committee import (
     get_roster,
     run_analyst,
     run_chair,
+    run_debate,
     sanitize_views,
 )
 from app.schemas.committee import (
@@ -66,7 +67,27 @@ def committee_verdict(request: VerdictRequest) -> VerdictResponse:
     settings = get_settings()
     market_signal = get_market_service().get_context_signal(request.market_id)
     try:
-        chair_view, chair_raw = run_chair(request, settings, market_signal=market_signal)
+        revisions = (
+            run_debate(request.views, request, settings, market_signal=market_signal)
+            if request.debate
+            else []
+        )
+        final_by_seat = {r.seat: r for r in revisions if r.revised}
+        final_views = [
+            view.model_copy(
+                update={
+                    "asset_shocks": final_by_seat[view.seat].asset_shocks,
+                    "rationale": final_by_seat[view.seat].rationale,
+                    "confidence": final_by_seat[view.seat].confidence,
+                }
+            )
+            if view.seat in final_by_seat
+            else view
+            for view in request.views
+        ]
+        chair_view, chair_raw = run_chair(
+            request, settings, revisions=revisions or None, market_signal=market_signal
+        )
     except AIProviderUnavailableError as exc:
         return VerdictResponse(verdict=None, message=str(exc))
 
@@ -90,15 +111,28 @@ def committee_verdict(request: VerdictRequest) -> VerdictResponse:
             portfolio=request.portfolio,
             scenario_title=request.scenario_title,
         )
-        for view in request.views
+        for view in final_views
     ]
-    shock_ranges = _shock_ranges(request.views)
+    revision_impacts = [
+        _impact(
+            seat=r.seat,
+            label=r.label,
+            model=r.model,
+            asset_shocks=r.asset_shocks,
+            portfolio=request.portfolio,
+            scenario_title=request.scenario_title,
+        )
+        for r in revisions
+    ]
+    shock_ranges = _shock_ranges(final_views)
 
     verdict = CommitteeVerdict(
         consensus=chair_view.asset_shocks,
         consensus_rationale=chair_view.rationale,
         consensus_impact=consensus_impact,
         view_impacts=view_impacts,
+        revisions=revisions,
+        revision_impacts=revision_impacts,
         shock_ranges=shock_ranges,
         market_context=chair_view.market_context,
         **commentary,

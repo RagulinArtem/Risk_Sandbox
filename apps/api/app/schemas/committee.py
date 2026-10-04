@@ -69,8 +69,23 @@ class AnalystResponse(BaseModel):
     message: str | None = None
 
 
+class RevisionView(BaseModel):
+    """One analyst's second-round view. revised=False means the rebuttal
+    call failed and the first-round view stands unchanged."""
+
+    seat: str
+    label: str
+    model: str
+    asset_shocks: dict[str, float]
+    rationale: dict[str, str] = {}
+    change: str = ""
+    confidence: Confidence = "medium"
+    revised: bool = True
+
+
 class VerdictRequest(CommitteeContext):
     views: list[AnalystView] = Field(min_length=1, max_length=3)
+    debate: bool = False
 
 
 class ViewImpact(BaseModel):
@@ -95,6 +110,8 @@ class CommitteeVerdict(BaseModel):
     confidence: Confidence = "medium"
     consensus_impact: ViewImpact
     view_impacts: list[ViewImpact] = []
+    revisions: list[RevisionView] = []
+    revision_impacts: list[ViewImpact] = []
     # per asset -> {"min": .., "max": ..} across analyst views (engine of
     # record for the spread the committee surfaces)
     shock_ranges: dict[str, dict[str, float]] = {}

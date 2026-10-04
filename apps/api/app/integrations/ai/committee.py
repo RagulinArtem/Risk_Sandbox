@@ -22,6 +22,7 @@ the chair reconciles whoever succeeded.
 
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from app.core.config import Settings
 from app.integrations.ai.base import AIProviderUnavailableError
@@ -36,6 +37,7 @@ from app.schemas.committee import (
     CommitteeContext,
     CommitteeRoster,
     CommitteeSeatInfo,
+    RevisionView,
     VerdictRequest,
 )
 from app.schemas.market import MarketContextSignal
@@ -233,10 +235,104 @@ def run_analyst(
     )
 
 
+_REBUTTAL_PROMPT = """You are the {label} on a portfolio risk committee. Your lens: {lens}.
+
+{context}
+
+Your own first-round view:
+{own_view}
+
+Two other analysts — whose identities and models you do NOT know — reviewed the same \
+scenario independently:
+{peers}
+
+Reconsider your first-round assumptions. Keep them if you still believe them, or revise them if \
+the peers surfaced something you missed. Do not average: stay in your lens. Describe risk only — \
+never recommend buying, selling or hedging.
+
+Respond with ONLY a JSON object, no markdown:
+{{
+  "asset_shocks": {{"NVDA": -0.22, ...}},
+  "rationale": {{"NVDA": "one short sentence", ...}},
+  "change": "one sentence: what you changed and why, or 'unchanged'",
+  "confidence": "low | medium | high"
+}}
+asset_shocks: signed decimal price move over the horizon, one per asset, 0 if unaffected."""
+
+
+def _payload(view: AnalystView) -> dict:
+    return {
+        "seat": view.seat, "label": view.label, "model": view.model,
+        "asset_shocks": view.asset_shocks, "rationale": view.rationale,
+        "thesis": view.thesis, "key_risk": view.key_risk, "confidence": view.confidence,
+    }
+
+
+def _anonymized(view: AnalystView) -> dict:
+    return {
+        "asset_shocks": view.asset_shocks, "rationale": view.rationale,
+        "thesis": view.thesis, "key_risk": view.key_risk,
+    }
+
+
+def _fallback_revision(view: AnalystView) -> RevisionView:
+    return RevisionView(
+        seat=view.seat, label=view.label, model=view.model,
+        asset_shocks=view.asset_shocks, rationale=view.rationale,
+        change="", confidence=view.confidence, revised=False,
+    )
+
+
+def run_debate(
+    views: list[AnalystView],
+    context: CommitteeContext,
+    settings: Settings,
+    market_signal: MarketContextSignal | None = None,
+) -> list[RevisionView]:
+    """One rebuttal round, in parallel. A seat whose rebuttal call fails
+    keeps its first-round view — the debate degrades, it never fails the
+    committee. Fewer than two views means there is nothing to debate."""
+    if len(views) < 2:
+        return []
+    context_text = _context_block(context, market_signal)
+    specs = {spec["seat"]: spec for spec in _seat_specs(settings)}
+
+    def revise(view: AnalystView) -> RevisionView:
+        spec = specs[view.seat]
+        peers = [_anonymized(other) for other in views if other.seat != view.seat]
+        prompt = _REBUTTAL_PROMPT.format(
+            label=spec["label"], lens=spec["lens"], context=context_text,
+            own_view=json.dumps(_payload(view), indent=2), peers=json.dumps(peers, indent=2),
+        )
+        try:
+            data = _complete(settings, spec["model"], prompt)
+        except AIProviderUnavailableError as exc:
+            logger.warning("Rebuttal for %s failed: %s", view.seat, exc)
+            return _fallback_revision(view)
+        shocks = clean_shocks(data.get("asset_shocks"))
+        if not shocks:
+            return _fallback_revision(view)
+        return RevisionView(
+            seat=view.seat, label=view.label, model=view.model,
+            asset_shocks=shocks,
+            rationale=clean_rationale(data.get("rationale"), shocks),
+            change=str(data.get("change") or "").strip()[:_MAX_TEXT_CHARS],
+            confidence=_coerce_confidence(data.get("confidence")),
+            revised=True,
+        )
+
+    with ThreadPoolExecutor(max_workers=len(views)) as pool:
+        return list(pool.map(revise, views))
+
+
 _CHAIR_PROMPT = """You are the {label} of a portfolio risk committee. Three analysts \
 argued independently from different lenses. Weigh their arguments — do not \
 just average their numbers. Name where they split and which side you lean \
 to and why.
+
+Some analysts may also show a "revision": their second-round view after \
+seeing anonymized peers. Weigh the revision where present, but keep the \
+stronger argument if it is the first-round one.
 
 {context}
 
@@ -262,6 +358,8 @@ in verdict/insights beyond those implied by the shocks you set."""
 def run_chair(
     request: VerdictRequest,
     settings: Settings,
+    *,
+    revisions: list[RevisionView] | None = None,
     market_signal: MarketContextSignal | None = None,
 ) -> tuple[AnalystView, dict]:
     """The chair reconciles only the views that succeeded — failed analysts
@@ -271,16 +369,24 @@ def run_chair(
     verdict route can extract commentary (verdict/insights/disagreements/
     watch) from the same response."""
     spec = chair_spec(settings)
+    revisions = revisions or []
     views_json = json.dumps(
         [
             {
-                "seat": view.seat,
-                "label": view.label,
-                "asset_shocks": view.asset_shocks,
-                "rationale": view.rationale,
-                "thesis": view.thesis,
-                "key_risk": view.key_risk,
-                "confidence": view.confidence,
+                **_payload(view),
+                "revision": next(
+                    (
+                        {
+                            "asset_shocks": r.asset_shocks,
+                            "rationale": r.rationale,
+                            "change": r.change,
+                            "revised": r.revised,
+                        }
+                        for r in revisions
+                        if r.seat == view.seat
+                    ),
+                    None,
+                ),
             }
             for view in request.views
         ],
