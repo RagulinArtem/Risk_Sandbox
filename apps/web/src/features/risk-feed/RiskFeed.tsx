@@ -34,7 +34,7 @@ function RelevanceMeter({ value }: { value: number }) {
       <div className="h-1.5 w-16 bg-surface-higher">
         <div className="h-full bg-accent" style={{ width: `${Math.round(value * 100)}%` }} />
       </div>
-      <span className="font-mono text-[10px] tabular-nums text-ink-tertiary">{Math.round(value * 100)}</span>
+      <span className="font-mono text-[11px] tabular-nums text-ink-tertiary">{Math.round(value * 100)}</span>
     </div>
   );
 }
@@ -54,7 +54,7 @@ function FeedCard({
   return (
     <li className="grid gap-3 border-b border-line py-4 last:border-b-0 lg:grid-cols-[minmax(0,1fr)_17rem]">
       <div className="min-w-0 space-y-2">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
           <span className={`border px-1.5 py-px ${TIER_STYLE[item.tier]}`}>{TIER_LABEL[item.tier]}</span>
           <span>{KIND_LABEL[item.kind]}</span>
           <span>·</span>
@@ -77,7 +77,7 @@ function FeedCard({
           </div>
         )}
         {item.detail && item.kind !== "market" && (
-          <div className="text-[11px] text-ink-tertiary">{item.detail}</div>
+          <div className="text-xs text-ink-tertiary">{item.detail}</div>
         )}
         <div className="flex flex-wrap gap-1.5">
           {a.held_exposure.map((h) => (
@@ -86,7 +86,7 @@ function FeedCard({
               type="button"
               onClick={() => onAsset(h.symbol)}
               title={`${formatPercent(h.weight, 0)} of portfolio`}
-              className="border border-line-strong px-1.5 py-0.5 font-mono text-[11px] text-ink-secondary hover:border-accent hover:text-ink"
+              className="border border-line-strong px-1.5 py-0.5 font-mono text-xs text-ink-secondary hover:border-accent hover:text-ink"
             >
               {h.symbol}
               {h.direction !== 0 && (
@@ -97,12 +97,12 @@ function FeedCard({
             </button>
           ))}
           {a.factors.map((f) => (
-            <span key={f.id} className="border border-risk-warning/30 bg-risk-warning/5 px-1.5 py-0.5 text-[11px] text-ink-secondary">
+            <span key={f.id} className="border border-risk-warning/30 bg-risk-warning/5 px-1.5 py-0.5 text-xs text-ink-secondary">
               {f.label}
             </span>
           ))}
         </div>
-        <p className="text-[11px] text-ink-tertiary">{a.relevance_reason}</p>
+        <p className="text-xs text-ink-tertiary">{a.relevance_reason}</p>
       </div>
 
       <div className="space-y-2 lg:border-l lg:border-line lg:pl-4">
@@ -121,7 +121,7 @@ function FeedCard({
         )}
         {a.history.length > 0 && (
           <div>
-            <div className="mb-1 font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+            <div className="mb-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
               Same risk in history (real data)
             </div>
             <ul className="space-y-0.5">
@@ -130,7 +130,7 @@ function FeedCard({
                   <button
                     type="button"
                     onClick={() => onStressTest(h.id)}
-                    className="flex w-full justify-between gap-2 text-left text-[11px] text-ink-secondary hover:text-ink"
+                    className="flex w-full justify-between gap-2 text-left text-xs text-ink-secondary hover:text-ink"
                   >
                     <span className="truncate">{h.title}</span>
                     <span className="shrink-0 font-mono text-risk-negative-strong">
@@ -146,7 +146,7 @@ function FeedCard({
           <button
             type="button"
             onClick={() => onDraft(item.title)}
-            className="text-[11px] text-ink-tertiary underline decoration-line-strong underline-offset-2 hover:text-ink-secondary"
+            className="text-xs text-ink-tertiary underline decoration-line-strong underline-offset-2 hover:text-ink-secondary"
           >
             Draft a scenario from this with AI
           </button>
@@ -183,7 +183,7 @@ export function RiskFeed({
             Arrows show how each holding tends to move <em>if the risk materialises</em>.
           </p>
           {data?.refreshed_at && (
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+            <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
               Updated {formatRelativeTime(data.refreshed_at)}
               {data.refreshing ? " · refreshing…" : ""} · auto-refreshes every minute
             </p>
@@ -197,7 +197,7 @@ export function RiskFeed({
                 type="button"
                 aria-pressed={tier === t}
                 onClick={() => setTier(t)}
-                className={`px-2.5 py-1 font-mono text-[11px] ${
+                className={`px-2.5 py-1 font-mono text-xs ${
                   tier === t ? "bg-accent/15 text-accent-strong" : "text-ink-tertiary hover:text-ink-secondary"
                 }`}
               >
@@ -224,7 +224,7 @@ export function RiskFeed({
             <li
               key={s.name}
               title={s.error ?? `${s.items} items`}
-              className={`flex items-center gap-1.5 border px-2 py-0.5 text-[11px] ${
+              className={`flex items-center gap-1.5 border px-2 py-0.5 text-xs ${
                 s.ok ? "border-line-strong text-ink-secondary" : "border-risk-negative/50 text-risk-negative-strong"
               }`}
             >

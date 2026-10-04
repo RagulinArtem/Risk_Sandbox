@@ -34,7 +34,7 @@ export function CustomScenarioInput({ onParsed }: { onParsed: (scenario: Scenari
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-      <label htmlFor="what-if" className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+      <label htmlFor="what-if" className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
         What if…?
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">

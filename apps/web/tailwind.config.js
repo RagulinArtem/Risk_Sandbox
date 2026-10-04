@@ -12,7 +12,7 @@ export default {
         ink: {
           DEFAULT: "#EDEBE6",
           secondary: "#A8A6A0",
-          tertiary: "#706E6A",
+          tertiary: "#8C8A85", // lighter for projector legibility
         },
         line: {
           DEFAULT: "#2B2B30",

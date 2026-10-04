@@ -27,7 +27,7 @@ export function AssetClassBreakdown({
           <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
             <span className="text-ink">
               {assetClassLabel(assetClass)}
-              <span className="ml-2 font-mono text-[11px] text-ink-tertiary">
+              <span className="ml-2 font-mono text-xs text-ink-tertiary">
                 {row.symbols.join(" · ")}
               </span>
             </span>

@@ -38,7 +38,7 @@ export function ScenarioPicker({
     <div className="flex flex-col gap-2">
       <label
         htmlFor="scenario-picker"
-        className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary"
+        className="font-mono text-xs uppercase tracking-wider text-ink-tertiary"
       >
         Start from a scenario
       </label>

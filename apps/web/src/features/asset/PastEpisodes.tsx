@@ -72,7 +72,7 @@ export function PastEpisodes({ symbol }: { symbol: string }) {
           );
         })}
       </ul>
-      <p className="text-[11px] text-ink-tertiary">
+      <p className="text-xs text-ink-tertiary">
         Real total returns over each episode&apos;s window (Yahoo Finance adjusted close). Open any
         episode in the Stress Test tab to see its dated events and sources.
       </p>

@@ -48,7 +48,7 @@ export function MoveDrivers({ symbol }: { symbol: string }) {
               type="button"
               aria-pressed={p === period}
               onClick={() => setPeriod(p)}
-              className={`px-2.5 py-1 font-mono text-[11px] ${
+              className={`px-2.5 py-1 font-mono text-xs ${
                 p === period ? "bg-accent/15 text-accent-strong" : "text-ink-tertiary hover:text-ink-secondary"
               }`}
             >
@@ -91,12 +91,12 @@ export function MoveDrivers({ symbol }: { symbol: string }) {
           <ul className="space-y-2.5">
             {result.drivers.map((d, i) => (
               <li key={i} className="text-sm leading-relaxed text-ink-secondary">
-                <span className="mr-2 font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                <span className="mr-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                   {KIND_LABEL[d.kind] ?? d.kind}
                 </span>
                 {d.text}
                 {d.sources.length > 0 ? (
-                  <span className="mt-1 block text-[11px] text-ink-tertiary">
+                  <span className="mt-1 block text-xs text-ink-tertiary">
                     Sources:{" "}
                     {d.sources.map((s, j) => (
                       <span key={s.id}>
@@ -113,7 +113,7 @@ export function MoveDrivers({ symbol }: { symbol: string }) {
                     ))}
                   </span>
                 ) : (
-                  <span className="mt-1 block text-[11px] text-ink-tertiary">
+                  <span className="mt-1 block text-xs text-ink-tertiary">
                     Based on the observed price comparison above.
                   </span>
                 )}
@@ -124,13 +124,13 @@ export function MoveDrivers({ symbol }: { symbol: string }) {
       )}
 
       {result?.model && (
-        <p className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+        <p className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
           {result.label} · {result.model.replace(/^~/, "")}
           {result.confidence ? ` · ${result.confidence} confidence` : ""} · not investment advice
         </p>
       )}
       {!result && !loading && (
-        <p className="text-[11px] text-ink-tertiary">
+        <p className="text-xs text-ink-tertiary">
           An AI model reads the real price move and the latest headlines and suggests possible
           drivers, citing its sources. It is interpretation, not established fact.
         </p>
