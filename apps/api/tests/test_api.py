@@ -169,6 +169,29 @@ def test_parse_scenario_unrecognized_is_graceful(client):
     assert body["message"]
 
 
+def test_parse_ai_bubble_title_returns_canonical_demo_scenario(client):
+    library = client.get("/api/scenarios/ai-capex-bust").json()
+
+    for text in ("AI BUBBLE BURSTS", "AI bubble burst", "If the AI bubble bursts?"):
+        parsed = client.post("/api/ai/parse-scenario", json={"text": text})
+        assert parsed.status_code == 200
+        scenario = parsed.json()["scenario"]
+        assert scenario["id"] == "ai-capex-bust"
+        assert scenario["asset_shocks"] == library["asset_shocks"]
+
+    portfolio = client.get("/api/portfolio/demo").json()
+    result = client.post(
+        "/api/stress-test",
+        json={"portfolio": portfolio, "custom_shocks": scenario["asset_shocks"]},
+    )
+    assert result.status_code == 200
+    assert result.json()["estimated_impact_value"] == -9690
+    assert result.json()["estimated_impact_pct"] == -0.0969
+    biggest = result.json()["biggest_negative_contributor"]
+    assert biggest["symbol"] == "NVDA"
+    assert math.isclose(biggest["impact_value"], -3150.0)
+
+
 def test_list_assets_covers_demo_portfolio(client):
     response = client.get("/api/assets")
     assert response.status_code == 200

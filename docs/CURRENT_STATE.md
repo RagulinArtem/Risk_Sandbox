@@ -58,6 +58,14 @@ reality.
   `custom_shocks`; returns impact value/%, stressed value, per-asset
   contribution, biggest positive/negative contributor, concentration
   notes, and a deterministic explanation sentence.
+- **Pitch-safe AI Bubble path (2026-10-04):** choosing **AI Bubble Bursts**
+  from the library or typing that title into the scenario builder resolves to
+  the same canonical illustrative scenario before any non-deterministic parser
+  runs. Both paths therefore produce the pitch figures (-9.7%, -$9,690 and
+  NVDA -$3,150) for the $100k demo portfolio. The builder shows a staged,
+  accurately worded interpretation state before revealing editable assumptions.
+  Contribution rows use separate ticker, shock, bar and dollar columns so all
+  15 holdings remain readable without labels colliding at the zero axis.
 - Risk Radar (`GET /api/risk-radar`) — every demo scenario scored for
   relevance against the demo portfolio (weighted-exposure heuristic), with
   exposure symbols and a `DEMO` status badge.

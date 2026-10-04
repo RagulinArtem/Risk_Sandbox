@@ -14,6 +14,7 @@ export function ScenarioWorkspace({
   onParsed,
   onShockChange,
   onRun,
+  holdingCount,
   ai,
 }: {
   scenario: Scenario | null;
@@ -24,6 +25,7 @@ export function ScenarioWorkspace({
   onParsed: (scenario: Scenario) => void;
   onShockChange: (symbol: string, value: number) => void;
   onRun: () => void;
+  holdingCount: number;
   ai?: AiEstimateControls;
 }) {
   return (
@@ -35,7 +37,7 @@ export function ScenarioWorkspace({
           or describe one
           <span className="h-px flex-1 bg-line" />
         </div>
-        <CustomScenarioInput onParsed={onParsed} />
+        <CustomScenarioInput onParsed={onParsed} holdingCount={holdingCount} />
       </div>
       {loading && <LoadingLine label="Loading scenario…" />}
       {error && <ErrorBanner message={error} />}
