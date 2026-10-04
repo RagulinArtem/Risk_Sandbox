@@ -12,7 +12,7 @@ import { useScenarioComparison } from "./useScenarioComparison";
 function Stat({ label, value, caption }: { label: string; value: string; caption?: string }) {
   return (
     <div className="border-l border-line-strong pl-3">
-      <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+      <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
         {label}
       </div>
       <div className="mt-1 font-mono text-lg text-ink">{value}</div>
@@ -56,7 +56,7 @@ export function ScenarioComparison({
   return (
     <div className="space-y-6">
       <header className="max-w-3xl">
-        <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           Portfolio risk surface
         </div>
         <h2 className="mt-1 text-xl font-semibold text-ink">Scenario Comparison</h2>
@@ -115,21 +115,21 @@ export function ScenarioComparison({
                 <table className="min-w-full border-collapse text-sm">
                   <thead className="bg-surface-raised">
                     <tr className="border-b border-line">
-                      <th className="sticky left-0 z-[1] min-w-64 bg-surface-raised px-4 py-3 text-left font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                      <th className="sticky left-0 z-[1] min-w-64 bg-surface-raised px-4 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                         Scenario
                       </th>
-                      <th className="min-w-28 px-3 py-3 text-right font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                      <th className="min-w-28 px-3 py-3 text-right font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                         Impact
                       </th>
                       {data.asset_symbols.map((symbol) => (
                         <th
                           key={symbol}
-                          className="min-w-20 px-3 py-3 text-right font-mono text-[10px] uppercase tracking-wider text-ink-tertiary"
+                          className="min-w-20 px-3 py-3 text-right font-mono text-[11px] uppercase tracking-wider text-ink-tertiary"
                         >
                           {symbol}
                         </th>
                       ))}
-                      <th className="min-w-28 px-3 py-3 text-left font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                      <th className="min-w-28 px-3 py-3 text-left font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                         Largest driver
                       </th>
                     </tr>
@@ -150,7 +150,7 @@ export function ScenarioComparison({
                           </button>
                           <div className="mt-1 flex items-center gap-2">
                             <StatusBadge status={row.source_status} />
-                            <span className="font-mono text-[10px] text-ink-tertiary">
+                            <span className="font-mono text-[11px] text-ink-tertiary">
                               {row.horizon}
                             </span>
                           </div>
@@ -165,7 +165,7 @@ export function ScenarioComparison({
                           >
                             {formatSignedPercent(row.impact_pct)}
                           </div>
-                          <div className="text-[10px] text-ink-tertiary">
+                          <div className="text-[11px] text-ink-tertiary">
                             {formatSignedCurrency(row.impact_value)}
                           </div>
                         </td>

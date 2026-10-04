@@ -6,6 +6,21 @@ reality.
 
 ## WORKING
 
+- **Navigation (2026-10-04): three steps for first-time viewers.**
+  1. **① Overview:** hero card with 3 facts, then holdings, performance,
+     and everything else under "More analytics". The facts:
+     - effective independent bets on real returns;
+     - worst real crisis replayed;
+     - worst scenario a live market is tracking, with the market's own
+       probability shown as context and never multiplied in.
+  2. **② What could hurt it:** Live signals (Risk Feed) / Scenario
+     library / Risk radar.
+  3. **③ Stress test:** scenario and result → AI committee → risk brief →
+     "What if I change the allocation?" (mitigation).
+
+  **Report** is a header button. Old deep links (`#feed`, `#radar`,
+  `#scenarios`, `#mitigation`) still resolve.
+
 - **Demo portfolios** (`GET /api/portfolios`, `/api/portfolio/demo`). The
   primary is the **Global Multi-Asset Risk Portfolio**: 15 holdings across
   US/China equities, semis, banks, energy, healthcare, defence, REITs,

@@ -30,7 +30,7 @@ export function ScenarioWorkspace({
     <div className="space-y-6">
       <div className="space-y-5 border border-line bg-surface-raised/40 p-5">
         <ScenarioPicker selectedId={scenario?.id ?? null} onSelect={onSelect} />
-        <div className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           <span className="h-px flex-1 bg-line" />
           or describe one
           <span className="h-px flex-1 bg-line" />

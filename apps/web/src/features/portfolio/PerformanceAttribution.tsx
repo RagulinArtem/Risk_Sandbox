@@ -65,7 +65,7 @@ export function PerformanceAttribution({ portfolio }: { portfolio: Portfolio }) 
               key={item.id}
               type="button"
               onClick={() => setRange(item.id)}
-              className={`px-3 py-1.5 font-mono text-[11px] ${
+              className={`px-3 py-1.5 font-mono text-xs ${
                 range === item.id
                   ? "bg-surface-higher text-ink"
                   : "text-ink-tertiary hover:text-ink"
@@ -83,7 +83,7 @@ export function PerformanceAttribution({ portfolio }: { portfolio: Portfolio }) 
           <div className="overflow-x-auto">
             <table className="w-full min-w-[34rem] text-sm">
               <thead>
-                <tr className="border-b border-line text-left font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                <tr className="border-b border-line text-left font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                   <th className="py-2">Holding</th>
                   <th className="py-2 text-right">Weight</th>
                   <th className="py-2 text-right">Return</th>
@@ -106,7 +106,7 @@ export function PerformanceAttribution({ portfolio }: { portfolio: Portfolio }) 
                     </td>
                     <td className="py-2.5 text-right font-mono text-ink">
                       {formatSignedPercentagePoints(row.approximate_contribution_pct)}
-                      <span className="ml-2 text-[10px] text-ink-tertiary">
+                      <span className="ml-2 text-[11px] text-ink-tertiary">
                         {formatSignedCurrency(row.approximate_contribution_value)}
                       </span>
                     </td>
@@ -115,7 +115,7 @@ export function PerformanceAttribution({ portfolio }: { portfolio: Portfolio }) 
               </tbody>
             </table>
           </div>
-          <p className="mt-4 text-[11px] leading-relaxed text-ink-tertiary">
+          <p className="mt-4 text-xs leading-relaxed text-ink-tertiary">
             {data.methodology} Source: {data.source_name}.
           </p>
         </div>

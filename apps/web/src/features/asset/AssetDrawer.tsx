@@ -54,7 +54,7 @@ function PriceBlock({ symbol }: { symbol: string }) {
     <div className={`space-y-4 ${loading ? "opacity-60 transition-opacity" : ""}`}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+          <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
             Latest available close · {formatShortDate(data.latest_close_date)}
           </div>
           <div className="mt-1 flex items-baseline gap-3">
@@ -86,7 +86,7 @@ function PriceBlock({ symbol }: { symbol: string }) {
       <dl className="grid grid-cols-3 gap-px border border-line bg-line sm:grid-cols-6">
         {data.returns.map((r) => (
           <div key={r.period} className="bg-surface px-2 py-2 text-center" title={r.from_date ? `vs close on ${r.from_date}` : "Not enough history"}>
-            <dt className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">{r.period}</dt>
+            <dt className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">{r.period}</dt>
             <dd className="mt-0.5 font-mono text-xs tabular-nums">
               <Signed value={r.return_pct} />
             </dd>
@@ -116,7 +116,7 @@ function NewsBlock({ symbol }: { symbol: string }) {
       <ul className="divide-y divide-line">
         {data.items.map((item) => (
           <li key={item.id} className="py-2.5 first:pt-0">
-            <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               {formatRelativeTime(item.published_at)} · {item.publisher}
             </div>
             <a
@@ -219,11 +219,11 @@ export function AssetDrawer({
           {position && (
             <div className="mt-4 flex gap-8">
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">Portfolio weight</div>
+                <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">Portfolio weight</div>
                 <div className="font-mono text-lg tabular-nums text-ink">{formatPercent(position.weight, 1)}</div>
               </div>
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">Position value</div>
+                <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">Position value</div>
                 <div className="font-mono text-lg tabular-nums text-ink">
                   {formatCurrency(position.weight * portfolio.total_value, portfolio.currency)}
                 </div>
@@ -252,7 +252,7 @@ export function AssetDrawer({
             <DrawerSection title="What is this?">
               <p className="text-sm leading-relaxed text-ink">{asset.description}</p>
               <div>
-                <div className="mb-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+                <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
                   Role in this portfolio
                 </div>
                 <p className="text-sm leading-relaxed text-ink-secondary">{asset.portfolio_role}</p>

@@ -23,7 +23,7 @@ const EVIDENCE_STYLE: Record<EvidenceCategory, string> = {
 function EvidencePanel({ brief }: { brief: RiskBriefResponse }) {
   return (
     <section className="border border-line bg-surface-raised/40 p-5">
-      <div className="mb-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+      <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
         Why should I trust this analysis?
       </div>
       <h3 className="text-base font-semibold text-ink">Analysis Evidence</h3>
@@ -35,7 +35,7 @@ function EvidencePanel({ brief }: { brief: RiskBriefResponse }) {
           >
             <div className="text-sm text-ink">{item.component}</div>
             <span
-              className={`w-fit border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${EVIDENCE_STYLE[item.category]}`}
+              className={`w-fit border px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wider ${EVIDENCE_STYLE[item.category]}`}
             >
               {item.category}
             </span>
@@ -109,12 +109,12 @@ export function RiskBriefPanel({
           <section className="border border-line p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+                <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
                   Institutional-style summary
                 </div>
                 <h3 className="mt-1 text-base font-semibold text-ink">Risk Brief</h3>
               </div>
-              <span className="border border-line-strong px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+              <span className="border border-line-strong px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                 {brief.generated_by === "ai" ? "AI prose · deterministic metrics" : "Deterministic fallback"}
               </span>
             </div>
@@ -127,7 +127,7 @@ export function RiskBriefPanel({
                 ["Key assumption", brief.key_assumption],
               ].map(([label, value]) => (
                 <div key={label} className="border-l border-line-strong pl-3">
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                     {label}
                   </div>
                   <p className="mt-1 text-sm leading-relaxed text-ink-secondary">{value}</p>
@@ -136,7 +136,7 @@ export function RiskBriefPanel({
             </div>
             {brief.signals_to_watch.length > 0 && (
               <div className="mt-5 border-t border-line pt-4">
-                <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                   Signals to watch
                 </div>
                 <ul className="mt-2 grid gap-2 text-sm text-ink-secondary md:grid-cols-3">
@@ -151,7 +151,7 @@ export function RiskBriefPanel({
           </section>
 
           <section className="border border-line p-5">
-            <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Explainable transmission
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-ink-secondary">

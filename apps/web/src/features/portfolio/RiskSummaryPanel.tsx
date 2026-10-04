@@ -76,7 +76,7 @@ export function RiskSummaryPanel({ portfolio }: { portfolio: Portfolio }) {
       <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
         {metrics.map((metric) => (
           <div key={metric.label} className="border-l border-line-strong pl-3">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+            <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
               {metric.label}
             </div>
             <div className={`mt-1 font-mono text-lg ${metric.tone}`}>{metric.value}</div>
@@ -86,7 +86,7 @@ export function RiskSummaryPanel({ portfolio }: { portfolio: Portfolio }) {
           </div>
         ))}
       </div>
-      <p className="mt-4 text-[11px] text-ink-tertiary">{data.methodology}</p>
+      <p className="mt-4 text-xs text-ink-tertiary">{data.methodology}</p>
     </div>
   );
 }

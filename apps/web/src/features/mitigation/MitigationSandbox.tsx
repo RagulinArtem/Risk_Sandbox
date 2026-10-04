@@ -94,7 +94,7 @@ export function MitigationSandbox({ portfolio }: { portfolio: Portfolio }) {
   return (
     <div className="space-y-6">
       <header className="max-w-3xl">
-        <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           Manual allocation what-if
         </div>
         <h2 className="mt-1 text-xl font-semibold text-ink">Mitigation Sandbox</h2>
@@ -108,7 +108,7 @@ export function MitigationSandbox({ portfolio }: { portfolio: Portfolio }) {
         <section className="border border-line bg-surface-raised/40 p-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                 Hypothetical weights
               </div>
               <div
@@ -147,7 +147,7 @@ export function MitigationSandbox({ portfolio }: { portfolio: Portfolio }) {
                 >
                   <span>
                     <span className="font-mono text-sm text-ink">{position.symbol}</span>
-                    <span className="ml-2 font-mono text-[10px] text-ink-tertiary">
+                    <span className="ml-2 font-mono text-[11px] text-ink-tertiary">
                       {original === undefined ? "" : `${formatPercent(original, 0)} →`}
                     </span>
                   </span>
@@ -167,14 +167,14 @@ export function MitigationSandbox({ portfolio }: { portfolio: Portfolio }) {
               );
             })}
           </div>
-          <p className="mt-4 border-t border-line pt-3 text-[11px] text-ink-tertiary">
+          <p className="mt-4 border-t border-line pt-3 text-xs text-ink-tertiary">
             Portfolio value and holdings remain fixed; only allocation weights change.
           </p>
         </section>
 
         <section className="min-w-0 border border-line p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h3 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <h3 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Before vs after modeled impact
             </h3>
             {loading && <LoadingLine label="Recalculating…" />}
@@ -184,7 +184,7 @@ export function MitigationSandbox({ portfolio }: { portfolio: Portfolio }) {
             <div className={loading ? "opacity-60" : undefined}>
               <div className="grid gap-4 border-b border-line pb-5 sm:grid-cols-3">
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                     Worst before
                   </div>
                   <div className="mt-1 font-mono text-xl text-risk-negative-strong">
@@ -194,7 +194,7 @@ export function MitigationSandbox({ portfolio }: { portfolio: Portfolio }) {
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                     Worst after
                   </div>
                   <div className="mt-1 font-mono text-xl text-risk-negative-strong">
@@ -204,7 +204,7 @@ export function MitigationSandbox({ portfolio }: { portfolio: Portfolio }) {
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                  <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                     Biggest downside reduction
                   </div>
                   <div className="mt-1 font-mono text-xl text-risk-positive">
@@ -220,7 +220,7 @@ export function MitigationSandbox({ portfolio }: { portfolio: Portfolio }) {
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full min-w-[36rem] text-sm">
                   <thead>
-                    <tr className="border-b border-line font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                    <tr className="border-b border-line font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                       <th className="py-2 text-left">Scenario</th>
                       <th className="py-2 text-right">Before</th>
                       <th className="py-2 text-right">After</th>

@@ -23,28 +23,38 @@ import type {
   StressTestResult as StressTestResultType,
 } from "./types";
 
-type View =
-  | "portfolio"
-  | "feed"
-  | "radar"
-  | "scenarios"
-  | "stress"
-  | "mitigation"
-  | "report";
+// Three steps a first-time viewer can follow, plus a printable report.
+type View = "portfolio" | "risks" | "stress" | "report";
+type RisksView = "feed" | "library" | "radar";
 
 const TABS: TabDef<View>[] = [
-  { id: "portfolio", label: "Portfolio" },
-  { id: "feed", label: "Risk Feed" },
-  { id: "radar", label: "Risk Radar" },
-  { id: "scenarios", label: "Scenarios" },
-  { id: "stress", label: "Stress Test" },
-  { id: "mitigation", label: "Mitigation" },
-  { id: "report", label: "Report" },
+  { id: "portfolio", label: "① Overview" },
+  { id: "risks", label: "② What could hurt it" },
+  { id: "stress", label: "③ Stress test" },
 ];
+
+const RISKS_TABS: { id: RisksView; label: string; hint: string }[] = [
+  { id: "feed", label: "Live signals", hint: "official sources, filings, news, prediction markets" },
+  { id: "library", label: "Scenario library", hint: "real past crises and hypothetical shocks, ranked" },
+  { id: "radar", label: "Risk radar", hint: "likelihood vs impact" },
+];
+
+// Old deep links (#feed, #radar, #scenarios, #mitigation) still land somewhere sensible.
+const LEGACY: Record<string, [View, RisksView?]> = {
+  feed: ["risks", "feed"],
+  radar: ["risks", "radar"],
+  scenarios: ["risks", "library"],
+  mitigation: ["stress"],
+};
 
 function viewFromHash(): View {
   const hash = window.location.hash.replace("#", "");
-  return TABS.some((t) => t.id === hash) ? (hash as View) : "portfolio";
+  if (hash in LEGACY) return LEGACY[hash][0];
+  return ["portfolio", "risks", "stress", "report"].includes(hash) ? (hash as View) : "portfolio";
+}
+
+function risksViewFromHash(): RisksView {
+  return LEGACY[window.location.hash.replace("#", "")]?.[1] ?? "feed";
 }
 
 export default function App() {
@@ -59,6 +69,7 @@ export default function App() {
   const closeAsset = useCallback(() => setAssetSymbol(null), []);
 
   const [view, setViewState] = useState<View>(viewFromHash);
+  const [risksView, setRisksView] = useState<RisksView>(risksViewFromHash);
 
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [scenarioLoading, setScenarioLoading] = useState(false);
@@ -233,6 +244,17 @@ export default function App() {
               </label>
             )}
             <Tabs tabs={TABS} active={view} onChange={setView} />
+            <button
+              type="button"
+              onClick={() => setView("report")}
+              className={`mb-2 border px-3 py-1.5 text-xs font-medium ${
+                view === "report"
+                  ? "border-accent text-accent-strong"
+                  : "border-line-strong text-ink-secondary hover:border-accent hover:text-ink"
+              }`}
+            >
+              Report
+            </button>
           </div>
         </div>
       </header>
@@ -247,22 +269,54 @@ export default function App() {
             portfolio={portfolio}
             onOpenScenario={selectScenario}
             onSelectAsset={setAssetSymbol}
+            onSeeRisks={() => {
+              setRisksView("feed");
+              setView("risks");
+            }}
           />
         )}
 
-        {view === "feed" && (
-          <RiskFeed
-            portfolioId={portfolio?.id}
-            onStressTest={selectScenario}
-            onDraft={isLiveAi ? draftFromHeadline : undefined}
-            onAsset={setAssetSymbol}
-          />
-        )}
+        {view === "risks" && (
+          <div className="space-y-6">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line">
+              <div role="tablist" aria-label="Risk views" className="-mb-px flex flex-wrap gap-1">
+                {RISKS_TABS.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={risksView === t.id}
+                    onClick={() => setRisksView(t.id)}
+                    className={`border-b-2 px-3 py-2 text-sm font-medium ${
+                      risksView === t.id
+                        ? "border-accent text-ink"
+                        : "border-transparent text-ink-tertiary hover:text-ink-secondary"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <p className="pb-2 text-xs text-ink-tertiary">
+                {RISKS_TABS.find((t) => t.id === risksView)?.hint}
+              </p>
+            </div>
 
-        {view === "radar" && <RiskRadar portfolio={portfolio} onStressTest={selectScenario} />}
-
-        {view === "scenarios" && portfolio && (
-          <ScenarioComparison portfolio={portfolio} onOpenScenario={selectScenario} />
+            {risksView === "feed" && (
+              <RiskFeed
+                portfolioId={portfolio?.id}
+                onStressTest={selectScenario}
+                onDraft={isLiveAi ? draftFromHeadline : undefined}
+                onAsset={setAssetSymbol}
+              />
+            )}
+            {risksView === "library" && portfolio && (
+              <ScenarioComparison portfolio={portfolio} onOpenScenario={selectScenario} />
+            )}
+            {risksView === "radar" && (
+              <RiskRadar portfolio={portfolio} onStressTest={selectScenario} />
+            )}
+          </div>
         )}
 
         {view === "stress" && (
@@ -302,6 +356,11 @@ export default function App() {
                 </div>
               )}
             </div>
+            {isLiveAi && scenario && portfolio && (
+              <div className="lg:col-span-2">
+                <CommitteePanel scenario={scenario} portfolio={portfolio} onApply={applyVerdict} />
+              </div>
+            )}
             {result && scenario && portfolio && (
               <div className="lg:col-span-2">
                 <RiskBriefPanel
@@ -311,15 +370,24 @@ export default function App() {
                 />
               </div>
             )}
-            {isLiveAi && scenario && portfolio && (
-              <div className="lg:col-span-2">
-                <CommitteePanel scenario={scenario} portfolio={portfolio} onApply={applyVerdict} />
-              </div>
+            {portfolio && (
+              <details className="group border border-line bg-surface-raised/20 lg:col-span-2">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm hover:text-ink">
+                  <span>
+                    <span className="font-medium text-ink">What if I change the allocation?</span>
+                    <span className="ml-2 text-ink-tertiary">
+                      compare a hypothetical allocation across every scenario
+                    </span>
+                  </span>
+                  <span className="font-mono text-ink-tertiary transition-transform group-open:rotate-90">›</span>
+                </summary>
+                <div className="border-t border-line p-5">
+                  <MitigationSandbox portfolio={portfolio} />
+                </div>
+              </details>
             )}
           </div>
         )}
-
-        {view === "mitigation" && portfolio && <MitigationSandbox portfolio={portfolio} />}
 
         {view === "report" && portfolio && (
           <RiskReport portfolio={portfolio} selectedScenario={scenario} />

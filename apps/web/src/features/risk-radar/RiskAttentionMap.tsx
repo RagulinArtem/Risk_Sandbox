@@ -53,7 +53,7 @@ function AttentionTooltip({
       </dl>
       <div className="mt-3 flex items-center gap-2">
         <StatusBadge status={point.source_status} />
-        <span className="text-[10px] uppercase tracking-wider text-ink-tertiary">
+        <span className="text-[11px] uppercase tracking-wider text-ink-tertiary">
           shocks: {point.scenario_source_status}
         </span>
       </div>
@@ -98,12 +98,12 @@ export function RiskAttentionMap({
     <section className="mb-8 border border-line bg-surface-raised/40 p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+          <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
             External attention × modeled impact
           </div>
           <h2 className="mt-1 text-lg font-semibold text-ink">Risk Attention Map</h2>
         </div>
-        <span className="border border-risk-warning/40 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-risk-warning">
+        <span className="border border-risk-warning/40 px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-risk-warning">
           Not expected loss
         </span>
       </div>
@@ -144,7 +144,7 @@ export function RiskAttentionMap({
               </ScatterChart>
             </ResponsiveContainer>
           </div>
-          <p className="mt-3 text-[11px] leading-relaxed text-ink-tertiary">
+          <p className="mt-3 text-xs leading-relaxed text-ink-tertiary">
             {data.methodology} Select a point to inspect its scenario.
           </p>
         </>

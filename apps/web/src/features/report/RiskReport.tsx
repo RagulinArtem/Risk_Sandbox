@@ -65,7 +65,7 @@ export function RiskReport({
     <div className="print-report mx-auto max-w-5xl space-y-8 bg-surface print:max-w-none print:space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-ink pb-5 print:pb-3">
         <div>
-          <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-ink-tertiary">
+          <div className="font-mono text-xs uppercase tracking-[0.2em] text-ink-tertiary">
             Risk Sandbox
           </div>
           <h2 className="mt-1 text-2xl font-semibold text-ink">Portfolio Risk Brief</h2>
@@ -79,7 +79,7 @@ export function RiskReport({
           >
             Print / Save as PDF
           </button>
-          <div className="mt-2 font-mono text-[10px] text-ink-tertiary print:mt-0">
+          <div className="mt-2 font-mono text-[11px] text-ink-tertiary print:mt-0">
             Generated {new Date().toLocaleString()}
           </div>
         </div>
@@ -108,7 +108,7 @@ export function RiskReport({
               ["High-impact scenarios", String(data.summary.high_impact_scenario_count)],
             ].map(([label, value]) => (
               <div key={label} className="border-l border-line-strong pl-3">
-                <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                   {label}
                 </div>
                 <div className="mt-1 font-mono text-lg text-ink">{value}</div>
@@ -117,7 +117,7 @@ export function RiskReport({
           </section>
 
           <section className="break-inside-avoid border-t border-line pt-5">
-            <h3 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <h3 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Top modeled risks
             </h3>
             <ol className="mt-3 grid gap-3 sm:grid-cols-2 print:grid-cols-2">
@@ -139,12 +139,12 @@ export function RiskReport({
           </section>
 
           <section className="break-inside-avoid border-t border-line pt-5">
-            <h3 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <h3 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Scenario comparison
             </h3>
             <table className="mt-3 w-full text-sm">
               <thead>
-                <tr className="border-b border-line font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                <tr className="border-b border-line font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                   <th className="py-2 text-left">Scenario</th>
                   <th className="py-2 text-right">Impact</th>
                   <th className="py-2 text-right">Largest driver</th>
@@ -167,7 +167,7 @@ export function RiskReport({
           </section>
 
           <section className="break-inside-avoid border-t border-line pt-5">
-            <h3 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <h3 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Main modeled risk drivers
             </h3>
             <div className="mt-3 grid gap-x-6 gap-y-3 sm:grid-cols-2 print:grid-cols-2">
@@ -175,13 +175,13 @@ export function RiskReport({
                 <div key={driver.driver} className="flex justify-between gap-4 border-b border-line pb-2">
                   <div>
                     <div className="text-sm text-ink">{driver.label}</div>
-                    <div className="text-[11px] text-ink-tertiary">
+                    <div className="text-xs text-ink-tertiary">
                       {driver.affected_symbols.join(" / ")}
                     </div>
                   </div>
                   <div className="text-right font-mono text-sm text-risk-negative-strong">
                     {formatSignedPercent(driver.worst_impact_pct)}
-                    <div className="text-[10px] uppercase text-ink-tertiary">
+                    <div className="text-[11px] uppercase text-ink-tertiary">
                       {driver.level.replace("_", " ")}
                     </div>
                   </div>
@@ -201,27 +201,27 @@ export function RiskReport({
               </p>
               <dl className="mt-4 grid gap-4 sm:grid-cols-2 print:grid-cols-2">
                 <div>
-                  <dt className="font-mono text-[10px] uppercase text-ink-tertiary">
+                  <dt className="font-mono text-[11px] uppercase text-ink-tertiary">
                     Primary driver
                   </dt>
                   <dd className="mt-1 text-sm text-ink-secondary">{data.brief.primary_driver}</dd>
                 </div>
                 <div>
-                  <dt className="font-mono text-[10px] uppercase text-ink-tertiary">
+                  <dt className="font-mono text-[11px] uppercase text-ink-tertiary">
                     Key assumption
                   </dt>
                   <dd className="mt-1 text-sm text-ink-secondary">{data.brief.key_assumption}</dd>
                 </div>
               </dl>
               <div className="mt-4">
-                <div className="font-mono text-[10px] uppercase text-ink-tertiary">
+                <div className="font-mono text-[11px] uppercase text-ink-tertiary">
                   Evidence / provenance
                 </div>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {data.brief.evidence.map((item) => (
                     <span
                       key={`${item.component}-${item.category}`}
-                      className="border border-line-strong px-2 py-1 font-mono text-[10px] text-ink-secondary"
+                      className="border border-line-strong px-2 py-1 font-mono text-[11px] text-ink-secondary"
                     >
                       {item.component}: {item.category}
                     </span>
@@ -231,7 +231,7 @@ export function RiskReport({
             </section>
           )}
 
-          <footer className="border-t border-line pt-4 text-[11px] leading-relaxed text-ink-tertiary">
+          <footer className="border-t border-line pt-4 text-xs leading-relaxed text-ink-tertiary">
             Scenario estimates are conditional stress-test results, not forecasts, expected loss,
             investment advice or trade recommendations. Historical performance does not guarantee
             future results. All portfolio impacts and contributions are calculated deterministically.

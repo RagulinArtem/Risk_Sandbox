@@ -1,4 +1,5 @@
 import type {
+  DiversificationResponse,
   AIStatusResponse,
   AnalystRequest,
   AnalystView,
@@ -80,6 +81,10 @@ export const api = {
   getDemoPortfolio: () => request<Portfolio>("/api/portfolio/demo"),
   listPortfolios: () => request<Portfolio[]>("/api/portfolios"),
   getPortfolio: (id: string) => request<Portfolio>(`/api/portfolios/${encodeURIComponent(id)}`),
+  getDiversification: (portfolioId: string) =>
+    request<DiversificationResponse>(
+      `/api/portfolios/${encodeURIComponent(portfolioId)}/diversification`,
+    ),
   listAssets: () => request<Asset[]>("/api/assets"),
   getAsset: (symbol: string) => request<Asset>(`/api/assets/${encodeURIComponent(symbol)}`),
   getAssetPrices: (symbol: string, range: PriceRange) =>

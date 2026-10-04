@@ -34,7 +34,7 @@ function RelevanceMeter({ value }: { value: number }) {
       <div className="h-1.5 w-16 bg-surface-higher">
         <div className="h-full bg-accent" style={{ width: `${Math.round(value * 100)}%` }} />
       </div>
-      <span className="font-mono text-[11px] tabular-nums text-ink-tertiary">{Math.round(value * 100)}</span>
+      <span className="font-mono text-xs tabular-nums text-ink-tertiary">{Math.round(value * 100)}</span>
     </div>
   );
 }
@@ -54,7 +54,7 @@ function FeedCard({
   return (
     <li className="grid gap-3 border-b border-line py-4 last:border-b-0 lg:grid-cols-[minmax(0,1fr)_17rem]">
       <div className="min-w-0 space-y-2">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           <span className={`border px-1.5 py-px ${TIER_STYLE[item.tier]}`}>{TIER_LABEL[item.tier]}</span>
           <span>{KIND_LABEL[item.kind]}</span>
           <span>·</span>
@@ -121,7 +121,7 @@ function FeedCard({
         )}
         {a.history.length > 0 && (
           <div>
-            <div className="mb-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Same risk in history (real data)
             </div>
             <ul className="space-y-0.5">
@@ -183,7 +183,7 @@ export function RiskFeed({
             Arrows show how each holding tends to move <em>if the risk materialises</em>.
           </p>
           {data?.refreshed_at && (
-            <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <p className="mt-1 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Updated {formatRelativeTime(data.refreshed_at)}
               {data.refreshing ? " · refreshing…" : ""} · auto-refreshes every minute
             </p>

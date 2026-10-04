@@ -45,7 +45,7 @@ export function ScenarioExposureChart({
                   <span className={isLoss ? "text-risk-negative-strong" : "text-risk-positive"}>
                     {formatSignedPercent(pct)}
                   </span>
-                  <span className="ml-2 text-[11px] text-ink-tertiary">
+                  <span className="ml-2 text-xs text-ink-tertiary">
                     {formatSignedCurrency(scenario.impact_value)}
                   </span>
                 </span>

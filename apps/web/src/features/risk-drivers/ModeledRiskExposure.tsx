@@ -72,17 +72,17 @@ export function ModeledRiskExposure({ portfolio }: { portfolio: Portfolio }) {
             </div>
             <div className="font-mono text-sm text-risk-negative-strong sm:text-right">
               {formatSignedPercent(driver.worst_impact_pct)}
-              <div className="text-[10px] uppercase tracking-wider text-ink-tertiary">worst</div>
+              <div className="text-[11px] uppercase tracking-wider text-ink-tertiary">worst</div>
             </div>
             <span
-              className={`w-fit border px-2 py-1 font-mono text-[10px] uppercase tracking-wider ${LEVEL[driver.level].style}`}
+              className={`w-fit border px-2 py-1 font-mono text-[11px] uppercase tracking-wider ${LEVEL[driver.level].style}`}
             >
               {LEVEL[driver.level].label}
             </span>
           </div>
         ))}
       </div>
-      <p className="text-[11px] leading-relaxed text-ink-tertiary">{data.methodology}</p>
+      <p className="text-xs leading-relaxed text-ink-tertiary">{data.methodology}</p>
     </div>
   );
 }
