@@ -7,7 +7,9 @@
         "taiwan strait",
         "taiwan",
         "pla drills",
-        "blockade",
+        "blockade of taiwan",
+        "blockade taiwan",
+        "taiwan blockade",
         "tsmc fab"
       ],
       "assets": {
@@ -88,7 +90,10 @@
         "refinery",
         "petroleum",
         "natural gas",
-        "lng"
+        "lng",
+        "iran",
+        "iranian",
+        "saudi"
       ],
       "assets": {
         "XOM": 1,
@@ -106,7 +111,7 @@
     },
     {
       "id": "fed-policy",
-      "label": "Federal Reserve policy",
+      "label": "Central bank policy (Fed, ECB)",
       "keywords": [
         "federal reserve",
         "fomc",
@@ -116,7 +121,10 @@
         "interest rate",
         "powell",
         "warsh",
-        "monetary policy"
+        "monetary policy",
+        "ecb",
+        "governing council",
+        "fed chair"
       ],
       "assets": {
         "TLT": -1,
@@ -167,9 +175,11 @@
         "jobs report",
         "unemployment",
         "employment situation",
-        "gdp",
         "recession",
-        "jobless"
+        "jobless",
+        "us gdp",
+        "u.s. gdp",
+        "gdp report"
       ],
       "assets": {
         "SPY": -1,
@@ -253,7 +263,10 @@
         "pboc",
         "evergrande",
         "property developer",
-        "beijing stimulus"
+        "beijing stimulus",
+        "china gdp",
+        "chinese gdp",
+        "china growth"
       ],
       "assets": {
         "FXI": -1,

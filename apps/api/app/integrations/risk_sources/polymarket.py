@@ -49,13 +49,19 @@ def _volume(market: dict) -> float:
     except (TypeError, ValueError):
         return 0.0
 
+
 # Maps a demo scenario id to keywords that, if found in a Polymarket
 # market's question, suggest that market is a live probability signal for
 # that scenario. Deliberately simple keyword matching — same philosophy as
 # integrations/ai/mock.py, not NLP. Keep in sync with data/scenarios/demo/.
 SCENARIO_KEYWORDS: dict[str, tuple[str, ...]] = {
     # Most specific first: the first matching scenario wins.
-    "taiwan-strait-blockade": ("invade taiwan", "taiwan strait", "blockade taiwan", "blockade of taiwan"),
+    "taiwan-strait-blockade": (
+        "invade taiwan",
+        "taiwan strait",
+        "blockade taiwan",
+        "blockade of taiwan",
+    ),
     "strait-of-hormuz-closure": ("hormuz", "bab el-mandeb", "iranian blockade"),
     "regional-bank-run": ("bank failure", "fdic", "bank run"),
     "china-property-crisis": ("evergrande", "china property", "china gdp"),
