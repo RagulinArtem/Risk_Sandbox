@@ -33,14 +33,15 @@ jobs:
           WEB_PORT: ${{ vars.WEB_PORT || '8080' }}
           API_PUBLISH: ${{ vars.API_PUBLISH || '8000' }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || 'anthropic/claude-3.5-haiku' }}
+          OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5' }}
+          HTTPS_PROXY: ${{ vars.HTTPS_PROXY }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          envs: DEPLOY_REF,AI_PROVIDER,ENABLE_POLYMARKET,ENABLE_NEWS,VITE_API_BASE_URL,FRONTEND_ORIGIN,API_PORT,WEB_PORT,API_PUBLISH,OPENROUTER_API_KEY,OPENROUTER_MODEL
+          envs: DEPLOY_REF,AI_PROVIDER,ENABLE_POLYMARKET,ENABLE_NEWS,VITE_API_BASE_URL,FRONTEND_ORIGIN,API_PORT,WEB_PORT,API_PUBLISH,OPENROUTER_API_KEY,OPENROUTER_MODEL,HTTPS_PROXY
           script: |
             set -euo pipefail
 
@@ -81,6 +82,8 @@ jobs:
             ENABLE_POLYMARKET=${ENABLE_POLYMARKET}
             ENABLE_NEWS=${ENABLE_NEWS}
             NEWS_API_KEY=
+            HTTPS_PROXY=${HTTPS_PROXY}
+            NO_PROXY=localhost,127.0.0.1
             ENVEOF
             chmod 600 .env
 

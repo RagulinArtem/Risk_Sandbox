@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     bedrock_model_id: str = ""
 
     openrouter_api_key: str = ""
-    openrouter_model: str = "anthropic/claude-3.5-haiku"
+    openrouter_model: str = "anthropic/claude-haiku-4.5"
 
     enable_polymarket: bool = False
     enable_news: bool = False

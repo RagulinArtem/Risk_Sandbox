@@ -69,7 +69,7 @@ Set `AI_PROVIDER=openrouter` and `OPENROUTER_API_KEY` in `.env` instead —
 `apps/api/app/integrations/ai/openrouter.py` is a complete implementation
 against [OpenRouter](https://openrouter.ai) (OpenAI-compatible, needs only
 an API key, no cloud account/IAM setup). `OPENROUTER_MODEL` defaults to
-`anthropic/claude-3.5-haiku`; set it to any model slug OpenRouter serves.
+`anthropic/claude-haiku-4.5`; set it to any model slug OpenRouter serves.
 Same `ScenarioAIProvider` contract as Bedrock, so nothing else in the app
 needs to change.
 

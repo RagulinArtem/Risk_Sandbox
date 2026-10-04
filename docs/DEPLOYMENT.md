@@ -67,7 +67,8 @@ GitHub UI — never paste them into a chat or commit them to the repo.
 | `VITE_API_BASE_URL` | `http://203.0.113.10:8000` | The VM's public address, port 8000. Baked into the frontend at **build** time — changing it requires a redeploy. |
 | `FRONTEND_ORIGIN` | `http://203.0.113.10` | Must match where the frontend is actually served, or CORS blocks every API call — see `app/main.py`. |
 | `AI_PROVIDER` | `openrouter` | `mock` (default) / `bedrock` / `openrouter` |
-| `OPENROUTER_MODEL` | `anthropic/claude-3.5-haiku` | Any model slug OpenRouter serves |
+| `OPENROUTER_MODEL` | `anthropic/claude-haiku-4.5` | Any model slug OpenRouter serves |
+| `HTTPS_PROXY` | `http://82.38.69.22:8888` | Outbound proxy for the API's HTTPS calls. Required on the Timeweb VM: OpenRouter blocks its Russian IP. Points at tinyproxy on the Hostkey US VM, which only accepts connections from `5.129.243.18`. Leave unset elsewhere. |
 | `ENABLE_POLYMARKET` | `true` | Off by default |
 | `ENABLE_NEWS` | `false` | Not implemented yet — leave false |
 | `API_PORT` | `8000` | Only if you need a non-default port |
