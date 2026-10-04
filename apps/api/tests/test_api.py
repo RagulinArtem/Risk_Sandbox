@@ -172,7 +172,13 @@ def test_parse_scenario_unrecognized_is_graceful(client):
 def test_parse_ai_bubble_title_returns_canonical_demo_scenario(client):
     library = client.get("/api/scenarios/ai-capex-bust").json()
 
-    for text in ("AI BUBBLE BURSTS", "AI bubble burst", "If the AI bubble bursts?"):
+    for text in (
+        "AI BUBBLE BURSTS",
+        "AI bubble burst",
+        "If the AI bubble bursts?",
+        "What if AI Bubble Bursts?",
+        "What if the AI bubble bursts?",
+    ):
         parsed = client.post("/api/ai/parse-scenario", json={"text": text})
         assert parsed.status_code == 200
         scenario = parsed.json()["scenario"]
