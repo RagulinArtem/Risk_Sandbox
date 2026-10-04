@@ -106,7 +106,7 @@ def test_live_fetch_builds_summary_with_probability(tmp_path):
     service = _service(tmp_path)
     history = {"history": _points(35, 0.30, 0.50, datetime.now(UTC))}
 
-    def fake_get(url, params=None, timeout=None):
+    def fake_get(url, params=None, timeout=None, proxy=None):
         if "gamma-api" in url:
             return _response([GAMMA_MARKET])
         return _response(history)
@@ -129,7 +129,7 @@ def test_cache_fallback_when_live_fails(tmp_path):
     service = _service(tmp_path)
     history = {"history": _points(35, 0.30, 0.50, datetime.now(UTC))}
 
-    def fake_get(url, params=None, timeout=None):
+    def fake_get(url, params=None, timeout=None, proxy=None):
         if "gamma-api" in url:
             return _response([GAMMA_MARKET])
         return _response(history)
