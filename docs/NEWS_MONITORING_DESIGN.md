@@ -1,6 +1,6 @@
 # Design: Real-Time Risk Monitor and Scenario Library Expansion
 
-Status: **proposal** (2026-10-04). Nothing here is built yet, except where it says
+Status (2026-10-04): **Phases 0–2 are implemented** with free sources: verified history, risk factors, tag-based Polymarket and the Risk Feed (see `docs/CURRENT_STATE.md`). Phases 3–5 are still proposals. Nothing here is built yet, except where it says
 "exists today". Decisions that change the architecture (a persistent store,
 a background worker) are called out explicitly. Per `AGENTS.md`, they need team
 agreement before implementation.
