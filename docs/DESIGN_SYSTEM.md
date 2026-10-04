@@ -20,8 +20,8 @@ number lead somewhere.
 - **Stress analytics** — assumptions, deterministic result, attribution,
   committee interpretation and allocation sandbox.
 - **Alerts & signals** — attributed live events, scenario library and risk
-  attention map. “Alerts” currently means inspectable signals, not background
-  push notifications.
+  attention map. A device-local watch threshold can be saved on Home; it does
+  not claim to provide background push notifications.
 - **Portfolio** — holdings and performance first; specialist analytics live
   behind “More analytics.”
 - **Settings** — presentation and data-label explanations. It must not show
@@ -51,7 +51,8 @@ number lead somewhere.
 - The diversification widget exposes independent drivers and concentration
   metrics instead of compressing them into an arbitrary 0–100 grade.
 - The quick what-if is explicitly illustrative and sends factor shocks to the
-  deterministic stress engine.
+  deterministic stress engine. Parameter combinations can be saved locally and
+  recalled without persisting a stale impact number.
 - CTAs say “explore,” “review,” or “compare.” They do not recommend securities,
   promise mitigation or execute trades.
 - Historical, live, cached and illustrative data keep their existing labels and
@@ -69,8 +70,8 @@ number lead somewhere.
 ## Near-term extensions
 
 - Let users choose which real widgets appear on Home and persist the layout.
-- Add actual threshold-based alert rules before exposing alert toggles or
-  notification permission prompts.
+- Promote the device-local watch threshold to server-side alert rules before
+  exposing notification permission prompts or promising background delivery.
 - Add scenario-card editorial imagery only when licensing, attribution and
   loading fallbacks are defined; generated abstract artwork is safer than
   implying that a generic news photo is evidence.

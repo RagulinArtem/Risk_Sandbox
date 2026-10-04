@@ -130,6 +130,27 @@ export default function App() {
     [setView],
   );
 
+  const revealMitigation = useCallback(() => {
+    requestAnimationFrame(() => {
+      const panel = document.getElementById("mitigation-sandbox");
+      if (panel instanceof HTMLDetailsElement) panel.open = true;
+      panel?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
+  const openMitigationForScenario = useCallback(
+    async (scenarioId: string) => {
+      await selectScenario(scenarioId);
+      revealMitigation();
+    },
+    [revealMitigation, selectScenario],
+  );
+
+  const openMitigationSandbox = useCallback(() => {
+    setView("stress");
+    revealMitigation();
+  }, [revealMitigation, setView]);
+
   const openMarket = useCallback(
     (selected: MarketSummary) => {
       setMarket(selected);
@@ -369,12 +390,13 @@ export default function App() {
           <RiskDashboard
             portfolio={activePortfolio}
             onOpenScenario={selectScenario}
+            onMitigateScenario={openMitigationForScenario}
             onOpenRisks={() => {
               setRisksView("feed");
               setView("risks");
             }}
             onOpenPortfolio={() => setView("portfolio")}
-            onOpenStress={() => setView("stress")}
+            onOpenStress={openMitigationSandbox}
             onUseWhatIf={handleQuickWhatIf}
           />
         )}
@@ -511,7 +533,7 @@ export default function App() {
               </div>
             )}
             {activePortfolio && (
-              <details className="group border border-line bg-surface-raised lg:col-span-2 shadow-card">
+              <details id="mitigation-sandbox" className="group border border-line bg-surface-raised lg:col-span-2 shadow-card">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm hover:text-ink">
                   <span>
                     <span className="font-medium text-ink">What if I change the allocation?</span>

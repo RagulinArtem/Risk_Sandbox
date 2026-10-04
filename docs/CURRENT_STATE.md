@@ -13,6 +13,11 @@ reality.
   diversification snapshot, a backend-calculated two-slider what-if, popular
   stress tests and neutral next steps. It deliberately does not invent a
   0–100 risk score, imply a trade recommendation or pretend that alerts exist.
+  Quick what-if combinations and an in-app scenario-loss watch threshold can
+  be saved locally per portfolio; both are explicitly labelled as device-local,
+  not cloud-synced scenarios or background push notifications. The action area
+  includes a real asset-class allocation donut built from supported-asset
+  metadata.
   Desktop uses a fixed sidebar; mobile uses a bottom navigation bar. Old deep
   links (`#feed`, `#radar`, `#scenarios`, `#mitigation`) still resolve. Design
   rationale and UI rules are documented in `docs/DESIGN_SYSTEM.md`.

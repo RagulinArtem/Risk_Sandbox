@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
-import { ApiError, api } from "../../lib/apiClient";
+import { api } from "../../lib/apiClient";
 import {
   formatCurrency,
   formatPercent,
@@ -15,7 +15,10 @@ import type {
   Scenario,
   StressTestResult,
 } from "../../types";
+import { useAssets } from "../portfolio/useAssets";
 import { useScenarioExposure } from "../portfolio/useScenarioExposure";
+import { DashboardActions } from "./DashboardActions";
+import { QuickWhatIf } from "./QuickWhatIf";
 
 const SCENARIO_ART: Record<string, { icon: string; wash: string }> = {
   macro: { icon: "↗", wash: "from-blue-100 to-indigo-50 text-blue-700" },
@@ -87,150 +90,10 @@ function SectionHeading({ eyebrow, title, note }: { eyebrow?: string; title: str
   );
 }
 
-function QuickWhatIf({
-  portfolio,
-  onUse,
-}: {
-  portfolio: Portfolio;
-  onUse: (result: StressTestResult, rates: number, marketFall: number) => void;
-}) {
-  const [rates, setRates] = useState(1);
-  const [marketFall, setMarketFall] = useState(15);
-  const [result, setResult] = useState<StressTestResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const timer = window.setTimeout(() => {
-      setLoading(true);
-      setError(null);
-      api
-        .runStressTest({
-          portfolio,
-          factor_shocks: { rates, nasdaq: -marketFall },
-          scenario_title: "Your quick what-if",
-        })
-        .then((response) => {
-          if (!cancelled) setResult(response);
-        })
-        .catch((err: unknown) => {
-          if (!cancelled) {
-            setError(err instanceof ApiError ? err.detail : "Could not calculate this what-if.");
-          }
-        })
-        .finally(() => {
-          if (!cancelled) setLoading(false);
-        });
-    }, 260);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [marketFall, portfolio, rates]);
-
-  const affected = (result?.asset_impacts ?? [])
-    .filter((item) => item.impact_value < 0)
-    .sort((a, b) => a.impact_value - b.impact_value)
-    .slice(0, 3);
-  const coverageWarningCount = result?.warnings?.length ?? 0;
-
-  return (
-    <section className="relative min-w-0 overflow-hidden rounded-[2rem] bg-ink p-6 text-white shadow-card sm:p-7">
-      <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-violet-500/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 left-12 h-52 w-52 rounded-full bg-blue-500/20 blur-3xl" />
-      <div className="relative">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">Quick what-if</p>
-            <h2 className="mt-1 text-xl font-bold tracking-tight">Move the sliders. See your exposure.</h2>
-          </div>
-          {loading && <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-violet-300" aria-label="Recalculating" />}
-        </div>
-
-        <div className="mt-7 space-y-6">
-          <label className="block">
-            <span className="flex items-center justify-between gap-4 text-sm">
-              <span className="text-white/70">Interest rates rise by</span>
-              <span className="rounded-full bg-white/10 px-3 py-1 font-semibold tabular-nums">+{rates.toFixed(1)}pp</span>
-            </span>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="0.25"
-              value={rates}
-              onChange={(event) => setRates(Number(event.target.value))}
-              className="app-range mt-3 w-full"
-            />
-          </label>
-          <label className="block">
-            <span className="flex items-center justify-between gap-4 text-sm">
-              <span className="text-white/70">Stock markets fall by</span>
-              <span className="rounded-full bg-white/10 px-3 py-1 font-semibold tabular-nums">-{marketFall}%</span>
-            </span>
-            <input
-              type="range"
-              min="0"
-              max="40"
-              step="1"
-              value={marketFall}
-              onChange={(event) => setMarketFall(Number(event.target.value))}
-              className="app-range mt-3 w-full"
-            />
-          </label>
-        </div>
-
-        <div className="mt-7 rounded-3xl bg-white/[0.08] p-5 backdrop-blur-sm">
-          <p className="text-xs font-medium text-white/55">Estimated total impact</p>
-          <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-3xl font-bold tracking-tight tabular-nums">
-              {result ? formatSignedCurrency(result.estimated_impact_value, portfolio.currency) : "—"}
-            </span>
-            {result && (
-              <span className="text-sm font-semibold text-rose-300">
-                {formatSignedPercent(result.estimated_impact_pct)}
-              </span>
-            )}
-          </div>
-          {affected.length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {affected.map((item) => (
-                <span key={item.symbol} className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/75">
-                  {item.symbol} {formatSignedCurrency(item.impact_value, portfolio.currency)}
-                </span>
-              ))}
-            </div>
-          )}
-          {coverageWarningCount > 0 && (
-            <p className="mt-3 text-[11px] leading-relaxed text-amber-200">
-              Demo factor coverage is incomplete; {coverageWarningCount} holding
-              {coverageWarningCount === 1 ? " is" : "s are"} held flat in this illustration.
-              Open the studio to review the coverage notes.
-            </p>
-          )}
-          {error && <p className="mt-3 text-xs text-rose-300">{error}</p>}
-        </div>
-
-        <button
-          type="button"
-          disabled={!result || loading}
-          onClick={() => result && onUse(result, rates, marketFall)}
-          className="mt-5 w-full rounded-2xl bg-white px-4 py-3 text-sm font-bold text-ink transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Open in Stress Studio
-        </button>
-        <p className="mt-3 text-[11px] leading-relaxed text-white/45">
-          Illustrative factor assumptions. Impact is calculated by the backend risk engine.
-        </p>
-      </div>
-    </section>
-  );
-}
-
 export function RiskDashboard({
   portfolio,
   onOpenScenario,
+  onMitigateScenario,
   onOpenRisks,
   onOpenPortfolio,
   onOpenStress,
@@ -238,12 +101,14 @@ export function RiskDashboard({
 }: {
   portfolio: Portfolio;
   onOpenScenario: (scenarioId: string) => void;
+  onMitigateScenario: (scenarioId: string) => void;
   onOpenRisks: () => void;
   onOpenPortfolio: () => void;
   onOpenStress: () => void;
   onUseWhatIf: (result: StressTestResult, rates: number, marketFall: number) => void;
 }) {
   const { exposures, error: exposureError, loading } = useScenarioExposure(portfolio);
+  const assets = useAssets();
   const [diversification, setDiversification] = useState<DiversificationResponse | null>(null);
   const [summary, setSummary] = useState<PortfolioRiskSummary | null>(null);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
@@ -326,10 +191,10 @@ export function RiskDashboard({
           <button
             type="button"
             disabled={!worst}
-            onClick={() => worst && onOpenScenario(worst.scenario_id)}
+            onClick={() => worst && onMitigateScenario(worst.scenario_id)}
             className="mt-5 w-full rounded-2xl bg-ink px-4 py-3 text-sm font-bold text-white transition hover:bg-ink/85 disabled:opacity-40"
           >
-            Explore this risk
+            Explore mitigation
           </button>
         </section>
 
@@ -414,13 +279,13 @@ export function RiskDashboard({
           </button>
         </section>
 
-        <QuickWhatIf portfolio={portfolio} onUse={onUseWhatIf} />
+        <QuickWhatIf portfolio={portfolio} assets={assets} onUse={onUseWhatIf} />
       </div>
 
       <section className="space-y-5">
         <SectionHeading
           eyebrow="One tap to explore"
-          title="Popular stress tests"
+          title="Pre-built scenarios"
           note="Real historical episodes and clear hypothetical shocks, applied to your current weights."
         />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -462,47 +327,17 @@ export function RiskDashboard({
       </section>
 
       <section className="space-y-5">
-        <SectionHeading eyebrow="Next steps" title="Diversification & actions" />
-        <div className="grid gap-4 md:grid-cols-3">
-          <button
-            type="button"
-            onClick={onOpenPortfolio}
-            className="group rounded-[1.75rem] border border-line bg-surface-raised p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-card"
-          >
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-xl">◒</span>
-            <h3 className="mt-5 text-base font-bold">Review your allocation</h3>
-            <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
-              Your top three holdings make up {formatPercent(topThreeWeight, 0)} of the portfolio.
-            </p>
-            <span className="mt-5 inline-block text-sm font-semibold text-accent">Open portfolio →</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenStress}
-            className="group rounded-[1.75rem] border border-line bg-surface-raised p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-card"
-          >
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-violet-50 text-xl">↔</span>
-            <h3 className="mt-5 text-base font-bold">Explore allocation changes</h3>
-            <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
-              Compare the same scenarios before and after a hypothetical weight change.
-            </p>
-            <span className="mt-5 inline-block text-sm font-semibold text-accent">Open sandbox →</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onOpenRisks}
-            className="group rounded-[1.75rem] border border-line bg-surface-raised p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-card"
-          >
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-amber-50 text-xl">♢</span>
-            <h3 className="mt-5 text-base font-bold">Review live signals</h3>
-            <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
-              {summary?.live_event_signal_count ?? "—"} attributed live signals currently touch this portfolio.
-            </p>
-            <span className="mt-5 inline-block text-sm font-semibold text-accent">View signals →</span>
-          </button>
-        </div>
+        <SectionHeading eyebrow="Next steps" title="Diversification & mitigation" />
+        <DashboardActions
+          portfolio={portfolio}
+          assets={assets}
+          exposures={ordered}
+          diversification={diversification}
+          topThreeWeight={topThreeWeight}
+          onOpenPortfolio={onOpenPortfolio}
+          onOpenStress={onOpenStress}
+          onOpenRisks={onOpenRisks}
+        />
       </section>
     </div>
   );
