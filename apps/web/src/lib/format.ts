@@ -25,11 +25,14 @@ export function formatSignedPercent(value: number, digits = 1): string {
 }
 
 export function formatPrice(value: number, currency = "USD"): string {
+  // min and max must move together: min 2 / max 0 throws a RangeError
+  // (that crashed the BTC drawer, whose price is above $1,000).
+  const digits = Math.abs(value) >= 1000 ? 0 : 2;
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: value >= 1000 ? 0 : 2,
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
   }).format(value);
 }
 

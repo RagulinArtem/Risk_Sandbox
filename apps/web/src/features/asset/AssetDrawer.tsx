@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { ErrorBanner } from "../../components/ErrorBanner";
+import { ErrorBoundary } from "../../components/ErrorBoundary";
 import { LoadingLine } from "../../components/LoadingLine";
 import { api } from "../../lib/apiClient";
 import { assetClassLabel } from "../../lib/assetClasses";
@@ -15,6 +16,7 @@ import type { Asset, Portfolio, PriceRange } from "../../types";
 import { RANGES } from "../portfolio/priceRanges";
 import { AssetPriceChart } from "./AssetPriceChart";
 import { MoveDrivers } from "./MoveDrivers";
+import { PastEpisodes } from "./PastEpisodes";
 import { useAssetNews, useAssetPrices } from "./useAssetData";
 
 function DrawerSection({ title, children }: { title: string; children: ReactNode }) {
@@ -237,7 +239,12 @@ export function AssetDrawer({
         )}
 
         <DrawerSection title="Performance">
-          <PriceBlock symbol={symbol} />
+          <ErrorBoundary
+            resetKey={symbol}
+            fallback={<p className="text-sm text-ink-tertiary">Price section failed to display.</p>}
+          >
+            <PriceBlock symbol={symbol} />
+          </ErrorBoundary>
         </DrawerSection>
 
         {asset && (
@@ -270,6 +277,10 @@ export function AssetDrawer({
             </DrawerSection>
           </>
         )}
+
+        <DrawerSection title="In past stress episodes">
+          <PastEpisodes symbol={symbol} />
+        </DrawerSection>
 
         {isLiveAi && (
           <DrawerSection title="What may be driving the recent move?">

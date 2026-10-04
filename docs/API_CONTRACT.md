@@ -312,6 +312,36 @@ The stress engine still does all impact math.
 (one sentence per symbol) that LLM-produced scenarios fill in; library
 scenarios leave it empty.
 
+## `GET /api/risk-feed?portfolio_id=&only_relevant=true&limit=60`
+
+Live items from free sources, scored for this portfolio. No LLM involved.
+
+```ts
+{
+  portfolio_id; refreshed_at: string | null; refreshing: boolean;
+  sources: { name; tier: 1|2|3|4; ok: boolean; items: number; error: string | null; last_success }[];
+  items: {
+    item: { id; source; tier; kind: "filing"|"policy"|"data"|"news"|"market"|"price";
+            title; url; published_at; tickers: string[]; probability: number | null; detail: string | null };
+    factors: { id; label }[];                       // from data/risk_factors.json keywords
+    held_exposure: { symbol; weight; direction: -1|0|1 }[];  // direction if the risk materialises
+    exposure_weight: number;
+    relevance: number;                              // tier × exposure × recency, 0..1
+    relevance_reason: string;
+    suggested_scenario: { id; title; source_status; impact_pct } | null;   // most severe linked scenario (engine)
+    history: { id; title; source_status: "verified"; impact_pct }[];       // real episodes replayed (engine)
+  }[];
+}
+```
+
+The first request blocks until sources have answered (around 10 s). Later requests
+return cached data and refresh in the background every `RISK_FEED_REFRESH_SECONDS`
+(default 300).
+
+`Scenario` also gained `unavailable_assets: string[]`,
+`references: {title, url}[]` and `window: {start, end} | null`, used by the
+verified historical episodes.
+
 ## AI Risk Committee — `/api/ai/committee`
 
 Needs `AI_PROVIDER=openrouter`; otherwise analyst/verdict calls return 503.
@@ -326,6 +356,8 @@ Needs `AI_PROVIDER=openrouter`; otherwise analyst/verdict calls return 503.
   confidence, shock_ranges: Record<symbol, {min, max}>, view_impacts: {label, model, estimated_impact_pct,
   estimated_impact_value}[], consensus_result: StressTestResult, latency_ms }`.
   `shock_ranges`, `view_impacts` and `consensus_result` are computed by the deterministic engine, not the LLM.
+  `AnalystView.analogues` and `CommitteeVerdict.historical` hold the verified episodes the models anchored on.
+  Unknown ids are dropped, and `historical[].impact_pct` is the engine's replay of the real episode on this portfolio.
 
 ## Error shape
 

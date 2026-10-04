@@ -72,6 +72,32 @@ with no key.
   and the UI shows "Recent news unavailable". We never invent or
   paraphrase headlines, and we never copy article bodies.
 
+## Risk Feed sources (free)
+
+| Source | Tier | Reaches prod | Notes |
+| --- | --- | --- | --- |
+| Federal Reserve `press_monetary.xml` | 1 | direct | Monetary policy only; the all-releases feed is mostly bank approvals |
+| ECB press RSS | 1 | via proxy | |
+| EIA Today in Energy RSS | 1 | direct | |
+| SEC EDGAR submissions | 1 | direct | Requires `SEC_USER_AGENT` with a contact; ≤10 req/s; 8-K item codes named |
+| Yahoo Finance headlines | 3 | direct | Same integration as the asset drawer |
+| Polymarket Gamma `events?tag_slug=` | 4 | direct | Market-implied probability, never presented as a forecast of ours |
+| Yahoo daily closes | 4 | direct | Flags a held asset's last daily move > 2σ of its 1-year volatility |
+
+Evaluated and not used yet: BLS (topic feeds return "Access Denied" to
+automated clients) and GDELT DOC API (throttled; use the 15-min export files
+instead). Kalshi needs the proxy; it is designed but not built. See
+`docs/NEWS_MONITORING_DESIGN.md`.
+
+## Verified historical episodes
+
+`scripts/build_historical_scenarios.py` regenerates
+`data/scenarios/demo/historical_*.json` from Yahoo adjusted closes (total
+return between the last close on or before the window start and end). Each
+dated event in a scenario's transmission chain carries a `[n]` reference to a
+source checked when the script was written (Fed and BoJ statements, BLS,
+Wikipedia).
+
 ## What kind of information is each thing? (Asset Intelligence drawer)
 
 | Shown in the drawer | Kind | Source |

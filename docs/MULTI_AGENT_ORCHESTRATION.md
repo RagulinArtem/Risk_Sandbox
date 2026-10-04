@@ -120,6 +120,22 @@ engine's figure next to it (in practice they matched in every live run).
 
 ---
 
+## 4b. Grounding in real history
+
+Every analyst and the chair also receive the **verified historical episodes**
+(`services/analogue_service.py`). For each episode they get:
+- its window and dated key events;
+- the real return of each held asset;
+- the episode's impact on *this* portfolio, replayed through the
+  deterministic engine.
+
+Analysts must anchor on 1–2 episodes and say how today's scenario differs. The
+chair picks up to 3. Ids that aren't in the library are dropped. The UI shows
+"How this portfolio fared in similar real episodes" with engine numbers and the
+chair's comparison text. Models are told **not** to state the consensus
+portfolio loss themselves, because in testing the chair's own estimate
+(−9–10%) contradicted the engine (−12.4%).
+
 ## 5. Prompts (summary)
 
 Source: `apps/api/app/integrations/ai/committee.py` and

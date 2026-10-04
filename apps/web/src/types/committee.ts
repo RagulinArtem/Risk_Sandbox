@@ -23,6 +23,24 @@ export interface AnalystRequest {
   role: AnalystRole;
 }
 
+export interface AnalogueRef {
+  id: string;
+  title: string;
+  why: string;
+  difference: string;
+}
+
+/** A verified historical episode the chair picked; impact is the engine's replay. */
+export interface HistoricalComparison {
+  id: string;
+  title: string;
+  window: string;
+  impact_pct: number;
+  impact_value: number;
+  why: string;
+  difference: string;
+}
+
 export interface AnalystView {
   role: AnalystRole;
   label: string;
@@ -32,6 +50,7 @@ export interface AnalystView {
   confidence: Confidence;
   asset_shocks: Record<string, number>;
   rationale: Record<string, string>;
+  analogues: AnalogueRef[];
   latency_ms: number;
 }
 
@@ -57,6 +76,7 @@ export interface CommitteeVerdict {
   watch: string[];
   confidence: Confidence;
   shock_ranges: Record<string, { min: number; max: number }>;
+  historical: HistoricalComparison[];
   view_impacts: ViewImpact[];
   consensus_result: StressTestResult;
   latency_ms: number;

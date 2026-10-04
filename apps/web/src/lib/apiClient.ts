@@ -16,6 +16,7 @@ import type {
   PriceHistoryRequest,
   PriceRange,
   PriceHistoryResponse,
+  RiskFeedResponse,
   RiskRadarItem,
   Scenario,
   StressTestRequest,
@@ -87,6 +88,10 @@ export const api = {
       portfolioId
         ? `/api/risk-radar?portfolio_id=${encodeURIComponent(portfolioId)}`
         : "/api/risk-radar",
+    ),
+  getRiskFeed: (portfolioId: string, onlyRelevant = true) =>
+    request<RiskFeedResponse>(
+      `/api/risk-feed?portfolio_id=${encodeURIComponent(portfolioId)}&only_relevant=${onlyRelevant}`,
     ),
   getAiStatus: () => request<AIStatusResponse>("/api/ai/status"),
   runStressTest: (body: StressTestRequest) =>

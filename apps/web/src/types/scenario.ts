@@ -14,4 +14,8 @@ export interface Scenario {
   asset_shocks: Record<string, number>;
   /** Per-symbol one-line reasoning, present when an LLM proposed the shocks. */
   shock_rationale?: Record<string, string>;
+  /** Historical windows: assets with no market price then (e.g. BTC in 2008). */
+  unavailable_assets?: string[];
+  references?: { title: string; url: string }[];
+  window?: { start: string; end: string } | null;
 }
