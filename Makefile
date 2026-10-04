@@ -1,10 +1,13 @@
-.PHONY: setup dev test lint typecheck check smoke smoke-live clean
+.PHONY: setup dev prod test lint typecheck check smoke smoke-live clean
 
 setup:
 	./scripts/bootstrap.sh
 
 dev:
 	./scripts/dev.sh
+
+prod:
+	./scripts/prod.sh
 
 test:
 	cd apps/api && .venv/bin/pytest

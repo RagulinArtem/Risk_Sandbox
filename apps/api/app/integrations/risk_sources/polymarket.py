@@ -35,6 +35,12 @@ GAMMA_API_URL = "https://gamma-api.polymarket.com/markets"
 REQUEST_TIMEOUT_SECONDS = 8.0
 MARKET_FETCH_LIMIT = 100
 
+# Markets fetched by id on top of the volume-ordered page. The AI-bubble
+# market trades far below the top 100 by 24h volume, so ranking alone would
+# never surface it; the product demos it by name. Fetched best-effort — an
+# unavailable curated market is skipped, never fabricated.
+CURATED_MARKET_IDS: tuple[str, ...] = ("691340",)
+
 # Maps a demo scenario id to keywords that, if found in a Polymarket
 # market's question, suggest that market is a live probability signal for
 # that scenario. Deliberately simple keyword matching — same philosophy as
@@ -43,7 +49,8 @@ SCENARIO_KEYWORDS: dict[str, tuple[str, ...]] = {
     "interest-rate-shock": ("fed", "fomc", "interest rate", "rate cut", "rate hike", "powell"),
     "oil-supply-disruption": ("oil", "opec", "strait of hormuz", "crude"),
     "semiconductor-supply-shock": ("chip", "semiconductor", "tsmc", "export control", "taiwan"),
-    "technology-correction": ("nasdaq", "tech stock", "ai bubble", "tech selloff"),
+    "ai-capex-bust": ("ai bubble", "ai capex", "ai spending"),
+    "technology-correction": ("nasdaq", "tech stock", "tech selloff"),
     "global-recession": ("recession", "gdp", "economic downturn"),
 }
 
@@ -79,8 +86,18 @@ class PolymarketRiskSource(RiskSource):
                 "httpx is not installed — required for PolymarketRiskSource."
             ) from exc
 
+        markets = self._fetch_volume_page(httpx)
+        seen = {str(market.get("id")) for market in markets}
+        for market in self._fetch_curated(httpx):
+            key = str(market.get("id"))
+            if key not in seen:
+                seen.add(key)
+                markets.append(market)
+        return markets
+
+    def _fetch_volume_page(self, httpx_module) -> list[dict]:
         try:
-            response = httpx.get(
+            response = httpx_module.get(
                 GAMMA_API_URL,
                 params={
                     "active": "true",
@@ -102,6 +119,31 @@ class PolymarketRiskSource(RiskSource):
                 f"Unexpected Polymarket response shape: expected a list, got {type(data).__name__}"
             )
         return data
+
+    def _fetch_curated(self, httpx_module) -> list[dict]:
+        markets: list[dict] = []
+        for market_id in CURATED_MARKET_IDS:
+            try:
+                response = httpx_module.get(
+                    GAMMA_API_URL,
+                    params={"id": market_id},
+                    timeout=REQUEST_TIMEOUT_SECONDS,
+                    proxy=self._settings.https_proxy or None,
+                )
+                response.raise_for_status()
+                data = response.json()
+            except Exception as exc:
+                logger.warning("Curated Polymarket market %s unavailable: %s", market_id, exc)
+                continue
+            if isinstance(data, list):
+                markets.extend(
+                    item
+                    for item in data
+                    if isinstance(item, dict)
+                    and item.get("closed") is not True
+                    and item.get("active") is not False
+                )
+        return markets
 
     def _match_scenario(self, market: dict) -> str | None:
         question = (market.get("question") or "").lower()

@@ -130,6 +130,15 @@ def test_unrelated_item_has_zero_relevance():
     assert a.relevance == 0 and a.suggested_scenario is None
 
 
+def test_ai_bubble_market_links_to_ai_capex_bust():
+    a = feed.assess(
+        _item("AI bubble burst in 2026?", tier=4, kind="market"), get_demo_portfolio()
+    )
+    assert a.relevance > 0
+    assert {h.symbol for h in a.held_exposure} >= {"NVDA", "QQQ", "TSM"}
+    assert a.suggested_scenario.id == "ai-capex-bust"
+
+
 def test_official_source_outranks_aggregator_for_same_story():
     pf = get_demo_portfolio()
     official = feed.assess(_item("Federal Reserve raises interest rate", tier=1), pf)

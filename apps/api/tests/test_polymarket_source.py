@@ -5,6 +5,7 @@ import pytest
 
 from app.core.config import Settings
 from app.integrations.risk_sources.polymarket import (
+    CURATED_MARKET_IDS,
     PolymarketFetchError,
     PolymarketRiskSource,
 )
@@ -121,11 +122,65 @@ def test_fetch_uses_volume_ordering_and_proxy():
     source = PolymarketRiskSource(settings)
     with patch("httpx.get", return_value=_mock_response([])) as mock_get:
         source.get_risk_signals()
-    params = mock_get.call_args.kwargs["params"]
+    volume_call = mock_get.call_args_list[0]
+    params = volume_call.kwargs["params"]
     assert params["order"] == "volume24hr"
     assert params["ascending"] == "false"
     assert params["limit"] == 100
-    assert mock_get.call_args.kwargs["proxy"] == "http://proxy:8888"
+    assert volume_call.kwargs["proxy"] == "http://proxy:8888"
+    curated_calls = mock_get.call_args_list[1:]
+    assert [call.kwargs["params"]["id"] for call in curated_calls] == list(CURATED_MARKET_IDS)
+    assert all(call.kwargs["proxy"] == "http://proxy:8888" for call in curated_calls)
+
+
+def test_curated_market_is_fetched_even_off_the_volume_page():
+    source = PolymarketRiskSource()
+    volume = [_market("Will it rain in London tomorrow?", market_id="9", slug="rain")]
+    curated = _market(
+        "AI bubble burst in 2026?",
+        yes_price="0.07",
+        market_id="691340",
+        slug="ai-industry-downturn-by-december-31-2026-857",
+    )
+
+    def fake_get(url, params=None, **kwargs):
+        if params and str(params.get("id")) == "691340":
+            return _mock_response([curated])
+        return _mock_response(volume)
+
+    with patch("httpx.get", side_effect=fake_get):
+        signals = source.get_risk_signals()
+
+    assert len(signals) == 1
+    assert signals[0].title == "AI bubble burst in 2026?"
+    assert signals[0].probability_signal == "7% (Polymarket)"
+    assert signals[0].scenario_id == "ai-capex-bust"
+
+
+def test_curated_market_failure_keeps_volume_page_signals():
+    source = PolymarketRiskSource()
+    volume = [_market("Will the Fed cut interest rates in March 2026?", yes_price="0.71")]
+
+    def fake_get(url, params=None, **kwargs):
+        if params and params.get("id"):
+            raise RuntimeError("curated endpoint down")
+        return _mock_response(volume)
+
+    with patch("httpx.get", side_effect=fake_get):
+        signals = source.get_risk_signals()
+
+    assert len(signals) == 1
+    assert signals[0].scenario_id == "interest-rate-shock"
+
+
+def test_curated_market_already_in_volume_page_is_not_duplicated():
+    source = PolymarketRiskSource()
+    market = _market("AI bubble burst in 2026?", yes_price="0.07", market_id="691340")
+
+    with patch("httpx.get", return_value=_mock_response([market])):
+        signals = source.get_risk_signals()
+
+    assert len(signals) == 1
 
 
 def test_multi_outcome_market_without_an_explicit_yes_is_skipped():

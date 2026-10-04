@@ -114,6 +114,7 @@ the full module breakdown.
 ```bash
 make setup   # create venv, install backend + frontend deps, copy .env
 make dev     # run API (:8000) + web (:5173) together
+make prod    # production-style local run: built web bundle (:8080) + API (:8000), no dev server
 make test    # backend pytest
 make lint    # ruff (backend) + eslint (frontend)
 make typecheck

@@ -66,7 +66,7 @@ export function RiskReport({
       <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-ink pb-5 print:pb-3">
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-ink-tertiary">
-            Risk Sandbox
+            Shock Lens
           </div>
           <h2 className="mt-1 text-2xl font-semibold text-ink">Portfolio Risk Brief</h2>
           <p className="mt-1 text-sm text-ink-secondary">{portfolio.name}</p>

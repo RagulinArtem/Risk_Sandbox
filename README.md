@@ -84,7 +84,10 @@ No API keys or external credentials required — see Principle 4 in
 ```bash
 # Local (make)
 git clone <this repo> && cd portfolio-risk-copilot
-make setup && make dev
+make setup && make dev     # development: Vite dev server on :5173
+
+# Production-style local run (built bundle served statically, no dev server)
+make prod                  # frontend on :8080, API on :8000
 
 # Containers (Docker) — .env is created by make setup, or copy it yourself
 docker compose up -d --build
