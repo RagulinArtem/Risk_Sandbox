@@ -165,3 +165,30 @@ def test_feed_endpoint_reports_failing_sources_without_inventing_items(client, m
     assert status["Broken source"]["error"] == "down"
     assert [i["item"]["url"] for i in body["items"]] == ["https://fed.example/1"]
     assert client.get("/api/risk-feed?portfolio_id=nope").status_code == 404
+
+
+def test_concurrent_first_requests_both_get_items(client, monkeypatch):
+    import threading
+    import time as _time
+
+    class _Slow(FeedConnector):
+        name, tier = "Slow source", 1
+
+        def fetch(self):
+            _time.sleep(0.3)
+            return [_item("Federal Reserve issues FOMC statement", url="https://fed.example/s")]
+
+    monitor = feed._Monitor()
+    monkeypatch.setattr(feed, "monitor", monitor)
+    monkeypatch.setattr(monitor, "connectors", lambda: [_Slow()])
+    results = []
+
+    def call():
+        results.append(len(client.get("/api/risk-feed?portfolio_id=global-multi-asset").json()["items"]))
+
+    threads = [threading.Thread(target=call) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert results == [1, 1]
