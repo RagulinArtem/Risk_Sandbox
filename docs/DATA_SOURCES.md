@@ -36,8 +36,10 @@ include everything `verified` requires, plus:
 
 - `retrieved_at` — ISO timestamp of the actual API call
 
-Not currently used — no live source is wired up (see
-`docs/CURRENT_STATE.md`).
+In use since 2026-10-04 — the Polymarket risk source and the
+`/api/markets/*` live paths emit `live` (see `docs/CURRENT_STATE.md`);
+offline snapshots are served under the separate `cached` status on market
+data.
 
 ## Hard rules
 
@@ -48,7 +50,7 @@ Not currently used — no live source is wired up (see
   not fabricate a plausible-looking signal (see the TODO stubs in
   `apps/api/app/integrations/risk_sources/`).
 
-## Future data sources (documented, not all implemented)
+## Other data sources (implemented and planned)
 
 ### Prediction markets (Polymarket)
 
@@ -59,8 +61,21 @@ collective market-implied probability.
 return forecasts. A Polymarket probability answers "how likely do traders
 think X is," not "what will NVDA do."
 
+**Two retrieval rules (live-verified 2026-10-04):**
+
+- **Order by 24 h volume.** Gamma's default ordering surfaced none of the
+  tracked scenario keywords (0 matches); `order=volume24hr&ascending=false`
+  matched 3 real markets (Fed rate-cut 0.45%, Taiwan 2.25%, Strait of
+  Hormuz 2.8%). The default page is dominated by low-signal novelty
+  markets.
+- **Explicit "Yes" only.** A price is attributed to the question only when
+  the market has an explicit "Yes" outcome. Multi-outcome markets without
+  one (e.g. `["High","Low"]`) are skipped — there is no first-outcome
+  fallback, because a price that doesn't answer the question must not be
+  presented as if it does.
+
 See `apps/api/app/integrations/risk_sources/polymarket.py` for the
-implementation sketch.
+implementation.
 
 ### Institutional risk sources
 

@@ -57,9 +57,13 @@ feature — don't let it drift from reality.
   surfaces the market's real current price as `probability_signal` with
   full provenance (`source_name`, `source_url`, `retrieved_at`,
   `source_status: "live"`). 6 unit tests against a fixture matching the
-  documented API shape. **Not yet verified against the live API** — built
-  in a sandbox whose network policy denies `gamma-api.polymarket.com`;
-  verify once outside it (see the module's docstring).
+  documented API shape. **Live-verified 2026-10-04:** Gamma's default
+  ordering matched 0 of the 5 tracked scenarios; with
+  `order=volume24hr&ascending=false` it matched 3 real markets (a Fed
+  rate-cut market at 0.45%, the Taiwan market at 2.25%, and a Strait of
+  Hormuz market at 2.8%). Probability extraction now accepts only an
+  explicit "Yes" outcome — multi-outcome markets without one are skipped,
+  never approximated from the first price.
 - **OpenRouter scenario parsing** (`integrations/ai/openrouter.py`,
   `AI_PROVIDER=openrouter`, off by default — `mock` remains the default)
   — real LLM call via OpenRouter's OpenAI-compatible API, same
@@ -78,11 +82,20 @@ feature — don't let it drift from reality.
   answers; the chair only sees views that succeeded. **The engine computes
   every portfolio number** — consensus impact and per-analyst impacts are
   deterministic engine output next to the LLM's assumptions. Guard rails:
-  unknown symbols dropped, shocks clamped to -95%..+200%, fences
-  stripped, confidence coerced, texts truncated, insights capped at 3.
-  Roster reports `enabled: false` under `AI_PROVIDER=mock` and the UI
-  hides the whole committee. Unit-tested against fixtures; requires your
-  OpenRouter credits to run live.
+  unknown symbols and out-of-range shocks dropped, fences stripped,
+  confidence coerced, texts truncated, insights capped at 3. **Hardened
+  and extended 2026-10-04:** transient OpenRouter failures (429/5xx) are
+  fast-retried and every provider error surfaces as a friendly message;
+  client-supplied `views` are re-validated server-side (unique known
+  seats, supported symbols, out-of-range shocks dropped); an opt-in
+  server-side rebuttal round (`debate: true`) lets analysts revise after
+  seeing anonymized peers; passing a tracked `market_id` attaches the live
+  Polymarket probability (`live|cached` provenance, silently omitted when
+  unavailable). All four configured model ids were verified present on
+  OpenRouter's live model list on 2026-10-04. Roster reports
+  `enabled: false` under `AI_PROVIDER=mock` and the UI hides the whole
+  committee. Unit-tested against fixtures; the full live end-to-end run
+  (`make smoke-live`) is pending execution.
 - **Market probability paths** (`services/market_service.py`, routes
   `/api/markets/tracked`, `/api/markets/{id}/history`) — curated markets
   from `data/mapping.json`; live Gamma probability + CLOB daily price

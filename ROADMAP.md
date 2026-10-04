@@ -27,14 +27,14 @@ bootstrap (backend: 32/32 pytest passing, ruff clean; frontend: typecheck
 | --- | --- | --- | --- | --- |
 | P0 | Confirm scenario schema | TBD | DONE | `docs/SCENARIO_SCHEMA.md` written, matches `Scenario` Pydantic model |
 | P1 | Research institutional scenarios (Fed/IMF) | TBD | DONE | `data/scenarios/demo/historical_2022_rate_hike_selloff.json` — real, cited full-year-2022 returns for all 6 supported assets; see `docs/research/2022-rate-hike-selloff.md` |
-| P1 | Investigate Polymarket API | TBD | DONE | Gamma API implemented against its documented response shape (`integrations/risk_sources/polymarket.py`); live-response verification still open — see the Oct 2 row below |
+| P1 | Investigate Polymarket API | TBD | DONE | Gamma API implemented against its documented response shape (`integrations/risk_sources/polymarket.py`); live-verified 2026-10-04 — see the Oct 2 row below |
 | P1 | Choose one live risk source to pursue | TBD | DONE | Polymarket — see `docs/DECISIONS.md` |
 | P0 | Validate demo portfolio | TBD | DONE | Weights sum to 1.0 (enforced by schema + test), produces a visually interesting stress test |
 
 **Acceptance for the day:** at least one future integration
 (Polymarket, news, or institutional) has a defined input/output contract
 written down, even if unimplemented. Exceeded: Polymarket has a real
-implementation (pending live verification) and one scenario is genuinely
+implementation (live-verified 2026-10-04) and one scenario is genuinely
 `verified`, not just contract-defined.
 
 ### October 2 — AI and live-risk integration preparation
@@ -42,7 +42,7 @@ implementation (pending live verification) and one scenario is genuinely
 | Priority | Feature | Owner | Status | Acceptance |
 | --- | --- | --- | --- | --- |
 | P1 | Bedrock provider | TBD | IN PROGRESS | Skeleton + graceful-failure path done (`integrations/ai/bedrock.py`); real prompt/response validated against live AWS still open |
-| P1 | Polymarket integration | TBD | IN PROGRESS | Implements `RiskSource`, preserves provenance, never fabricates a probability — done and unit-tested (`integrations/risk_sources/polymarket.py`, `ENABLE_POLYMARKET=true`); live-API verification still open (sandbox network policy blocked it during development — see `docs/CURRENT_STATE.md`) |
+| P1 | Polymarket integration | TBD | DONE | Implements `RiskSource`, preserves provenance, never fabricates a probability (`integrations/risk_sources/polymarket.py`, `ENABLE_POLYMARKET=true`); **live-verified 2026-10-04** — Gamma's default ordering matched 0 tracked scenarios, `order=volume24hr&ascending=false` matched 3 real markets (Fed 0.45%, Taiwan 2.25%, Hormuz 2.8%); explicit-Yes-only extraction (no first-outcome fallback) |
 | P0 | Provenance support | TBD | DONE | `source_status`/`source_name`/`source_url`/`source_date`/`retrieved_at` on every signal schema, and now on `RiskRadarItem` too so the frontend can render it |
 | P0 | Live/demo fallback | TBD | DONE | `AI_PROVIDER=mock` default; unconfigured Bedrock raises a caught, user-safe error |
 
@@ -87,7 +87,7 @@ see `docs/HACKATHON_RULES_CHECK.md`.
 
 | Priority | Feature | Status | Acceptance |
 | --- | --- | --- | --- |
-| P1 | AI Risk Committee (3 analysts + chair, multi-lab orchestration) | DONE (offline-tested; live pending credits) | Roster hides under mock; engine computes all impacts; guard-railed JSON; fixture tests |
+| P1 | AI Risk Committee (3 analysts + chair, multi-lab orchestration) | DONE (hardened; full live run pending execution) | Roster hides under mock; transient-error retries + friendly messages; server-side view validation; opt-in debate round; optional live Polymarket `market_id` context; engine computes all impacts. `make smoke-live` is ready but has not been run — its full live end-to-end result is pending |
 | P1 | Probability paths + tracked markets (`/api/markets/*`) | DONE | Verified live against Gamma/CLOB; 7d/30d pp changes + repriced flag; committed offline snapshot |
 | P0 | Factor-betas engine (FR4) + probability-weighted exposure (FR9) | DONE | Golden test reproduces PRD numbers exactly; `beta_version` on results |
 | P0 | AI explanation with number guard (FR7) | DONE | Template fallback; numbers must exist in engine output |
