@@ -11,18 +11,31 @@ const ASSUMPTIONS_CAPTION: Record<SourceStatus, string> = {
   live: "live-informed, not a forecast",
 };
 
+export interface AiEstimateControls {
+  estimating: boolean;
+  error: string | null;
+  onEstimate: () => void;
+  /** Reload the library version, shown once the AI has replaced the numbers. */
+  onRestore?: () => void;
+}
+
 export function ScenarioEditor({
   scenario,
   onShockChange,
   onRun,
   running,
+  ai,
 }: {
   scenario: Scenario;
   onShockChange: (symbol: string, value: number) => void;
   onRun: () => void;
   running: boolean;
+  /** Present only when a live LLM is configured. */
+  ai?: AiEstimateControls;
 }) {
   const symbols = Object.keys(scenario.asset_shocks);
+  const rationale = scenario.shock_rationale ?? {};
+  const hasRationale = Object.keys(rationale).length > 0;
 
   return (
     <div className="border border-line">
@@ -77,17 +90,49 @@ export function ScenarioEditor({
             Scenario Assumptions (editable)
           </div>
           <div className="font-mono text-[11px] text-ink-tertiary">
-            {ASSUMPTIONS_CAPTION[scenario.source_status]}
+            {hasRationale ? "AI-estimated, not a forecast" : ASSUMPTIONS_CAPTION[scenario.source_status]}
           </div>
         </div>
+
+        {ai && (
+          <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <button
+              type="button"
+              onClick={ai.onEstimate}
+              disabled={ai.estimating}
+              className="border border-accent/60 px-3 py-1.5 text-xs font-medium text-accent-strong transition-colors hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {ai.estimating
+                ? "AI is estimating…"
+                : hasRationale
+                  ? "Re-estimate with AI"
+                  : "Estimate shocks with AI"}
+            </button>
+            {hasRationale && ai.onRestore && (
+              <button
+                type="button"
+                onClick={ai.onRestore}
+                className="text-xs text-ink-tertiary underline decoration-line-strong underline-offset-2 hover:text-ink-secondary"
+              >
+                Restore original numbers
+              </button>
+            )}
+            {ai.error && <span className="text-xs text-risk-warning">{ai.error}</span>}
+          </div>
+        )}
         <table className="w-full text-sm">
           <tbody>
             {symbols.map((symbol) => {
               const value = scenario.asset_shocks[symbol];
               return (
                 <tr key={symbol} className="border-t border-line first:border-t-0">
-                  <td className="py-2 pr-4 font-mono text-ink">{symbol}</td>
-                  <td className="py-2 text-right">
+                  <td className="py-2 pr-4 align-top">
+                    <div className="font-mono text-ink">{symbol}</div>
+                    {rationale[symbol] && (
+                      <div className="mt-0.5 text-xs text-ink-tertiary">{rationale[symbol]}</div>
+                    )}
+                  </td>
+                  <td className="py-2 text-right align-top">
                     <div className="inline-flex items-center gap-1">
                       <input
                         type="number"

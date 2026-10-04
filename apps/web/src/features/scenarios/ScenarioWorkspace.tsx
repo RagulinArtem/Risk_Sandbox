@@ -2,7 +2,7 @@ import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
 import type { Scenario } from "../../types";
 import { CustomScenarioInput } from "./CustomScenarioInput";
-import { ScenarioEditor } from "./ScenarioEditor";
+import { type AiEstimateControls, ScenarioEditor } from "./ScenarioEditor";
 import { ScenarioPicker } from "./ScenarioPicker";
 
 export function ScenarioWorkspace({
@@ -14,6 +14,7 @@ export function ScenarioWorkspace({
   onParsed,
   onShockChange,
   onRun,
+  ai,
 }: {
   scenario: Scenario | null;
   loading: boolean;
@@ -23,6 +24,7 @@ export function ScenarioWorkspace({
   onParsed: (scenario: Scenario) => void;
   onShockChange: (symbol: string, value: number) => void;
   onRun: () => void;
+  ai?: AiEstimateControls;
 }) {
   return (
     <div className="space-y-6">
@@ -43,6 +45,7 @@ export function ScenarioWorkspace({
           onShockChange={onShockChange}
           onRun={onRun}
           running={running}
+          ai={ai}
         />
       )}
     </div>

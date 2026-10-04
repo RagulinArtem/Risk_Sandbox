@@ -1,6 +1,7 @@
 import type {
   AIStatusResponse,
   Asset,
+  EstimateShocksResponse,
   ParseScenarioResponse,
   Portfolio,
   RiskRadarItem,
@@ -50,6 +51,11 @@ export const api = {
     request<StressTestResult>("/api/stress-test", {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+  estimateShocks: (scenario: Scenario) =>
+    request<EstimateShocksResponse>("/api/ai/estimate-shocks", {
+      method: "POST",
+      body: JSON.stringify({ scenario }),
     }),
   parseScenario: (text: string) =>
     request<ParseScenarioResponse>("/api/ai/parse-scenario", {
