@@ -1,4 +1,5 @@
 import { StatusBadge } from "../../components/StatusBadge";
+import { ScenarioBadge } from "../../components/ScenarioArt";
 import type { Scenario, SourceStatus } from "../../types";
 
 function round1(n: number): number {
@@ -50,6 +51,7 @@ export function ScenarioEditor({
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
+            <ScenarioBadge scenarioId={scenario.id} category={scenario.category} />
             <h3 className="text-base font-semibold text-ink">{scenario.title}</h3>
             <StatusBadge status={scenario.source_status} />
           </div>

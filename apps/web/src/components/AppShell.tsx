@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import { LogoMark, Wordmark } from "./Logo";
 
 export type AppView = "home" | "portfolio" | "risks" | "stress" | "settings" | "report";
 
@@ -168,12 +169,10 @@ export function AppShell({
             aria-label="Shock Lens home"
             className="flex min-w-0 items-center gap-3 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
           >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink text-white shadow-sm">
-              <Icon name="shield" className="h-5 w-5" />
-            </span>
+            <LogoMark className="h-10 w-10 shrink-0" />
             {!sidebarCollapsed && (
               <span className="min-w-0">
-                <span className="block whitespace-nowrap text-sm font-bold tracking-tight">Shock Lens</span>
+                <Wordmark className="block whitespace-nowrap text-lg leading-tight" />
                 <span className="block whitespace-nowrap text-xs text-ink-tertiary">Portfolio intelligence</span>
               </span>
             )}
@@ -224,9 +223,7 @@ export function AppShell({
         <header className="sticky top-0 z-20 border-b border-line/80 bg-surface/90 backdrop-blur-xl print:hidden">
           <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-4 sm:px-8">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-ink text-white lg:hidden">
-                <Icon name="shield" className="h-5 w-5" />
-              </span>
+              <LogoMark className="h-9 w-9 shrink-0 lg:hidden" />
               <div className="min-w-0">
                 <p className="text-xs font-medium text-ink-tertiary">{copy.eyebrow}</p>
                 <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">{copy.title}</h1>

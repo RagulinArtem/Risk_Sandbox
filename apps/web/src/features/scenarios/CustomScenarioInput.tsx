@@ -48,7 +48,7 @@ export function CustomScenarioInput({ onParsed }: { onParsed: (scenario: Scenari
         />
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !text.trim()}
           className="border border-line-strong px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent-strong disabled:cursor-not-allowed disabled:opacity-50 sm:shrink-0"
         >
           {loading ? "Parsing…" : "Build Scenario"}

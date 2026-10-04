@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ScenarioPhoto } from "../../components/ScenarioArt";
 import { ErrorBanner } from "../../components/ErrorBanner";
 import { LoadingLine } from "../../components/LoadingLine";
 import { api } from "../../lib/apiClient";
@@ -8,21 +9,6 @@ import { useAssets } from "../portfolio/useAssets";
 import { useScenarioExposure } from "../portfolio/useScenarioExposure";
 import { CopilotWorkspace } from "./CopilotWorkspace";
 import { DashboardActions } from "./DashboardActions";
-
-const SCENARIO_ART: Record<string, { icon: string; position: string }> = {
-  macro: { icon: "↗", position: "object-left" },
-  rates: { icon: "%", position: "object-center" },
-  market: { icon: "⌁", position: "object-right" },
-  credit: { icon: "◫", position: "object-center" },
-  geopolitical: { icon: "◎", position: "object-left" },
-  "historical-crisis": { icon: "↘", position: "object-right" },
-  "historical-macro": { icon: "◷", position: "object-center" },
-  "historical-geopolitical": { icon: "◇", position: "object-left" },
-};
-
-function scenarioArt(category: string) {
-  return SCENARIO_ART[category] ?? { icon: "✦", position: "object-center" };
-}
 
 function SectionHeading({ eyebrow, title, note }: { eyebrow?: string; title: string; note?: string }) {
   return (
@@ -128,14 +114,9 @@ export function RiskDashboard({
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {quickScenarios.map((item) => {
             const scenario = scenarioById.get(item.scenario_id);
-            const art = scenarioArt(scenario?.category ?? "market");
             return (
               <button key={item.scenario_id} type="button" onClick={() => onOpenScenario(item.scenario_id)} className="group overflow-hidden border border-line bg-surface-raised text-left shadow-sm transition duration-200 hover:-translate-y-1 hover:border-line-strong hover:shadow-card">
-                <div className="relative h-28 overflow-hidden bg-ink">
-                  <img src="/media/global-market-stress.jpg" alt="" className={`h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-105 group-hover:opacity-90 ${art.position}`} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent" />
-                  <div className="absolute bottom-3 left-4 grid h-9 w-9 place-items-center rounded-lg border border-white/20 bg-white/15 text-lg font-bold text-white backdrop-blur">{art.icon}</div>
-                </div>
+                <ScenarioPhoto scenarioId={item.scenario_id} category={scenario?.category} />
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-3">
                     <span className="rounded-lg bg-surface px-2.5 py-1 text-[11px] font-semibold capitalize text-ink-secondary">{item.source_status === "verified" ? "Real history" : "Hypothetical"}</span>
