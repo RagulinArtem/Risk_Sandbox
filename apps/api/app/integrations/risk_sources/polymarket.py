@@ -189,6 +189,7 @@ class PolymarketRiskSource(RiskSource):
             retrieved_at=retrieved_at,
             scenario_id=scenario_id,
             probability_signal=f"{probability:.0%} (Polymarket)",
+            probability_value=probability,
         )
 
     @staticmethod

@@ -9,9 +9,13 @@ import { PortfolioOverview } from "./features/portfolio/PortfolioOverview";
 import { usePortfolio } from "./features/portfolio/usePortfolio";
 import { RiskFeed } from "./features/risk-feed/RiskFeed";
 import { RiskRadar } from "./features/risk-radar/RiskRadar";
+import { RiskBriefPanel } from "./features/risk-brief/RiskBriefPanel";
+import { ScenarioComparison } from "./features/scenario-comparison/ScenarioComparison";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
 import { useAiStatus } from "./features/scenarios/useAiStatus";
 import { StressTestResult } from "./features/stress-test/StressTestResult";
+import { MitigationSandbox } from "./features/mitigation/MitigationSandbox";
+import { RiskReport } from "./features/report/RiskReport";
 import { ApiError, api } from "./lib/apiClient";
 import type {
   CommitteeVerdict,
@@ -19,13 +23,23 @@ import type {
   StressTestResult as StressTestResultType,
 } from "./types";
 
-type View = "portfolio" | "feed" | "radar" | "stress";
+type View =
+  | "portfolio"
+  | "feed"
+  | "radar"
+  | "scenarios"
+  | "stress"
+  | "mitigation"
+  | "report";
 
 const TABS: TabDef<View>[] = [
   { id: "portfolio", label: "Portfolio" },
   { id: "feed", label: "Risk Feed" },
   { id: "radar", label: "Risk Radar" },
+  { id: "scenarios", label: "Scenarios" },
   { id: "stress", label: "Stress Test" },
+  { id: "mitigation", label: "Mitigation" },
+  { id: "report", label: "Report" },
 ];
 
 function viewFromHash(): View {
@@ -51,6 +65,7 @@ export default function App() {
   const [scenarioError, setScenarioError] = useState<string | null>(null);
 
   const [result, setResult] = useState<StressTestResultType | null>(null);
+  const [committeeVerdict, setCommitteeVerdict] = useState<CommitteeVerdict | null>(null);
   const [running, setRunning] = useState(false);
   const [runError, setRunError] = useState<string | null>(null);
 
@@ -81,6 +96,7 @@ export default function App() {
       setScenarioError(null);
       setEstimateError(null);
       setResult(null);
+      setCommitteeVerdict(null);
       try {
         setScenario(await api.getScenario(scenarioId));
       } catch (err) {
@@ -96,6 +112,7 @@ export default function App() {
     setScenario(parsed);
     setScenarioError(null);
     setResult(null);
+    setCommitteeVerdict(null);
   }, []);
 
   const estimateWithAi = useCallback(async () => {
@@ -107,6 +124,7 @@ export default function App() {
       if (response.scenario) {
         setScenario(response.scenario);
         setResult(null);
+        setCommitteeVerdict(null);
       } else {
         setEstimateError(response.message ?? "The AI couldn't estimate this scenario.");
       }
@@ -139,14 +157,22 @@ export default function App() {
   const applyVerdict = useCallback((verdict: CommitteeVerdict) => {
     setScenario(verdict.scenario);
     setResult(verdict.consensus_result);
+    setCommitteeVerdict(verdict);
     setRunError(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const handleShockChange = useCallback((symbol: string, value: number) => {
     setScenario((prev) =>
-      prev ? { ...prev, asset_shocks: { ...prev.asset_shocks, [symbol]: value } } : prev,
+      prev
+        ? {
+            ...prev,
+            asset_shocks: { ...prev.asset_shocks, [symbol]: value },
+            assumption_source: "user_edited",
+          }
+        : prev,
     );
+    setCommitteeVerdict(null);
   }, []);
 
   const runStressTest = useCallback(async () => {
@@ -174,7 +200,7 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <header className="sticky top-0 z-10 border-b border-line bg-surface/95 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b border-line bg-surface/95 backdrop-blur print:hidden">
         <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-x-8 px-4 pt-4 sm:px-6">
           <div className="pb-3">
             <h1 className="text-base font-semibold tracking-tight text-ink">
@@ -194,6 +220,7 @@ export default function App() {
                   onChange={(e) => {
                     selectPortfolio(e.target.value);
                     setResult(null);
+                    setCommitteeVerdict(null);
                   }}
                   className="border border-line-strong bg-surface-raised px-2 py-1 text-xs text-ink focus:border-accent focus:outline-none"
                 >
@@ -210,7 +237,7 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 print:max-w-none print:px-0 print:py-0">
         {portfolioLoading && <LoadingLine label="Loading portfolio…" />}
         {portfolioError && <ErrorBanner message={portfolioError} />}
 
@@ -232,7 +259,11 @@ export default function App() {
           />
         )}
 
-        {view === "radar" && <RiskRadar portfolioId={portfolio?.id} onStressTest={selectScenario} />}
+        {view === "radar" && <RiskRadar portfolio={portfolio} onStressTest={selectScenario} />}
+
+        {view === "scenarios" && portfolio && (
+          <ScenarioComparison portfolio={portfolio} onOpenScenario={selectScenario} />
+        )}
 
         {view === "stress" && (
           <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -271,12 +302,27 @@ export default function App() {
                 </div>
               )}
             </div>
+            {result && scenario && portfolio && (
+              <div className="lg:col-span-2">
+                <RiskBriefPanel
+                  portfolio={portfolio}
+                  scenario={scenario}
+                  committee={committeeVerdict}
+                />
+              </div>
+            )}
             {isLiveAi && scenario && portfolio && (
               <div className="lg:col-span-2">
                 <CommitteePanel scenario={scenario} portfolio={portfolio} onApply={applyVerdict} />
               </div>
             )}
           </div>
+        )}
+
+        {view === "mitigation" && portfolio && <MitigationSandbox portfolio={portfolio} />}
+
+        {view === "report" && portfolio && (
+          <RiskReport portfolio={portfolio} selectedScenario={scenario} />
         )}
       </main>
 
@@ -291,7 +337,7 @@ export default function App() {
         </ErrorBoundary>
       )}
 
-      <footer className="border-t border-line">
+      <footer className="border-t border-line print:hidden">
         <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-ink-tertiary sm:px-6">
           Estimates are illustrative scenario assumptions, not forecasts or guaranteed outcomes.
           This tool does not provide investment advice and does not execute trades.

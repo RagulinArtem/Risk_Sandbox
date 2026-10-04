@@ -8,7 +8,10 @@ import { AssetClassBreakdown } from "./AssetClassBreakdown";
 import { HoldingsTable } from "./HoldingsTable";
 import { PerformanceChart } from "./PerformanceChart";
 import { PortfolioSummary } from "./PortfolioSummary";
+import { PerformanceAttribution } from "./PerformanceAttribution";
+import { RiskSummaryPanel } from "./RiskSummaryPanel";
 import { ScenarioExposureChart } from "./ScenarioExposureChart";
+import { ModeledRiskExposure } from "../risk-drivers/ModeledRiskExposure";
 import { useAssets } from "./useAssets";
 import { usePriceHistory } from "./usePriceHistory";
 import { useScenarioExposure } from "./useScenarioExposure";
@@ -48,13 +51,17 @@ export function PortfolioOverview({
           worst
             ? {
                 label: "Worst Modelled Scenario",
-                value: formatSignedPercent(worst.result.estimated_impact_pct),
+                value: formatSignedPercent(worst.impact_pct),
                 tone: "negative",
-                caption: worst.scenario.title,
+                caption: worst.title,
               }
             : undefined
         }
       />
+
+      <Panel title="Portfolio Risk Summary" note="Transparent metrics · no composite risk score">
+        <RiskSummaryPanel portfolio={portfolio} />
+      </Panel>
 
       <Panel title="Holdings" note="Click a holding for asset intelligence">
         <HoldingsTable
@@ -91,6 +98,13 @@ export function PortfolioOverview({
         )}
       </Panel>
 
+      <Panel
+        title="Buy-and-hold Performance Attribution"
+        note="Current weights · not transaction-level attribution"
+      >
+        <PerformanceAttribution portfolio={portfolio} />
+      </Panel>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Allocation by Holding">
           <AllocationDonut portfolio={portfolio} onSelect={onSelectAsset} />
@@ -106,6 +120,10 @@ export function PortfolioOverview({
         {!loading && !error && (
           <ScenarioExposureChart exposures={exposures} onOpen={onOpenScenario} />
         )}
+      </Panel>
+
+      <Panel title="Modeled Risk Exposure" note="Explainable drivers · not statistical factors">
+        <ModeledRiskExposure portfolio={portfolio} />
       </Panel>
 
     </div>

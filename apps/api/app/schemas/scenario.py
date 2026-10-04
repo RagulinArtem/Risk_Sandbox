@@ -3,6 +3,9 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 SourceStatus = Literal["illustrative", "verified", "live"]
+RiskDriverDirection = Literal["negative", "positive", "mixed"]
+RiskDriverImportance = Literal["low", "medium", "high"]
+AssumptionSource = Literal["scenario", "historical", "ai_estimate", "user_edited"]
 
 
 class ScenarioShock(BaseModel):
@@ -18,6 +21,20 @@ class Reference(BaseModel):
 class ScenarioWindow(BaseModel):
     start: str  # ISO date
     end: str
+
+
+class RiskDriverRef(BaseModel):
+    """Explainable transmission channel, not a calibrated market factor.
+
+    ``importance`` is a categorical scenario heuristic derived from the
+    scenario's own shock magnitudes. It is deliberately not a beta,
+    probability or statistical confidence score.
+    """
+
+    driver: str
+    label: str
+    direction: RiskDriverDirection
+    importance: RiskDriverImportance
 
 
 class Scenario(BaseModel):
@@ -39,6 +56,8 @@ class Scenario(BaseModel):
     unavailable_assets: list[str] = Field(default_factory=list)
     references: list[Reference] = Field(default_factory=list)
     window: ScenarioWindow | None = None
+    risk_drivers: list[RiskDriverRef] = Field(default_factory=list)
+    assumption_source: AssumptionSource = "scenario"
 
     def shocks(self) -> list[ScenarioShock]:
         return [

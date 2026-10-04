@@ -54,6 +54,13 @@ export interface AnalystView {
   latency_ms: number;
 }
 
+export interface AnalogueRef {
+  id: string;
+  title: string;
+  why: string;
+  difference: string;
+}
+
 export interface VerdictRequest {
   scenario: Scenario;
   portfolio: Portfolio;
@@ -65,6 +72,16 @@ export interface ViewImpact {
   model: string;
   estimated_impact_pct: number;
   estimated_impact_value: number;
+}
+
+export interface HistoricalComparison {
+  id: string;
+  title: string;
+  window: string;
+  impact_pct: number;
+  impact_value: number;
+  why: string;
+  difference: string;
 }
 
 export interface CommitteeVerdict {

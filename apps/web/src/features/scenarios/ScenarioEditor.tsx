@@ -36,6 +36,14 @@ export function ScenarioEditor({
   const symbols = Object.keys(scenario.asset_shocks);
   const rationale = scenario.shock_rationale ?? {};
   const hasRationale = Object.keys(rationale).length > 0;
+  const assumptionCaption =
+    scenario.assumption_source === "user_edited"
+      ? "user-edited assumptions"
+      : scenario.assumption_source === "ai_estimate"
+        ? "AI-estimated, not a forecast"
+        : scenario.assumption_source === "historical"
+          ? "historical market window"
+          : ASSUMPTIONS_CAPTION[scenario.source_status];
 
   return (
     <div className="border border-line">
@@ -104,6 +112,19 @@ export function ScenarioEditor({
             </li>
           ))}
         </ol>
+        {scenario.risk_drivers.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {scenario.risk_drivers.map((driver) => (
+              <span
+                key={driver.driver}
+                className="border border-accent/30 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-accent-strong"
+                title={`${driver.direction} direction · ${driver.importance} scenario importance`}
+              >
+                {driver.label} · {driver.importance}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="px-5 py-4">
@@ -112,7 +133,7 @@ export function ScenarioEditor({
             Scenario Assumptions (editable)
           </div>
           <div className="font-mono text-[11px] text-ink-tertiary">
-            {hasRationale ? "AI-estimated, not a forecast" : ASSUMPTIONS_CAPTION[scenario.source_status]}
+            {assumptionCaption}
           </div>
         </div>
 

@@ -31,6 +31,7 @@ def build_verdict(request: VerdictRequest) -> CommitteeVerdict:
             "source_name": f"AI Risk Committee · chair {settings.committee_chair_model}",
             "source_url": None,
             "source_date": None,
+            "assumption_source": "ai_estimate",
         }
     )
     consensus_result = engine.run(

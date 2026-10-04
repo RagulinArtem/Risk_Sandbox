@@ -10,6 +10,10 @@ import type {
   AssetPriceResponse,
   MovePeriod,
   MoveDriversResponse,
+  MitigationCompareRequest,
+  MitigationCompareResponse,
+  PerformanceAttributionResponse,
+  PortfolioRiskSummary,
   EstimateShocksResponse,
   ParseScenarioResponse,
   Portfolio,
@@ -18,7 +22,13 @@ import type {
   PriceHistoryResponse,
   RiskFeedResponse,
   RiskRadarItem,
+  RiskAttentionResponse,
+  RiskBriefRequest,
+  RiskBriefResponse,
+  RiskDriversResponse,
   Scenario,
+  ScenarioComparisonRequest,
+  ScenarioComparisonResponse,
   StressTestRequest,
   StressTestResult,
 } from "../types";
@@ -93,6 +103,41 @@ export const api = {
     request<RiskFeedResponse>(
       `/api/risk-feed?portfolio_id=${encodeURIComponent(portfolioId)}&only_relevant=${onlyRelevant}`,
     ),
+  compareScenarios: (body: ScenarioComparisonRequest) =>
+    request<ScenarioComparisonResponse>("/api/scenario-comparison", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getRiskDrivers: (portfolio: Portfolio) =>
+    request<RiskDriversResponse>("/api/risk-drivers", {
+      method: "POST",
+      body: JSON.stringify({ portfolio }),
+    }),
+  getRiskAttention: (portfolio: Portfolio) =>
+    request<RiskAttentionResponse>("/api/risk-attention", {
+      method: "POST",
+      body: JSON.stringify({ portfolio }),
+    }),
+  compareMitigation: (body: MitigationCompareRequest) =>
+    request<MitigationCompareResponse>("/api/mitigation/compare", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getPerformanceAttribution: (portfolio: Portfolio, range: PriceRange) =>
+    request<PerformanceAttributionResponse>("/api/performance-attribution", {
+      method: "POST",
+      body: JSON.stringify({ portfolio, range }),
+    }),
+  getRiskBrief: (body: RiskBriefRequest) =>
+    request<RiskBriefResponse>("/api/risk-brief", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getRiskSummary: (portfolio: Portfolio) =>
+    request<PortfolioRiskSummary>("/api/risk-summary", {
+      method: "POST",
+      body: JSON.stringify({ portfolio }),
+    }),
   getAiStatus: () => request<AIStatusResponse>("/api/ai/status"),
   runStressTest: (body: StressTestRequest) =>
     request<StressTestResult>("/api/stress-test", {
