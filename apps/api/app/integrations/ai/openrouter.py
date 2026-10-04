@@ -226,7 +226,7 @@ def complete_json(
     headers = {
         "Authorization": f"Bearer {settings.openrouter_api_key}",
         "Content-Type": "application/json",
-        "X-Title": "AI Portfolio Risk Copilot",
+        "X-Title": "Shock Lens",
     }
     body: dict = {
         "model": model or settings.openrouter_model,

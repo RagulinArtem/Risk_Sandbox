@@ -63,7 +63,11 @@ export class ApiError extends Error {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
+    // no-store: API responses carry no Cache-Control, so browsers were
+    // heuristically caching them (stale scenario names, even a 404) across
+    // deploys. The backend already caches the expensive calls itself.
     response = await fetch(`${BASE_URL}${path}`, {
+      cache: "no-store",
       headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
       ...init,
     });

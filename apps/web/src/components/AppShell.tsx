@@ -188,7 +188,6 @@ export function AppShell({
             <Icon name="chevron" className={`h-3.5 w-3.5 transition-transform ${sidebarCollapsed ? "" : "rotate-180"}`} />
           </button>
         </div>
-
         {!sidebarCollapsed && portfolios.length > 0 && portfolioId && (
           <label className="mb-6 block border-b border-line pb-5">
             <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.16em] text-ink-tertiary">Active portfolio</span>
