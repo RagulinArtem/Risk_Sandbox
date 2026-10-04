@@ -11,7 +11,9 @@ services:
       # change can't silently break data loading in production.
       - DATA_DIR=/app/data
     ports:
-      - "${API_PORT:-8000}:${API_PORT:-8000}"
+      # API_PUBLISH lets a shared host bind to loopback behind its own
+      # reverse proxy (e.g. 127.0.0.1:18600); defaults keep local dev as-is.
+      - "${API_PUBLISH:-8000}:${API_PORT:-8000}"
     restart: unless-stopped
 
   web:

@@ -72,6 +72,21 @@ GitHub UI — never paste them into a chat or commit them to the repo.
 | `ENABLE_NEWS` | `false` | Not implemented yet — leave false |
 | `API_PORT` | `8000` | Only if you need a non-default port |
 | `WEB_PORT` | `8080` | Host port the frontend container binds to. Defaults to 8080 to avoid colliding with an existing service on port 80 — set to `80` once you've confirmed it's free. |
+| `API_PUBLISH` | `127.0.0.1:18600` | Host side of the API port mapping. Default `8000` (public). |
+
+### Shared host (current Timeweb VM)
+
+The Timeweb VM (`5.129.243.18`) already runs other projects behind a host
+nginx that owns ports 80/443, so this app binds to loopback only
+(`API_PUBLISH=127.0.0.1:18600`, `WEB_PORT=127.0.0.1:13600`) and is
+exposed through the vhost `/etc/nginx/sites-enabled/risk-copilot.conf`:
+
+- `https://risk.5-129-243-18.sslip.io/` → web container
+- `https://risk.5-129-243-18.sslip.io/api/` and `/health` → API container
+
+So `VITE_API_BASE_URL` and `FRONTEND_ORIGIN` are both
+`https://risk.5-129-243-18.sslip.io` (same origin, no CORS issues). TLS is
+a Let's Encrypt cert managed by certbot on the host.
 
 ### Using password auth instead of a key
 
