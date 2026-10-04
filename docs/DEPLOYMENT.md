@@ -50,7 +50,8 @@ GitHub UI — never paste them into a chat or commit them to the repo.
 | --- | --- |
 | `SSH_HOST` | The VM's public IP or hostname |
 | `SSH_USER` | SSH username |
-| `SSH_PRIVATE_KEY` | The **private** key matching a public key already in the VM's `~/.ssh/authorized_keys`. Password auth also works — see "Using password auth instead" below. |
+| `SSH_PRIVATE_KEY` | The **private** key matching a public key already in the VM's `~/.ssh/authorized_keys`. Leave unset if using password auth. |
+| `SSH_PASSWORD` | Root/user password, if not using key auth. The workflow passes both `key` and `password` to `appleboy/ssh-action`; it uses whichever is actually set. |
 | `SSH_PORT` | Only if not 22 |
 | `OPENROUTER_API_KEY` | From https://openrouter.ai/keys |
 
@@ -68,11 +69,13 @@ GitHub UI — never paste them into a chat or commit them to the repo.
 
 ### Using password auth instead of a key
 
-`appleboy/ssh-action` also accepts a `password` input. If you only have a
-password, edit the `with:` block in `.github/workflows/deploy.yml`:
-replace `key: ${{ secrets.SSH_PRIVATE_KEY }}` with
-`password: ${{ secrets.SSH_PASSWORD }}`, and add `SSH_PASSWORD` as a
-secret. Key-based auth is preferred where available.
+The workflow already passes both `key` and `password` to
+`appleboy/ssh-action`; it uses whichever secret is actually set. To use
+password auth, just add `SSH_PASSWORD` as a secret and leave
+`SSH_PRIVATE_KEY` unset — no workflow edit needed. Key-based auth is
+preferred where available; if you start with a password, consider
+generating a keypair later, installing the public key on the server, and
+switching to `SSH_PRIVATE_KEY`.
 
 ## Running a deploy
 
