@@ -16,6 +16,8 @@ from app.schemas.ai import (
     ParseScenarioRequest,
     ParseScenarioResponse,
 )
+from app.schemas.scenario import Scenario
+from app.services.scenario_service import get_scenario_service
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
@@ -35,6 +37,24 @@ Result JSON:
 # "11,500", "-9.2", "78%", "0.078" — commas allowed in grouped digits.
 _NUMBER_RE = re.compile(r"-?\d{1,3}(?:,\d{3})+(?:\.\d+)?|-?\d+(?:\.\d+)?")
 
+_CANONICAL_SCENARIO_ALIASES = {
+    "ai bubble burst": "ai-capex-bust",
+    "ai bubble bursts": "ai-capex-bust",
+    "if the ai bubble bursts": "ai-capex-bust",
+}
+
+
+def _canonical_scenario_for_text(text: str) -> Scenario | None:
+    """Resolve explicit demo titles before calling a non-deterministic parser.
+
+    Typing a scenario's name should be equivalent to choosing it from the
+    library. This keeps the live pitch reproducible without presenting the
+    illustrative assumptions as model-generated facts.
+    """
+    normalized = " ".join(re.sub(r"[^a-z0-9]+", " ", text.lower()).split())
+    scenario_id = _CANONICAL_SCENARIO_ALIASES.get(normalized)
+    return get_scenario_service().get_scenario(scenario_id) if scenario_id else None
+
 
 @router.get("/status", response_model=AIStatusResponse)
 def ai_status() -> AIStatusResponse:
@@ -47,6 +67,10 @@ def ai_status() -> AIStatusResponse:
 
 @router.post("/parse-scenario", response_model=ParseScenarioResponse)
 def parse_scenario(request: ParseScenarioRequest) -> ParseScenarioResponse:
+    canonical = _canonical_scenario_for_text(request.text)
+    if canonical is not None:
+        return ParseScenarioResponse(recognized=True, scenario=canonical, message=None)
+
     provider = get_ai_provider()
     try:
         scenario = provider.parse_scenario(request.text)

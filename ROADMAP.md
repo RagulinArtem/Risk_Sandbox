@@ -77,6 +77,7 @@ see `docs/HACKATHON_RULES_CHECK.md`.
 | P1 | Live LLM scenario parsing + AI shock estimates | TBD | DONE | OpenRouter, per-asset rationale, labelled illustrative |
 | P1 | Multi-model AI Risk Committee | TBD | DONE | `docs/MULTI_AGENT_ORCHESTRATION.md` |
 | P0 | Global Multi-Asset Risk Portfolio (15 holdings) | TBD | DONE | Primary demo, weights sum to 1, every scenario shocks every held asset |
+| P0 | Pitch-safe AI Bubble demo path | Codex | DONE | Picker and title input resolve to identical canonical assumptions and -9.7% / -$9,690; staged scenario analysis and collision-free 15-row contribution chart |
 | P1 | Asset Intelligence drawer | TBD | DONE | Static metadata offline; prices, news and AI "move drivers" each degrade independently |
 | P2 | ETF look-through (constituent exposure) | TBD | TODO | Needs real constituent data; until then overlap (SPY/QQQ/NVDA/TSM) is described, not computed |
 | P0 | Scenario Comparison Matrix | Codex | DONE | One batch endpoint, exact holding contributions, accessible heatmap and stress-test drill-down |

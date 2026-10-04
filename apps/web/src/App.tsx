@@ -512,6 +512,7 @@ export default function App() {
                 onParsed={handleParsed}
                 onShockChange={handleShockChange}
                 onRun={runStressTest}
+                holdingCount={activePortfolio?.positions.length ?? 0}
                 ai={
                   isLiveAi
                     ? {

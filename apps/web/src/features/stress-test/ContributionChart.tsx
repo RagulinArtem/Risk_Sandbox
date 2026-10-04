@@ -1,88 +1,108 @@
-import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatSignedCurrency, formatSignedPercent } from "../../lib/format";
-import { reducedMotion } from "../../lib/useCountUp";
 import type { AssetImpact } from "../../types";
 
 const NEGATIVE = "#E5485D";
 const POSITIVE = "#168A62";
 const NEUTRAL = "#7B828E";
 
+/**
+ * A DOM-based diverging chart is deliberately used here instead of chart labels.
+ * Each number owns a fixed column, so fifteen rows remain legible at presentation
+ * size and small contributions can never pile up around the zero axis.
+ */
 export function ContributionChart({ assetImpacts }: { assetImpacts: AssetImpact[] }) {
-  const data = [...assetImpacts]
-    .sort((a, b) => a.impact_value - b.impact_value)
-    .map((a) => ({
-      symbol: a.symbol,
-      impact: a.impact_value,
-      hasAssumption: a.has_assumption,
-      label: a.has_assumption
-        ? `${formatSignedPercent(a.shock_pct)} · ${formatSignedCurrency(a.impact_value)}`
-        : "no data",
-    }));
+  const data = [...assetImpacts].sort((a, b) => a.impact_value - b.impact_value);
+  const maxLoss = Math.max(1, ...data.map((item) => Math.abs(Math.min(0, item.impact_value))));
+  const maxGain = Math.max(1, ...data.map((item) => Math.max(0, item.impact_value)));
 
   return (
-    // ~30px per holding so every ticker gets its own row (15 holdings ≈ 470px);
-    // a fixed h-64 made recharts skip every other label.
-    <div className="w-full" style={{ height: Math.max(160, data.length * 30 + 20) }}>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 130, bottom: 4, left: 4 }}>
-          <XAxis
-            type="number"
-            tickFormatter={(v: number) => formatSignedCurrency(v)}
-            tick={{ fill: "#7B828E", fontSize: 11, fontFamily: "Inter, system-ui, sans-serif" }}
-            axisLine={{ stroke: "#E3E6EB" }}
-            tickLine={false}
-          />
-          <YAxis
-            interval={0}
-            type="category"
-            dataKey="symbol"
-            tick={{ fill: "#121318", fontSize: 12, fontFamily: "Inter, system-ui, sans-serif" }}
-            axisLine={{ stroke: "#E3E6EB" }}
-            tickLine={false}
-            width={56}
-          />
-          <Tooltip
-            cursor={{ fill: "rgba(99,91,255,0.04)" }}
-            contentStyle={{
-              background: "#FFFFFF",
-              border: "1px solid #E3E6EB",
-              borderRadius: 16,
-              boxShadow: "0 12px 30px rgba(17, 24, 39, 0.12)",
-              fontSize: 12,
-              fontFamily: "Inter, system-ui, sans-serif",
-            }}
-            labelStyle={{ color: "#121318", fontWeight: 600 }}
-            formatter={(value: number) => [formatSignedCurrency(value), "Estimated impact"]}
-          />
-          <Bar
-            dataKey="impact"
-            radius={[0, 8, 8, 0]}
-            isAnimationActive={!reducedMotion()}
-            animationDuration={1400}
-            animationEasing="ease-out"
-          >
-            <LabelList
-              dataKey="label"
-              position="right"
-              style={{ fill: "#5B6170", fontSize: 11, fontFamily: "Inter, system-ui, sans-serif" }}
-            />
-            {data.map((entry) => (
-              <Cell
-                key={entry.symbol}
-                fill={
-                  !entry.hasAssumption
-                    ? NEUTRAL
-                    : entry.impact < 0
-                      ? NEGATIVE
-                      : entry.impact > 0
-                        ? POSITIVE
-                        : NEUTRAL
-                }
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="w-full" role="list" aria-label="Contribution by holding">
+      <div className="mb-2 grid grid-cols-[44px_62px_minmax(88px,1fr)_76px] items-end gap-2 px-1 font-mono text-[10px] uppercase tracking-wider text-ink-tertiary sm:grid-cols-[52px_68px_minmax(120px,1fr)_88px]">
+        <span>Holding</span>
+        <span className="text-right">Shock</span>
+        <span className="text-center">Estimated contribution</span>
+        <span className="text-right">Impact</span>
+      </div>
+
+      <div className="space-y-1">
+        {data.map((item) => {
+          const isLoss = item.impact_value < 0;
+          const isGain = item.impact_value > 0;
+          const lossWidth = isLoss ? (Math.abs(item.impact_value) / maxLoss) * 100 : 0;
+          const gainWidth = isGain ? (item.impact_value / maxGain) * 100 : 0;
+          const color = !item.has_assumption
+            ? NEUTRAL
+            : isLoss
+              ? NEGATIVE
+              : isGain
+                ? POSITIVE
+                : NEUTRAL;
+          const accessibleLabel = item.has_assumption
+            ? `${item.symbol}: ${formatSignedPercent(item.shock_pct)} shock, ${formatSignedCurrency(item.impact_value)} portfolio impact`
+            : `${item.symbol}: no assumption`;
+
+          return (
+            <div
+              key={item.symbol}
+              role="listitem"
+              aria-label={accessibleLabel}
+              className="grid min-h-8 grid-cols-[44px_62px_minmax(88px,1fr)_76px] items-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-surface-higher/60 sm:grid-cols-[52px_68px_minmax(120px,1fr)_88px]"
+            >
+              <span className="font-mono text-xs font-semibold text-ink">{item.symbol}</span>
+              <span
+                className="text-right font-mono text-[11px] tabular-nums text-ink-secondary sm:text-xs"
+                title={item.has_assumption ? undefined : "No scenario assumption"}
+              >
+                {item.has_assumption ? formatSignedPercent(item.shock_pct) : "no data"}
+              </span>
+
+              <div className="grid h-5 grid-cols-[minmax(0,4fr)_minmax(0,1fr)]" aria-hidden="true">
+                <div className="flex items-center justify-end border-r border-line-strong">
+                  {isLoss && (
+                    <span
+                      className="h-3.5 min-w-[3px] rounded-l-md transition-[width] duration-700 ease-out"
+                      style={{ width: `${lossWidth}%`, backgroundColor: color }}
+                    />
+                  )}
+                </div>
+                <div className="flex items-center justify-start">
+                  {isGain && (
+                    <span
+                      className="h-3.5 min-w-[3px] rounded-r-md transition-[width] duration-700 ease-out"
+                      style={{ width: `${gainWidth}%`, backgroundColor: color }}
+                    />
+                  )}
+                </div>
+              </div>
+
+              <span
+                className={`text-right font-mono text-[11px] font-medium tabular-nums sm:text-xs ${
+                  isLoss
+                    ? "text-risk-negative-strong"
+                    : isGain
+                      ? "text-risk-positive"
+                      : "text-ink-tertiary"
+                }`}
+              >
+                {item.has_assumption ? formatSignedCurrency(item.impact_value) : "—"}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-2 grid grid-cols-[44px_62px_minmax(88px,1fr)_76px] gap-2 px-1 sm:grid-cols-[52px_68px_minmax(120px,1fr)_88px]">
+        <span />
+        <span />
+        <div className="grid grid-cols-[minmax(0,4fr)_minmax(0,1fr)] font-mono text-[10px] tabular-nums text-ink-tertiary">
+          <span>{formatSignedCurrency(-maxLoss)}</span>
+          <span className="flex justify-between">
+            <span>$0</span>
+            <span>{formatSignedCurrency(maxGain)}</span>
+          </span>
+        </div>
+        <span />
+      </div>
     </div>
   );
 }
