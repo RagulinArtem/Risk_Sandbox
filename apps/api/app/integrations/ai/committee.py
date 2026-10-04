@@ -91,7 +91,7 @@ def _coerce_confidence(raw: object) -> str:
 def sanitize_views(views: list[AnalystView]) -> list[AnalystView]:
     """Apply the same guard rails to client-supplied views that we apply to
     model output: known seats only, no duplicates, supported symbols, shocks
-    clamped to -95%..+200%, rationale only for kept symbols, texts capped."""
+    outside -95%..+200% dropped, rationale only for kept symbols, texts capped."""
     cleaned: list[AnalystView] = []
     seen: set[str] = set()
     for view in views:

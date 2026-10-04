@@ -306,7 +306,7 @@ def test_sanitize_views_drops_unknown_seats_dupes_and_bad_shocks():
     ]
     cleaned = sanitize_views([AnalystView.model_validate(v) for v in views])
     assert [v.seat for v in cleaned] == ["macro"]
-    assert cleaned[0].asset_shocks == {"NVDA": -0.2}  # ZZZ dropped, SPY -500% clamped away
+    assert cleaned[0].asset_shocks == {"NVDA": -0.2}  # ZZZ dropped, SPY -500% dropped as out of range
 
 
 def test_verdict_rejects_views_with_no_usable_shocks(client):
@@ -365,7 +365,7 @@ def _coerce_confidence(raw: object) -> str:
 def sanitize_views(views: list[AnalystView]) -> list[AnalystView]:
     """Apply the same guard rails to client-supplied views that we apply to
     model output: known seats only, no duplicates, supported symbols, shocks
-    clamped to -95%..+200%, rationale only for kept symbols, texts capped."""
+    outside -95%..+200% dropped, rationale only for kept symbols, texts capped."""
     cleaned: list[AnalystView] = []
     seen: set[str] = set()
     for view in views:
@@ -406,7 +406,7 @@ def sanitize_views(views: list[AnalystView]) -> list[AnalystView]:
 Run: `cd apps/api && .venv/bin/pytest tests/test_committee.py -q`
 Expected: PASS (existing tests included).
 
-- [ ] **Step 5: Update `docs/API_CONTRACT.md`** (verdict section ~341): note `views` is capped at 3 unique seats, shocks are filtered to the 6 symbols and clamped to −95%…+200%, garbage views are dropped, and a request whose views are all unusable returns `422`.
+- [ ] **Step 5: Update `docs/API_CONTRACT.md`** (verdict section ~341): note `views` is capped at 3 unique seats, shocks are filtered to the 6 symbols and dropped when outside −95%…+200%, garbage views are dropped, and a request whose views are all unusable returns `422`.
 
 - [ ] **Step 6: Commit**
 
@@ -1248,7 +1248,7 @@ apps/web/src/types/committee.ts                        wire types
 
 - [ ] **Step 3: Correct the rest of the document**
   - §3 design: add the opt-in debate round (analysts see anonymized peers, chair weighs revisions) and the optional live market signal (`market_id`).
-  - §6 guard rails table: replace the "503 to the UI" row with "Provider failures return HTTP 200 with a friendly `message`; the committee is hidden under mock"; add rows for retries (429/5xx fast-retry, timeouts not retried), view validation/clamping, and the live-signal provenance (`live|cached`, never fabricated).
+  - §6 guard rails table: replace the "503 to the UI" row with "Provider failures return HTTP 200 with a friendly `message`; the committee is hidden under mock"; add rows for retries (429/5xx fast-retry, timeouts not retried), view validation/filtering, and the live-signal provenance (`live|cached`, never fabricated).
   - §10 API surface: add `debate` / `market_id` / `revisions` / `market_context` notes pointing at `docs/API_CONTRACT.md`.
 
 - [ ] **Step 4: Update state docs**

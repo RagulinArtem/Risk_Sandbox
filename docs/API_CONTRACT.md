@@ -348,7 +348,8 @@ views means no verdict call).
 
 Server-side guard rails: `views` is capped at 3 and at most one view per
 analyst seat (`macro`/`sector`/`cross_asset`); shocks are filtered to the 6
-supported symbols and clamped to −95%…+200%. Unusable views (unknown or
+supported symbols and kept only within −95%…+200% (outside-range values are
+dropped). Unusable views (unknown or
 duplicate seat, or no remaining supported shock) are dropped, and a request
 whose views are all unusable returns `422`. Prompt inputs are capped too:
 `scenario_title ≤ 200`, `scenario_description ≤ 4000`, `horizon ≤ 40` and
