@@ -6,6 +6,7 @@ import { LoadingLine } from "./components/LoadingLine";
 import { RiskDashboard } from "./features/dashboard/RiskDashboard";
 import { usePortfolio } from "./features/portfolio/usePortfolio";
 import { RiskFeed } from "./features/risk-feed/RiskFeed";
+import { prefetchRiskFeed } from "./features/risk-feed/useRiskFeed";
 import { RiskBriefPanel } from "./features/risk-brief/RiskBriefPanel";
 import { ScenarioComparison } from "./features/scenario-comparison/ScenarioComparison";
 import { ScenarioWorkspace } from "./features/scenarios/ScenarioWorkspace";
@@ -87,6 +88,12 @@ export default function App() {
   // clears it. Every stress run uses the edited version.
   const [editedPortfolio, setEditedPortfolio] = useState<Portfolio | null>(null);
   const activePortfolio = editedPortfolio ?? portfolio;
+
+  // Warm the expensive multi-source feed as soon as a portfolio is known so
+  // Alerts & signals feels instant when the user opens it later.
+  useEffect(() => {
+    if (portfolio?.id) void prefetchRiskFeed(portfolio.id).catch(() => undefined);
+  }, [portfolio?.id]);
 
   const [view, setViewState] = useState<View>(viewFromHash);
   const [risksView, setRisksView] = useState<RisksView>(risksViewFromHash);
@@ -258,6 +265,11 @@ export default function App() {
   );
 
   const handleResetPortfolio = useCallback(() => setEditedPortfolio(null), []);
+  const handleImportPortfolio = useCallback((imported: Portfolio) => {
+    setEditedPortfolio(imported);
+    setResult(null);
+    setCommitteeVerdict(null);
+  }, []);
 
   const handleUseConsensus = useCallback(
     (shocks: Record<string, number>, rationale: Record<string, string>) => {
@@ -412,6 +424,7 @@ export default function App() {
             onOpenPortfolio={() => setView("portfolio")}
             onOpenStress={openMitigationSandbox}
             onUseWhatIf={handleQuickWhatIf}
+            onImportPortfolio={handleImportPortfolio}
           />
         )}
 
@@ -429,6 +442,7 @@ export default function App() {
               }}
               onWeightChange={handleWeightChange}
               onResetPortfolio={handleResetPortfolio}
+              onImportPortfolio={handleImportPortfolio}
             />
           )}
 

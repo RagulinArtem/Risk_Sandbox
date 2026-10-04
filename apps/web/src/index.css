@@ -27,11 +27,11 @@ button {
 }
 
 .app-content :where(section, details)[class*="border"] {
-  border-radius: 1.5rem;
+  border-radius: 1rem;
 }
 
 .app-content :where(button, input, select)[class*="border"] {
-  border-radius: 0.9rem;
+  border-radius: 0.6rem;
 }
 
 .app-content :where(section)[class*="bg-surface-raised"] {
@@ -42,8 +42,15 @@ button {
   height: 0.35rem;
   appearance: none;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(
+    to right,
+    #a99fff 0%,
+    #a99fff var(--range-progress, 0%),
+    rgba(255, 255, 255, 0.2) var(--range-progress, 0%),
+    rgba(255, 255, 255, 0.2) 100%
+  );
   accent-color: #a99fff;
+  transition: background 120ms ease-out;
 }
 
 .app-range::-webkit-slider-thumb {
@@ -55,6 +62,13 @@ button {
   border-radius: 999px;
   background: #8d83ff;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.app-range::-webkit-slider-thumb:hover,
+.app-range::-webkit-slider-thumb:active {
+  transform: scale(1.08);
+  box-shadow: 0 5px 20px rgba(99, 91, 255, 0.45);
 }
 
 .app-range::-moz-range-thumb {

@@ -208,7 +208,7 @@ def complete_json(
     prompt: str,
     *,
     model: str | None = None,
-    max_tokens: int = 600,
+    max_tokens: int = 3000,  # 15 assets x shock + rationale needs >1k tokens
     temperature: float = 0.2,
     reasoning_effort: str | None = None,
 ) -> dict:
