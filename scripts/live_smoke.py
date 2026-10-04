@@ -106,7 +106,10 @@ async def main() -> int:
         check("three analyst views", len(usable) == 3, f"{analysts_seconds:.1f}s")
         check(
             "views carry the live market signal",
-            all(v["market_context"] and v["market_context"]["probability"] is not None for v in usable),
+            all(
+                v["market_context"] and v["market_context"]["probability"] is not None
+                for v in usable
+            ),
         )
         for v in usable:
             mc = v["market_context"]
@@ -157,7 +160,8 @@ async def main() -> int:
             check(
                 "market probability is real",
                 summary["probability"] is not None and 0 <= summary["probability"] <= 1,
-                f"{summary['label']}: {(summary['probability'] or 0):.1%} ({summary['source_status']})",
+                f"{summary['label']}: {(summary['probability'] or 0):.1%} "
+                f"({summary['source_status']})",
             )
             history = (await client.get(f"/api/markets/{summary['market_id']}/history")).json()
             check(
@@ -174,7 +178,11 @@ async def main() -> int:
             and bool(re.fullmatch(r"\d+% \(Polymarket\)", signal.probability_signal or ""))
             and signal.scenario_id is not None
         )
-        check(f"signal: {signal.title[:60]}", ok, f"{signal.probability_signal} → {signal.scenario_id}")
+        check(
+            f"signal: {signal.title[:60]}",
+            ok,
+            f"{signal.probability_signal} → {signal.scenario_id}",
+        )
 
     print(f"\nTotal: {time.monotonic() - started:.1f}s")
     return report()
