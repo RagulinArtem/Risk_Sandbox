@@ -6,21 +6,34 @@ reality.
 
 ## WORKING
 
-- **App shell and home risk center (2026-10-04):** a calm, consumer-finance
+- **App shell and home risk workspace (2026-10-04):** a calm, consumer-finance
   navigation model with Home, Stress analytics, Alerts & signals, Portfolio,
-  and Settings; Report remains a header action. The new Home screen prioritizes
-  the worst modeled scenario, three largest scenario threats, an auditable
-  diversification snapshot, a backend-calculated two-slider what-if, popular
-  stress tests and neutral next steps. It deliberately does not invent a
+  and Settings; Report remains a header action. Desktop navigation can collapse
+  to an icon rail and remembers that device-local preference. Home is a
+  chat-first workspace with a central scenario conversation, a closable
+  portfolio artifact canvas, action chips, a real analysis-mode selector and
+  an API-backed scenario composer. It prioritizes the worst modeled scenario,
+  three largest scenario threats, an auditable diversification snapshot, a
+  backend-calculated two-slider what-if, popular stress tests and neutral next
+  steps. It deliberately does not invent a
   0–100 risk score, imply a trade recommendation or pretend that alerts exist.
   Quick what-if combinations and an in-app scenario-loss watch threshold can
   be saved locally per portfolio; both are explicitly labelled as device-local,
   not cloud-synced scenarios or background push notifications. The action area
   includes a real asset-class allocation donut built from supported-asset
-  metadata.
-  Desktop uses a fixed sidebar; mobile uses a bottom navigation bar. Old deep
+  metadata. The sliders retain the last computed result during a short 120 ms
+  refresh, and Alerts & signals is prefetched once a portfolio is available so
+  the first visit can render from memory while it refreshes. Desktop uses a
+  fixed, collapsible sidebar; mobile uses a bottom navigation bar. Old deep
   links (`#feed`, `#radar`, `#scenarios`, `#mitigation`) still resolve. Design
   rationale and UI rules are documented in `docs/DESIGN_SYSTEM.md`.
+
+- **Local CSV portfolio import (2026-10-04):** Home and Portfolio accept a CSV
+  with `symbol` plus either allocation/weight or position value. Parsing stays
+  in the browser; duplicate supported symbols are combined, weights are
+  normalized, unsupported assets are reported, and the imported portfolio is
+  immediately reused by dashboard and stress calculations. This is not a
+  broker connection, database-backed portfolio, or server upload.
 
 - **Demo portfolios** (`GET /api/portfolios`, `/api/portfolio/demo`). The
   primary is the **Global Multi-Asset Risk Portfolio**: 15 holdings across
@@ -260,5 +273,6 @@ reality.
   TODO stub.
 - **Institutional research source**
   (`integrations/risk_sources/institutional.py`) — documented TODO stub.
-- Multi-portfolio support, authentication, a database, broker integration —
-  all explicitly out of scope for this MVP (P2, see `ROADMAP.md`).
+- Persisted multi-portfolio support, authentication, a database and broker
+  integration remain out of scope for this MVP (P2, see `ROADMAP.md`). The
+  implemented CSV import is device-local and session-only.

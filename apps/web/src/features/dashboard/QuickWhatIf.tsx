@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { ApiError, api } from "../../lib/apiClient";
 import { assetClassLabel } from "../../lib/assetClasses";
 import { formatSignedCurrency, formatSignedPercent } from "../../lib/format";
@@ -37,10 +37,12 @@ export function QuickWhatIf({
   portfolio,
   assets,
   onUse,
+  compact = false,
 }: {
   portfolio: Portfolio;
   assets: Record<string, Asset>;
   onUse: (result: StressTestResult, rates: number, marketFall: number) => void;
+  compact?: boolean;
 }) {
   const [rates, setRates] = useState(1);
   const [marketFall, setMarketFall] = useState(15);
@@ -71,7 +73,7 @@ export function QuickWhatIf({
         .finally(() => {
           if (!cancelled) setLoading(false);
         });
-    }, 260);
+    }, 120);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
@@ -114,14 +116,14 @@ export function QuickWhatIf({
   };
 
   return (
-    <section className="relative min-w-0 overflow-hidden rounded-[2rem] bg-ink p-6 text-white shadow-card sm:p-7">
+    <section className={`relative min-w-0 overflow-hidden bg-ink text-white shadow-card ${compact ? "rounded-xl p-5" : "rounded-[2rem] p-6 sm:p-7"}`}>
       <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-violet-500/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 left-12 h-52 w-52 rounded-full bg-blue-500/20 blur-3xl" />
       <div className="relative">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/55">Quick what-if</p>
-            <h2 className="mt-1 text-xl font-bold tracking-tight">Move the sliders. See your exposure.</h2>
+            <h2 className={`mt-1 font-bold tracking-tight ${compact ? "text-lg" : "text-xl"}`}>Move the sliders. See your exposure.</h2>
           </div>
           {loading && <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-violet-300" aria-label="Recalculating" />}
         </div>
@@ -130,7 +132,7 @@ export function QuickWhatIf({
           <label className="block">
             <span className="flex items-center justify-between gap-4 text-sm">
               <span className="text-white/70">Interest rates rise by</span>
-              <span className="rounded-full bg-white/10 px-3 py-1 font-semibold tabular-nums">+{rates.toFixed(1)}pp</span>
+              <span className="rounded-lg bg-white/10 px-2.5 py-1 font-semibold tabular-nums">+{rates.toFixed(1)}pp</span>
             </span>
             <input
               type="range"
@@ -138,14 +140,15 @@ export function QuickWhatIf({
               max="5"
               step="0.25"
               value={rates}
-              onChange={(event) => setRates(Number(event.target.value))}
+              onInput={(event) => setRates(Number(event.currentTarget.value))}
               className="app-range mt-3 w-full"
+              style={{ "--range-progress": `${(rates / 5) * 100}%` } as CSSProperties}
             />
           </label>
           <label className="block">
             <span className="flex items-center justify-between gap-4 text-sm">
               <span className="text-white/70">Stock markets fall by</span>
-              <span className="rounded-full bg-white/10 px-3 py-1 font-semibold tabular-nums">-{marketFall}%</span>
+              <span className="rounded-lg bg-white/10 px-2.5 py-1 font-semibold tabular-nums">-{marketFall}%</span>
             </span>
             <input
               type="range"
@@ -153,16 +156,17 @@ export function QuickWhatIf({
               max="40"
               step="1"
               value={marketFall}
-              onChange={(event) => setMarketFall(Number(event.target.value))}
+              onInput={(event) => setMarketFall(Number(event.currentTarget.value))}
               className="app-range mt-3 w-full"
+              style={{ "--range-progress": `${(marketFall / 40) * 100}%` } as CSSProperties}
             />
           </label>
         </div>
 
-        <div className="mt-7 rounded-3xl bg-white/[0.08] p-5 backdrop-blur-sm">
+        <div className={`bg-white/[0.08] backdrop-blur-sm ${compact ? "mt-5 rounded-xl p-4" : "mt-7 rounded-3xl p-5"}`} aria-live="polite">
           <p className="text-xs font-medium text-white/55">Estimated total impact</p>
           <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="text-3xl font-bold tracking-tight tabular-nums">
+            <span className={`text-3xl font-bold tracking-tight tabular-nums transition-opacity duration-150 ${loading ? "opacity-60" : "opacity-100"}`}>
               {result ? formatSignedCurrency(result.estimated_impact_value, portfolio.currency) : "—"}
             </span>
             {result && (
@@ -174,7 +178,7 @@ export function QuickWhatIf({
           {affectedClasses.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-2" aria-label="Most affected asset classes">
               {affectedClasses.map((item) => (
-                <span key={item.label} className="rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/75">
+                <span key={item.label} className="rounded-lg bg-white/10 px-3 py-1.5 text-xs text-white/75">
                   {item.label} {formatSignedCurrency(item.impact, portfolio.currency)}
                 </span>
               ))}
@@ -195,7 +199,7 @@ export function QuickWhatIf({
             type="button"
             disabled={!result || loading}
             onClick={saveCurrent}
-            className="rounded-2xl bg-white px-4 py-3 text-sm font-bold text-ink transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-white px-4 py-3 text-sm font-bold text-ink transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {currentSaved ? "Saved to My Scenarios ✓" : "Add to My Scenarios"}
           </button>
@@ -203,7 +207,7 @@ export function QuickWhatIf({
             type="button"
             disabled={!result || loading}
             onClick={() => result && onUse(result, rates, marketFall)}
-            className="rounded-2xl bg-white/10 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-lg bg-white/10 px-4 py-3 text-sm font-bold text-white transition hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Open in Stress Studio
           </button>

@@ -22,13 +22,15 @@ src/
   components/              Small shared, presentational pieces (badges,
                             Section, error/loading states) — no feature logic.
   features/
+    dashboard/              Chat-first risk workspace + live factor what-if
     portfolio/              Portfolio summary strip
     risk-radar/              Risk Radar rows
     scenarios/                Scenario workspace: "What if…?" input + editor
     stress-test/               Result headline, contribution chart, explanation
   lib/
     apiClient.ts            Thin fetch wrapper — the only place that knows API URLs
-    format.ts                 Currency/percent formatting helpers
+    format.ts               Currency/percent formatting helpers
+    portfolioImport.ts      Browser-only CSV portfolio parser (no upload)
   types/                    TypeScript types mirroring apps/api/app/schemas/*
                             exactly (see docs/API_CONTRACT.md). Keep these in
                             sync by hand when the backend schema changes.
@@ -36,6 +38,10 @@ src/
 
 Business math (stress-test calculations) is never done in the frontend —
 it only renders what the API returns.
+
+The Home workspace uses the backend factor/scenario engines for every displayed
+impact. CSV imports are parsed locally and remain session-only; they are not
+uploaded or presented as a connected brokerage account.
 
 ## Check
 

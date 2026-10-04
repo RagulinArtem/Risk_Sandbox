@@ -70,7 +70,7 @@ const NAV_ITEMS: Array<{ id: AppView; label: string; icon: IconName }> = [
 ];
 
 const VIEW_COPY: Record<AppView, { title: string; eyebrow: string }> = {
-  home: { title: "Your Portfolio Stress Center", eyebrow: "Good afternoon" },
+  home: { title: "Shock Lens", eyebrow: "Portfolio intelligence" },
   portfolio: { title: "Your portfolio", eyebrow: "Holdings & performance" },
   risks: { title: "Alerts & signals", eyebrow: "What could affect you" },
   stress: { title: "Stress analytics", eyebrow: "Explore a what-if" },
@@ -78,7 +78,15 @@ const VIEW_COPY: Record<AppView, { title: string; eyebrow: string }> = {
   report: { title: "Risk report", eyebrow: "Printable overview" },
 };
 
-function Navigation({ active, onNavigate }: { active: AppView; onNavigate: (view: AppView) => void }) {
+function Navigation({
+  active,
+  collapsed,
+  onNavigate,
+}: {
+  active: AppView;
+  collapsed: boolean;
+  onNavigate: (view: AppView) => void;
+}) {
   return (
     <nav aria-label="Main navigation" className="space-y-1.5">
       {NAV_ITEMS.map((item) => {
@@ -87,16 +95,18 @@ function Navigation({ active, onNavigate }: { active: AppView; onNavigate: (view
           <button
             key={item.id}
             type="button"
+            aria-label={item.label}
+            title={collapsed ? item.label : undefined}
             aria-current={selected ? "page" : undefined}
             onClick={() => onNavigate(item.id)}
-            className={`group flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left text-sm font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
+            className={`group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent ${
               selected
                 ? "bg-ink text-white shadow-sm"
                 : "text-ink-secondary hover:bg-surface-higher hover:text-ink"
             }`}
           >
             <Icon name={item.icon} className="h-5 w-5 shrink-0" />
-            <span>{item.label}</span>
+            {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
           </button>
         );
       })}
@@ -120,39 +130,98 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return (
+        window.localStorage.getItem("shock-lens.sidebar-collapsed") ??
+        window.localStorage.getItem("risk-copilot.sidebar-collapsed")
+      ) === "true";
+    } catch {
+      return false;
+    }
+  });
   const copy = VIEW_COPY[activeView];
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((collapsed) => {
+      const next = !collapsed;
+      try {
+        window.localStorage.setItem("shock-lens.sidebar-collapsed", String(next));
+      } catch {
+        // The preference is optional when storage is unavailable.
+      }
+      return next;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-surface text-ink">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-line bg-surface-raised px-5 py-6 lg:flex lg:flex-col print:hidden">
-        <button
-          type="button"
-          onClick={() => onNavigate("home")}
-          className="mb-9 flex items-center gap-3 rounded-2xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-        >
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-ink text-white shadow-sm">
-            <Icon name="shield" className="h-5 w-5" />
-          </span>
-          <span>
-            <span className="block text-sm font-bold tracking-tight">Risk Copilot</span>
-            <span className="block text-xs text-ink-tertiary">Portfolio intelligence</span>
-          </span>
-        </button>
+      <aside
+        className={`fixed inset-y-0 left-0 z-30 hidden border-r border-line bg-surface-raised py-5 transition-[width,padding] duration-300 ease-out lg:flex lg:flex-col print:hidden ${
+          sidebarCollapsed ? "w-20 px-3" : "w-64 px-5"
+        }`}
+      >
+        <div className={`mb-8 flex items-center ${sidebarCollapsed ? "flex-col gap-3" : "justify-between gap-3"}`}>
+          <button
+            type="button"
+            onClick={() => onNavigate("home")}
+            aria-label="Shock Lens home"
+            className="flex min-w-0 items-center gap-3 rounded-xl text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink text-white shadow-sm">
+              <Icon name="shield" className="h-5 w-5" />
+            </span>
+            {!sidebarCollapsed && (
+              <span className="min-w-0">
+                <span className="block whitespace-nowrap text-sm font-bold tracking-tight">Shock Lens</span>
+                <span className="block whitespace-nowrap text-xs text-ink-tertiary">Portfolio intelligence</span>
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-line text-ink-tertiary transition hover:border-line-strong hover:bg-surface hover:text-ink"
+          >
+            <Icon name="chevron" className={`h-3.5 w-3.5 transition-transform ${sidebarCollapsed ? "" : "rotate-180"}`} />
+          </button>
+        </div>
 
-        <Navigation active={activeView} onNavigate={onNavigate} />
+        {!sidebarCollapsed && portfolios.length > 0 && portfolioId && (
+          <label className="mb-6 block border-b border-line pb-5">
+            <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.16em] text-ink-tertiary">Active portfolio</span>
+            <select
+              value={portfolioId}
+              onChange={(event) => onPortfolioChange(event.target.value)}
+              className="w-full rounded-lg border border-line bg-surface px-2.5 py-2 text-xs font-semibold text-ink outline-none transition focus:border-accent"
+            >
+              {portfolios.map((portfolio) => (
+                <option key={portfolio.id} value={portfolio.id}>{portfolio.name}</option>
+              ))}
+            </select>
+          </label>
+        )}
 
-        <div className="mt-auto rounded-3xl bg-gradient-to-br from-indigo-50 via-violet-50 to-blue-50 p-4">
-          <div className="mb-3 grid h-9 w-9 place-items-center rounded-2xl bg-white text-accent shadow-sm">
+        <Navigation active={activeView} collapsed={sidebarCollapsed} onNavigate={onNavigate} />
+
+        <div className={`mt-auto bg-gradient-to-br from-indigo-50 via-violet-50 to-blue-50 ${sidebarCollapsed ? "rounded-xl p-2.5" : "rounded-2xl p-4"}`}>
+          <div className={`${sidebarCollapsed ? "mx-auto" : "mb-3"} grid h-9 w-9 place-items-center rounded-xl bg-white text-accent shadow-sm`}>
             <Icon name="shield" className="h-4 w-4" />
           </div>
-          <p className="text-sm font-semibold text-ink">Your numbers stay explainable</p>
-          <p className="mt-1 text-xs leading-relaxed text-ink-secondary">
-            AI explains assumptions. Portfolio impact is calculated by the risk engine.
-          </p>
+          {!sidebarCollapsed && (
+            <>
+              <p className="text-sm font-semibold text-ink">Your numbers stay explainable</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-secondary">
+                AI explains assumptions. Portfolio impact is calculated by the risk engine.
+              </p>
+            </>
+          )}
         </div>
       </aside>
 
-      <div className="min-h-screen lg:pl-64 print:pl-0">
+      <div className={`min-h-screen transition-[padding] duration-300 ease-out ${sidebarCollapsed ? "lg:pl-20" : "lg:pl-64"} print:pl-0`}>
         <header className="sticky top-0 z-20 border-b border-line/80 bg-surface/90 backdrop-blur-xl print:hidden">
           <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-4 sm:px-8">
             <div className="flex min-w-0 items-center gap-3">
@@ -239,7 +308,7 @@ export function AppShell({
         </main>
 
         <footer className="border-t border-line px-4 py-5 text-xs leading-relaxed text-ink-tertiary sm:px-8 lg:px-10 print:hidden">
-          Estimates are scenario-based, not forecasts. Risk Copilot does not provide investment
+          Estimates are scenario-based, not forecasts. Shock Lens does not provide investment
           advice and does not execute trades.
         </footer>
       </div>

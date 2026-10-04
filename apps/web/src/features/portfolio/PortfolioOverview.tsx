@@ -10,6 +10,7 @@ import { HeroSummary } from "./HeroSummary";
 import { HoldingsTable } from "./HoldingsTable";
 import { PerformanceChart } from "./PerformanceChart";
 import { PortfolioSummary } from "./PortfolioSummary";
+import { PortfolioImporter } from "./PortfolioImporter";
 import { PerformanceAttribution } from "./PerformanceAttribution";
 import { RiskSummaryPanel } from "./RiskSummaryPanel";
 import { ScenarioExposureChart } from "./ScenarioExposureChart";
@@ -40,6 +41,7 @@ export function PortfolioOverview({
   onSeeRisks,
   onWeightChange,
   onResetPortfolio,
+  onImportPortfolio,
   showHero = true,
 }: {
   portfolio: Portfolio;
@@ -48,6 +50,7 @@ export function PortfolioOverview({
   onSeeRisks: () => void;
   onWeightChange?: (symbol: string, weight: number) => void;
   onResetPortfolio?: () => void;
+  onImportPortfolio?: (portfolio: Portfolio) => void;
   showHero?: boolean;
 }) {
   const assets = useAssets();
@@ -90,15 +93,20 @@ export function PortfolioOverview({
               Weights sum to {formatPercent(totalWeight, 1)}
               {!weightsValid && " — adjust to 100% before running a stress test"}
             </span>
-            {onResetPortfolio && (
-              <button
-                type="button"
-                onClick={onResetPortfolio}
-                className="rounded-xl border border-line-strong px-3 py-1.5 text-xs font-medium text-ink-secondary transition-colors hover:border-accent hover:text-accent-strong"
-              >
-                Reset demo portfolio
-              </button>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {onImportPortfolio && (
+                <PortfolioImporter portfolio={portfolio} assets={assets} onImport={onImportPortfolio} />
+              )}
+              {onResetPortfolio && (
+                <button
+                  type="button"
+                  onClick={onResetPortfolio}
+                  className="rounded-lg border border-line-strong px-3 py-1.5 text-xs font-medium text-ink-secondary transition-colors hover:border-accent hover:text-accent-strong"
+                >
+                  Reset demo portfolio
+                </button>
+              )}
+            </div>
           </div>
         )}
         <HoldingsTable
