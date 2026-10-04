@@ -66,6 +66,13 @@ def _post_with_retries(settings: Settings, headers: dict, body: dict) -> httpx.R
                 "Could not reach OpenRouter — check your connection (or HTTPS_PROXY) "
                 "and try again."
             ) from exc
+        except Exception as exc:
+            # Any other transport/proxy failure must still degrade gracefully:
+            # callers only catch AIProviderUnavailableError.
+            logger.warning("Unexpected OpenRouter request error: %s", exc)
+            raise AIProviderUnavailableError(
+                "OpenRouter request failed unexpectedly. Try again."
+            ) from exc
         if response.status_code in _RETRYABLE_STATUS and attempt < len(_RETRY_DELAYS_SECONDS):
             time.sleep(_RETRY_DELAYS_SECONDS[attempt])
             continue
