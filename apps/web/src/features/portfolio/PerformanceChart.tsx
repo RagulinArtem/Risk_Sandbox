@@ -64,7 +64,7 @@ function SegmentedControl<T extends string>({
           type="button"
           aria-pressed={o.id === value}
           onClick={() => onChange(o.id)}
-          className={`px-2.5 py-1 font-mono text-[11px] transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent ${
+          className={`px-2.5 py-1 font-mono text-xs transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:outline-accent ${
             o.id === value
               ? "bg-accent/15 text-accent-strong"
               : "text-ink-tertiary hover:text-ink-secondary"
@@ -252,7 +252,7 @@ export function PerformanceChart({
 
       {mode === "compare" && (
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2 py-1 font-mono text-[11px] text-ink">
+          <span className="inline-flex items-center gap-1.5 px-2 py-1 font-mono text-xs text-ink">
             <span className="h-0.5 w-3 bg-ink" />
             Portfolio {formatSignedPercent(change)}
           </span>
@@ -271,7 +271,7 @@ export function PerformanceChart({
                     return next;
                   })
                 }
-                className={`inline-flex items-center gap-1.5 border px-2 py-1 font-mono text-[11px] transition-opacity ${
+                className={`inline-flex items-center gap-1.5 border px-2 py-1 font-mono text-xs transition-opacity ${
                   off ? "border-line opacity-40" : "border-line-strong"
                 }`}
               >
@@ -286,7 +286,7 @@ export function PerformanceChart({
         </div>
       )}
 
-      <p className="text-[11px] leading-relaxed text-ink-tertiary">
+      <p className="text-xs leading-relaxed text-ink-tertiary">
         Real prices from{" "}
         <a
           href={history.source_url}

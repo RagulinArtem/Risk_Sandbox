@@ -15,7 +15,7 @@ export function StressTestResult({
   return (
     <div className="space-y-8">
       <div>
-        <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           {scenarioTitle ?? result.scenario_title} · Estimated Stress Impact
         </div>
         <div
@@ -31,7 +31,7 @@ export function StressTestResult({
 
         <div className="mt-5 flex flex-wrap gap-x-10 gap-y-3 border-t border-line pt-4">
           <div>
-            <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Initial Value
             </div>
             <div className="mt-1 font-mono text-lg text-ink">
@@ -39,7 +39,7 @@ export function StressTestResult({
             </div>
           </div>
           <div>
-            <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               Stressed Portfolio Value
             </div>
             <div className="mt-1 font-mono text-lg text-ink">
@@ -48,7 +48,7 @@ export function StressTestResult({
           </div>
           {result.biggest_negative_contributor && (
             <div>
-              <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+              <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
                 Largest Downside Contributor
               </div>
               <div className="mt-1 font-mono text-lg text-risk-negative-strong">
@@ -61,7 +61,7 @@ export function StressTestResult({
       </div>
 
       <div>
-        <div className="mb-3 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+        <div className="mb-3 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
           Contribution by Holding
         </div>
         <ContributionChart assetImpacts={result.asset_impacts} />

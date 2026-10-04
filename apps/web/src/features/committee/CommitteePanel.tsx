@@ -19,7 +19,7 @@ const CONFIDENCE_STYLE: Record<Confidence, string> = {
 
 function ModelChip({ model }: { model: string }) {
   return (
-    <span className="inline-block max-w-full truncate border border-line-strong px-1.5 py-0.5 font-mono text-[10px] text-ink-secondary">
+    <span className="inline-block max-w-full truncate border border-line-strong px-1.5 py-0.5 font-mono text-[11px] text-ink-secondary">
       {model.replace(/^~/, "")}
     </span>
   );
@@ -27,7 +27,7 @@ function ModelChip({ model }: { model: string }) {
 
 function ConfidenceBadge({ value }: { value: Confidence }) {
   return (
-    <span className={`border px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${CONFIDENCE_STYLE[value]}`}>
+    <span className={`border px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wider ${CONFIDENCE_STYLE[value]}`}>
       {value} confidence
     </span>
   );
@@ -35,7 +35,7 @@ function ConfidenceBadge({ value }: { value: Confidence }) {
 
 function Thinking({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+    <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-accent motion-reduce:animate-none" />
       {label}
     </div>
@@ -51,7 +51,7 @@ function Elapsed({ since, running }: { since: number | null; running: boolean })
   }, [running]);
   if (!since) return null;
   return (
-    <span className="font-mono text-[11px] tabular-nums text-ink-tertiary">
+    <span className="font-mono text-xs tabular-nums text-ink-tertiary">
       {(Math.max(0, now - since) / 1000).toFixed(1)}s
     </span>
   );
@@ -89,7 +89,7 @@ function AnalystCard({ member, seat }: { member: CommitteeMember; seat: SeatStat
           <ShockList shocks={seat.view.asset_shocks} />
           {seat.view.analogues.length > 0 && (
             <div className="space-y-1">
-              <div className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+              <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                 Anchored on (real episodes)
               </div>
               {seat.view.analogues.map((a) => (
@@ -107,7 +107,7 @@ function AnalystCard({ member, seat }: { member: CommitteeMember; seat: SeatStat
           )}
           <div className="mt-auto flex items-center justify-between gap-2">
             <ConfidenceBadge value={seat.view.confidence} />
-            <span className="font-mono text-[10px] text-ink-tertiary">
+            <span className="font-mono text-[11px] text-ink-tertiary">
               {(seat.view.latency_ms / 1000).toFixed(1)}s
             </span>
           </div>
@@ -147,7 +147,7 @@ function RangeTable({ verdict, colors }: { verdict: CommitteeVerdict; colors: Re
   return (
     <table className="w-full text-xs">
       <thead>
-        <tr className="font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+        <tr className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
           <th className="pb-1 text-left font-normal">Asset</th>
           <th className="pb-1 text-right font-normal">Analysts</th>
           <th className="pb-1 text-right font-normal">Consensus</th>
@@ -221,16 +221,16 @@ function ChairCard({
 
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="min-w-0 space-y-3">
-              <h4 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+              <h4 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
                 Portfolio impact by model
               </h4>
               <ImpactSpread verdict={chair.verdict} />
-              <p className="text-[11px] text-ink-tertiary">
+              <p className="text-xs text-ink-tertiary">
                 Each model&apos;s shocks run through the same deterministic stress engine.
               </p>
             </section>
             <section className="min-w-0 space-y-3">
-              <h4 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+              <h4 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
                 Shock range across analysts
               </h4>
               <RangeTable verdict={chair.verdict} colors={holdingColors(portfolio.positions)} />
@@ -239,13 +239,13 @@ function ChairCard({
 
           {chair.verdict.historical.length > 0 && (
             <section className="space-y-3">
-              <h4 className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+              <h4 className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
                 How this portfolio fared in similar real episodes
               </h4>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[560px] text-sm">
                   <thead>
-                    <tr className="border-b border-line font-mono text-[10px] uppercase tracking-wider text-ink-tertiary">
+                    <tr className="border-b border-line font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
                       <th className="py-1.5 pr-4 text-left font-normal">Episode</th>
                       <th className="py-1.5 pr-4 text-right font-normal">This portfolio</th>
                       <th className="py-1.5 text-left font-normal">Why it&apos;s similar / how today differs</th>
@@ -256,13 +256,13 @@ function ChairCard({
                       <tr key={h.id} className="border-b border-line align-top last:border-b-0">
                         <td className="py-2 pr-4">
                           <div className="text-ink">{h.title}</div>
-                          <div className="font-mono text-[10px] text-ink-tertiary">{h.window}</div>
+                          <div className="font-mono text-[11px] text-ink-tertiary">{h.window}</div>
                         </td>
                         <td className="py-2 pr-4 text-right font-mono tabular-nums">
                           <span className={h.impact_pct < 0 ? "text-risk-negative-strong" : "text-risk-positive"}>
                             {formatSignedPercent(h.impact_pct)}
                           </span>
-                          <div className="text-[10px] text-ink-tertiary">{formatSignedCurrency(h.impact_value)}</div>
+                          <div className="text-[11px] text-ink-tertiary">{formatSignedCurrency(h.impact_value)}</div>
                         </td>
                         <td className="py-2 text-xs leading-relaxed text-ink-secondary">
                           {h.why} <span className="text-ink-tertiary">Today: {h.difference}</span>
@@ -272,7 +272,7 @@ function ChairCard({
                   </tbody>
                 </table>
               </div>
-              <p className="text-[11px] text-ink-tertiary">
+              <p className="text-xs text-ink-tertiary">
                 Impacts replay each episode&apos;s real asset returns (Yahoo Finance) on today&apos;s
                 weights through the same engine. The comparison text is the chair&apos;s interpretation.
               </p>
@@ -286,7 +286,7 @@ function ChairCard({
               { title: "Signals to watch", items: chair.verdict.watch },
             ].map((block) => (
               <section key={block.title} className="min-w-0">
-                <h4 className="mb-2 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+                <h4 className="mb-2 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
                   {block.title}
                 </h4>
                 <ul className="space-y-2 text-sm leading-relaxed text-ink-secondary">
@@ -340,7 +340,7 @@ export function CommitteePanel({
     <section className="space-y-4 border-t border-line pt-8" aria-label="AI Risk Committee">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-2xl">
-          <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+          <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
             Multi-model analysis
           </div>
           <h2 className="text-lg font-semibold text-ink">AI Risk Committee</h2>

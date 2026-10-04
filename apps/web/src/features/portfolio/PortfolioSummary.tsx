@@ -39,13 +39,13 @@ export function PortfolioSummary({
 
   return (
     <div>
-      <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+      <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
         {portfolio.name}
       </div>
       <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
         {stats.map((stat) => (
           <div key={stat.label} className="min-w-0">
-            <div className="font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <div className="font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               {stat.label}
             </div>
             <div

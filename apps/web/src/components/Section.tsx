@@ -16,7 +16,7 @@ export function Section({
       <div className="mb-4 flex items-baseline justify-between gap-4">
         <div>
           {eyebrow && (
-            <div className="mb-1 font-mono text-[11px] uppercase tracking-wider text-ink-tertiary">
+            <div className="mb-1 font-mono text-xs uppercase tracking-wider text-ink-tertiary">
               {eyebrow}
             </div>
           )}
