@@ -31,7 +31,12 @@ sudo usermod -aG docker "$USER"
 That's it — the deploy workflow handles cloning the repo and starting the
 containers. Make sure these are open in the VM's firewall/security group:
 
-- **Port 80** — the frontend (nginx)
+- **Port 8080** (default — set by `WEB_PORT`) — the frontend (nginx). The
+  frontend container binds to a host port other than 80 by default so it
+  doesn't collide with an existing web server/reverse proxy already using
+  80 on the VM. Set the `WEB_PORT` GitHub Variable to `80` if you've
+  confirmed nothing else is bound to it (`sudo ss -tlnp | grep ':80 '` on
+  the server).
 - **Port 8000** — the backend API (the frontend calls it directly by
   absolute URL from the browser, not proxied through nginx — see
   `apps/web/src/lib/apiClient.ts`)
@@ -66,6 +71,7 @@ GitHub UI — never paste them into a chat or commit them to the repo.
 | `ENABLE_POLYMARKET` | `true` | Off by default |
 | `ENABLE_NEWS` | `false` | Not implemented yet — leave false |
 | `API_PORT` | `8000` | Only if you need a non-default port |
+| `WEB_PORT` | `8080` | Host port the frontend container binds to. Defaults to 8080 to avoid colliding with an existing service on port 80 — set to `80` once you've confirmed it's free. |
 
 ### Using password auth instead of a key
 

@@ -30,6 +30,7 @@ jobs:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           FRONTEND_ORIGIN: ${{ vars.FRONTEND_ORIGIN }}
           API_PORT: ${{ vars.API_PORT || '8000' }}
+          WEB_PORT: ${{ vars.WEB_PORT || '8080' }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || 'anthropic/claude-3.5-haiku' }}
         with:
@@ -38,7 +39,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           password: ${{ secrets.SSH_PASSWORD }}
           port: ${{ secrets.SSH_PORT || 22 }}
-          envs: DEPLOY_REF,AI_PROVIDER,ENABLE_POLYMARKET,ENABLE_NEWS,VITE_API_BASE_URL,FRONTEND_ORIGIN,API_PORT,OPENROUTER_API_KEY,OPENROUTER_MODEL
+          envs: DEPLOY_REF,AI_PROVIDER,ENABLE_POLYMARKET,ENABLE_NEWS,VITE_API_BASE_URL,FRONTEND_ORIGIN,API_PORT,WEB_PORT,OPENROUTER_API_KEY,OPENROUTER_MODEL
           script: |
             set -euo pipefail
 
@@ -66,6 +67,7 @@ jobs:
             APP_ENV=production
             API_HOST=0.0.0.0
             API_PORT=${API_PORT}
+            WEB_PORT=${WEB_PORT}
             VITE_API_BASE_URL=${VITE_API_BASE_URL}
             FRONTEND_ORIGIN=${FRONTEND_ORIGIN}
             AI_PROVIDER=${AI_PROVIDER}
