@@ -224,6 +224,7 @@ class MarketService:
             f"{self._settings.polymarket_gamma_url}/markets",
             params={"id": market_id},
             timeout=REQUEST_TIMEOUT_SECONDS,
+            proxy=self._settings.https_proxy or None,
         )
         response.raise_for_status()
         data = response.json()
@@ -245,6 +246,7 @@ class MarketService:
             f"{self._settings.polymarket_clob_url}/prices-history",
             params={"market": token_id, "interval": interval, "fidelity": HISTORY_FIDELITY_MINUTES},
             timeout=REQUEST_TIMEOUT_SECONDS,
+            proxy=self._settings.https_proxy or None,
         )
         response.raise_for_status()
         payload = response.json()
@@ -383,7 +385,9 @@ class MarketService:
         path = self._cache_path(name)
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(payload, indent=2))
+            tmp_path = path.with_name(f".{path.name}.tmp")
+            tmp_path.write_text(json.dumps(payload, indent=2))
+            tmp_path.replace(path)
         except OSError as exc:
             logger.warning("Could not write cache file %s: %s", path, exc)
 

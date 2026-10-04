@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from app.core.config import Settings
 from app.integrations.risk_sources.polymarket import (
     PolymarketFetchError,
     PolymarketRiskSource,
@@ -112,3 +113,23 @@ def test_non_list_response_raises():
     with patch("httpx.get", return_value=bad_response):
         with pytest.raises(PolymarketFetchError):
             source.get_risk_signals()
+
+
+def test_fetch_uses_volume_ordering_and_proxy():
+    settings = Settings(enable_polymarket=True, https_proxy="http://proxy:8888")
+    source = PolymarketRiskSource(settings)
+    with patch("httpx.get", return_value=_mock_response([])) as mock_get:
+        source.get_risk_signals()
+    params = mock_get.call_args.kwargs["params"]
+    assert params["order"] == "volume24hr"
+    assert params["ascending"] == "false"
+    assert params["limit"] == 100
+    assert mock_get.call_args.kwargs["proxy"] == "http://proxy:8888"
+
+
+def test_multi_outcome_market_without_an_explicit_yes_is_skipped():
+    market = _market("Will oil spike this quarter?")
+    market["outcomes"] = json.dumps(["High", "Low"])
+    market["outcomePrices"] = json.dumps(["0.7", "0.3"])
+    with patch("httpx.get", return_value=_mock_response([market])):
+        assert PolymarketRiskSource().get_risk_signals() == []

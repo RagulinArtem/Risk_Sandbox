@@ -117,6 +117,6 @@ def get_risk_radar_service() -> RiskRadarService:
 
     sources: list[RiskSource] = [LocalRiskSource(scenario_service)]
     if settings.enable_polymarket:
-        sources.append(PolymarketRiskSource())
+        sources.append(PolymarketRiskSource(settings))
 
     return RiskRadarService(sources=sources, scenario_service=scenario_service)

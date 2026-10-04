@@ -1,6 +1,6 @@
 import json
 from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -292,3 +292,17 @@ def test_context_signal_shapes_a_cached_snapshot(tmp_path):
     assert signal.probability == 0.0225
     assert signal.source_status == "cached"
     assert signal.source_url.endswith("will-china-invade-taiwan-before-2027")
+
+
+def test_market_fetch_uses_proxy(tmp_path):
+    settings = Settings(enable_polymarket=True, demo_mode=False, cache_dir=tmp_path,
+                        https_proxy="http://proxy:8888")
+    gamma = MagicMock()
+    gamma.raise_for_status = lambda: None
+    gamma.json = lambda: [{"question": "Q", "outcomes": '["Yes","No"]', "outcomePrices": '["0.5","0.5"]'}]
+    clob = MagicMock()
+    clob.raise_for_status = lambda: None
+    clob.json = lambda: {"history": [{"t": 1, "p": 0.5}, {"t": 2, "p": 0.5}]}
+    with patch("httpx.get", side_effect=[gamma, clob]) as mock_get:
+        MarketService(settings).get_tracked_markets()
+    assert all(call.kwargs["proxy"] == "http://proxy:8888" for call in mock_get.call_args_list)
